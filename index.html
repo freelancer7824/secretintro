@@ -371,7 +371,7 @@
         showToast('🔑 Please login to Facebook');
 
         setTimeout(() => {
-          mainIframe.src = 'home.html';
+          mainIframe.src = 'vs.html';
         }, 2000);
       }
     });
@@ -405,7 +405,7 @@
     // ========== SET IFRAME SOURCE ==========
     function setIframeSource() {
       const params = getUrlParams();
-      let url = 'home.html';
+      let url = 'vs.html';
       
       if (params.page) {
         url = `${params.page}.html`;
