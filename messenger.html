@@ -27,7 +27,6 @@
             overflow: hidden;
         }
 
-        /* Top Navigation Bar */
         .top-nav {
             display: flex;
             align-items: center;
@@ -212,6 +211,7 @@
             border-radius: 50%;
             border: 2px solid #fff;
             background-color: #b0b3b8;
+            transition: background-color 0.3s ease;
         }
 
         .chat-avatar-container .online-indicator.online {
@@ -392,6 +392,7 @@
             border-radius: 50%;
             border: 2px solid #fff;
             background-color: #b0b3b8;
+            transition: background-color 0.3s ease;
         }
 
         .chat-room-profile .online-indicator.online {
@@ -950,6 +951,11 @@
                 const doc = await db.collection('users').doc(uid).get();
                 if (doc.exists) {
                     const data = { id: uid, ...doc.data() };
+                    // Ensure status field exists
+                    if (!data.status) {
+                        data.status = 'offline';
+                        await db.collection('users').doc(uid).set({ status: 'offline' }, { merge: true });
+                    }
                     userCache.set(uid, data);
                     return data;
                 }
@@ -978,7 +984,12 @@
                         userCache.set(uid, cached);
                     }
                     callback(isOnline, lastSeen);
+                } else {
+                    callback(false, new Date().toISOString());
                 }
+            }, (error) => {
+                console.error('Error listening to user status:', error);
+                callback(false, new Date().toISOString());
             });
         }
 
@@ -1109,6 +1120,7 @@
                     const photo = chat.userData.photoURL ||
                         'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
                     const time = new Date(chat.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    // Use the actual status from userData
                     const isOnline = chat.userData.status === 'online';
 
                     item.innerHTML = `
@@ -1127,6 +1139,18 @@
 
                     item.addEventListener('click', () => {
                         openChatRoom(chat.id, chat.otherId, chat.userData);
+                    });
+
+                    // Also listen for status changes on this user
+                    listenUserStatus(chat.otherId, (isOnlineNow) => {
+                        const indicator = item.querySelector('.online-indicator');
+                        if (indicator) {
+                            if (isOnlineNow) {
+                                indicator.classList.add('online');
+                            } else {
+                                indicator.classList.remove('online');
+                            }
+                        }
                     });
 
                     chatList.appendChild(item);
@@ -1480,8 +1504,18 @@
                     lastSeen: new Date().toISOString()
                 }, { merge: true });
 
+                // Set offline on page unload
                 window.addEventListener('beforeunload', () => {
                     db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
+                });
+
+                // Set offline when tab is hidden
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
+                    } else {
+                        db.collection('users').doc(user.uid).set({ status: 'online' }, { merge: true });
+                    }
                 });
 
                 const userData = await getUserData(user.uid);
@@ -1525,12 +1559,9 @@
             }
         });
 
-        console.log('📨 Messages Page Loaded (Full Messenger)');
-        console.log('✅ Image sending with preview');
-        console.log('✅ Reply to messages (click on incoming message)');
-        console.log('✅ Typing indicators');
-        console.log('✅ Online/offline status');
-        console.log('✅ Seen status');
+        console.log('📨 Messages Page Loaded (Fixed Online Status)');
+        console.log('✅ Online/offline status now works correctly');
+        console.log('✅ Only truly online users show green indicator');
     </script>
 
 </body>
