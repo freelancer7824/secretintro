@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up | Facebook</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .signup-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .signup-header .logo {
+            color: #1877f2;
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+        }
+
+        .signup-header h2 {
+            font-size: 24px;
+            color: #1c1e21;
+            font-weight: 600;
+        }
+
+        .signup-header p {
+            color: #606770;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1c1e21;
+            margin-bottom: 5px;
+        }
+
+        .form-group label .required {
+            color: #e41e3f;
+            margin-left: 2px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+            background: #fafafa;
+            color: #1c1e21;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px #e7f3ff;
+            background: #fff;
+        }
+
+        .form-group input::placeholder {
+            color: #90949c;
+            font-size: 15px;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23606770' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            cursor: pointer;
+        }
+
+        .form-group select option {
+            padding: 10px;
+        }
+
+        .date-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .date-row .form-group {
+            flex: 1;
+        }
+
+        .date-row .form-group select {
+            padding: 12px 10px;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #606770;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .helper-text a {
+            color: #1877f2;
+            text-decoration: none;
+        }
+
+        .helper-text a:hover {
+            text-decoration: underline;
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 14px;
+            background: #42b72a;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+
+        .signup-btn:hover {
+            background: #36a420;
+        }
+
+        .signup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dadde1;
+        }
+
+        .login-link a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .login-link p {
+            color: #606770;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .error-message {
+            color: #e41e3f;
+            font-size: 13px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            color: #42b72a;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            background: #f0fff0;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .toast-msg {
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .password-strength {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .password-strength .bar {
+            flex: 1;
+            height: 4px;
+            background: #e4e6eb;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .password-strength .bar.active.weak {
+            background: #e41e3f;
+        }
+
+        .password-strength .bar.active.medium {
+            background: #f7b731;
+        }
+
+        .password-strength .bar.active.strong {
+            background: #42b72a;
+        }
+
+        .password-strength-text {
+            font-size: 12px;
+            color: #606770;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 500px) {
+            .signup-container {
+                padding: 24px 16px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .date-row {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast-msg"></div>
+
+    <div class="signup-container">
+        <div class="signup-header">
+            <div class="logo">facebook</div>
+            <h2>Create a new account</h2>
+            <p>It's quick and easy.</p>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="success-message">
+            <i class="fa-solid fa-check-circle"></i> Account created successfully! Redirecting...
+        </div>
+
+        <form id="signup-form" autocomplete="off">
+            <!-- First Name & Last Name -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" id="first-name" placeholder="First name" required />
+                    <div class="error-message" id="first-name-error">Please enter your first name</div>
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" id="last-name" placeholder="Last name" required />
+                    <div class="error-message" id="last-name-error">Please enter your last name</div>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label>Email address <span class="required">*</span></label>
+                <input type="email" id="email" placeholder="Enter your email address" required />
+                <div class="error-message" id="email-error">Please enter a valid email address</div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="phone" placeholder="Enter your phone number (optional)" />
+                <div class="error-message" id="phone-error">Please enter a valid phone number</div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label>Password <span class="required">*</span></label>
+                <input type="password" id="password" placeholder="Enter a strong password" required minlength="6" />
+                <div class="error-message" id="password-error">Password must be at least 6 characters</div>
+                <div class="password-strength" id="password-strength">
+                    <div class="bar" id="strength-1"></div>
+                    <div class="bar" id="strength-2"></div>
+                    <div class="bar" id="strength-3"></div>
+                    <div class="bar" id="strength-4"></div>
+                </div>
+                <div class="password-strength-text" id="strength-text"></div>
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="form-group">
+                <label>Date of Birth <span class="required">*</span></label>
+                <div class="date-row">
+                    <div class="form-group">
+                        <select id="dob-month" required>
+                            <option value="">Month</option>
+                            <option value="1">Jan</option>
+                            <option value="2">Feb</option>
+                            <option value="3">Mar</option>
+                            <option value="4">Apr</option>
+                            <option value="5">May</option>
+                            <option value="6">Jun</option>
+                            <option value="7">Jul</option>
+                            <option value="8">Aug</option>
+                            <option value="9">Sep</option>
+                            <option value="10">Oct</option>
+                            <option value="11">Nov</option>
+                            <option value="12">Dec</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="dob-day" required>
+                            <option value="">Day</option>
+                            <script>
+                                for (let i = 1; i <= 31; i++) {
+                                    document.write(`<option value="${i}">${i}</option>`);
+                                }
+                            </script>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="dob-year" required>
+                            <option value="">Year</option>
+                            <script>
+                                const currentYear = new Date().getFullYear();
+                                for (let i = currentYear; i >= 1900; i--) {
+                                    document.write(`<option value="${i}">${i}</option>`);
+                                }
+                            </script>
+                        </select>
+                    </div>
+                </div>
+                <div class="error-message" id="dob-error">Please select your date of birth</div>
+            </div>
+
+            <!-- Address -->
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" id="address" placeholder="Enter your address (optional)" />
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+                <label>Gender <span class="required">*</span></label>
+                <select id="gender" required>
+                    <option value="">Select your gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+                <div class="error-message" id="gender-error">Please select your gender</div>
+            </div>
+
+            <div class="helper-text">
+                By clicking Sign Up, you agree to our <a href="#">Terms</a>, 
+                <a href="#">Privacy Policy</a> and <a href="#">Cookies Policy</a>. 
+                You may receive SMS notifications from us and can opt out at any time.
+            </div>
+
+            <button type="submit" class="signup-btn" id="signup-btn">
+                <i class="fa-solid fa-user-plus"></i> Sign Up
+            </button>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account?</p>
+            <a href="index.html"><i class="fa-solid fa-arrow-right"></i> Log in to Facebook</a>
+        </div>
+    </div>
+
+    <script>
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== DOM REFS ==========
+        const form = document.getElementById('signup-form');
+        const firstName = document.getElementById('first-name');
+        const lastName = document.getElementById('last-name');
+        const email = document.getElementById('email');
+        const phone = document.getElementById('phone');
+        const password = document.getElementById('password');
+        const dobMonth = document.getElementById('dob-month');
+        const dobDay = document.getElementById('dob-day');
+        const dobYear = document.getElementById('dob-year');
+        const address = document.getElementById('address');
+        const gender = document.getElementById('gender');
+        const signupBtn = document.getElementById('signup-btn');
+        const successMessage = document.getElementById('success-message');
+        const toast = document.getElementById('toast');
+
+        // Error elements
+        const firstNameError = document.getElementById('first-name-error');
+        const lastNameError = document.getElementById('last-name-error');
+        const emailError = document.getElementById('email-error');
+        const phoneError = document.getElementById('phone-error');
+        const passwordError = document.getElementById('password-error');
+        const dobError = document.getElementById('dob-error');
+        const genderError = document.getElementById('gender-error');
+
+        // Password strength
+        const strengthBars = [
+            document.getElementById('strength-1'),
+            document.getElementById('strength-2'),
+            document.getElementById('strength-3'),
+            document.getElementById('strength-4')
+        ];
+        const strengthText = document.getElementById('strength-text');
+
+        // ========== TOAST ==========
+        let toastTimer;
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ========== PASSWORD STRENGTH ==========
+        password.addEventListener('input', function() {
+            const val = this.value;
+            let strength = 0;
+
+            if (val.length >= 6) strength++;
+            if (val.length >= 10) strength++;
+            if (/[a-z]/.test(val) && /[A-Z]/.test(val)) strength++;
+            if (/[0-9]/.test(val) || /[^a-zA-Z0-9]/.test(val)) strength++;
+
+            const levels = ['', 'Weak', 'Medium', 'Strong', 'Very Strong'];
+            const colors = ['', 'weak', 'medium', 'strong', 'strong'];
+
+            strengthBars.forEach((bar, index) => {
+                bar.className = 'bar';
+                if (index < strength) {
+                    bar.classList.add('active', colors[strength]);
+                }
+            });
+
+            if (val.length === 0) {
+                strengthText.textContent = '';
+            } else if (strength <= 1) {
+                strengthText.textContent = 'Weak - Add more characters, numbers, and uppercase letters';
+                strengthText.style.color = '#e41e3f';
+            } else if (strength === 2) {
+                strengthText.textContent = 'Medium - Add numbers and special characters for stronger password';
+                strengthText.style.color = '#f7b731';
+            } else if (strength === 3) {
+                strengthText.textContent = 'Strong - Good password!';
+                strengthText.style.color = '#42b72a';
+            } else {
+                strengthText.textContent = 'Very Strong - Excellent password!';
+                strengthText.style.color = '#42b72a';
+            }
+        });
+
+        // ========== VALIDATION ==========
+        function validateField(input, errorEl, condition, message) {
+            if (!condition) {
+                errorEl.textContent = message;
+                errorEl.classList.add('show');
+                return false;
+            }
+            errorEl.classList.remove('show');
+            return true;
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            // First Name
+            isValid &= validateField(firstName, firstNameError, 
+                firstName.value.trim().length >= 2, 
+                'First name must be at least 2 characters'
+            );
+
+            // Last Name
+            isValid &= validateField(lastName, lastNameError,
+                lastName.value.trim().length >= 2,
+                'Last name must be at least 2 characters'
+            );
+
+            // Email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            isValid &= validateField(email, emailError,
+                emailRegex.test(email.value.trim()),
+                'Please enter a valid email address'
+            );
+
+            // Phone (optional but validate if filled)
+            if (phone.value.trim()) {
+                const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
+                isValid &= validateField(phone, phoneError,
+                    phoneRegex.test(phone.value.trim()),
+                    'Please enter a valid phone number'
+                );
+            } else {
+                phoneError.classList.remove('show');
+            }
+
+            // Password
+            isValid &= validateField(password, passwordError,
+                password.value.length >= 6,
+                'Password must be at least 6 characters'
+            );
+
+            // Date of Birth
+            isValid &= validateField(dobMonth, dobError,
+                dobMonth.value !== '',
+                'Please select your birth month'
+            );
+            isValid &= validateField(dobDay, dobError,
+                dobDay.value !== '',
+                'Please select your birth day'
+            );
+            isValid &= validateField(dobYear, dobError,
+                dobYear.value !== '',
+                'Please select your birth year'
+            );
+
+            // Gender
+            isValid &= validateField(gender, genderError,
+                gender.value !== '',
+                'Please select your gender'
+            );
+
+            return isValid;
+        }
+
+        // ========== SIGNUP FUNCTION ==========
+        async function signupUser(e) {
+            e.preventDefault();
+
+            if (!validateForm()) {
+                showToast('Please fix all errors before continuing');
+                return;
+            }
+
+            const emailVal = email.value.trim();
+            const passwordVal = password.value;
+            const firstNameVal = firstName.value.trim();
+            const lastNameVal = lastName.value.trim();
+            const phoneVal = phone.value.trim() || '';
+            const addressVal = address.value.trim() || '';
+            const genderVal = gender.value;
+            const dobVal = `${dobMonth.value}/${dobDay.value}/${dobYear.value}`;
+
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = '<span class="spinner"></span> Creating Account...';
+
+            try {
+                // Create user with email and password
+                const userCredential = await auth.createUserWithEmailAndPassword(emailVal, passwordVal);
+                const user = userCredential.user;
+
+                // Update user profile with display name
+                await user.updateProfile({
+                    displayName: `${firstNameVal} ${lastNameVal}`
+                });
+
+                // Save additional user data to Firestore
+                await db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    firstName: firstNameVal,
+                    lastName: lastNameVal,
+                    fullName: `${firstNameVal} ${lastNameVal}`,
+                    email: emailVal,
+                    phone: phoneVal,
+                    address: addressVal,
+                    gender: genderVal,
+                    dateOfBirth: dobVal,
+                    createdAt: new Date().toISOString(),
+                    photoURL: user.photoURL || '',
+                    emailVerified: user.emailVerified || false
+                });
+
+                // Show success
+                successMessage.classList.add('show');
+                successMessage.innerHTML = '<i class="fa-solid fa-check-circle"></i> Account created successfully! Redirecting...';
+                showToast('Account created successfully!');
+
+                // Redirect to main page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                let errorMessage = 'Signup failed. Please try again.';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'This email is already registered. Please use a different email or login.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Password is too weak. Please use at least 6 characters.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Invalid email address. Please check and try again.';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+                        break;
+                    default:
+                        errorMessage = error.message;
+                }
+                
+                showToast('Error: ' + errorMessage);
+                signupBtn.disabled = false;
+                signupBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Sign Up';
+            }
+        }
+
+        // ========== EVENT LISTENERS ==========
+        form.addEventListener('submit', signupUser);
+
+        // Real-time validation on input
+        firstName.addEventListener('input', () => {
+            if (firstName.value.trim().length >= 2) {
+                firstNameError.classList.remove('show');
+            }
+        });
+
+        lastName.addEventListener('input', () => {
+            if (lastName.value.trim().length >= 2) {
+                lastNameError.classList.remove('show');
+            }
+        });
+
+        email.addEventListener('input', () => {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (emailRegex.test(email.value.trim())) {
+                emailError.classList.remove('show');
+            }
+        });
+
+        password.addEventListener('input', () => {
+            if (password.value.length >= 6) {
+                passwordError.classList.remove('show');
+            }
+        });
+
+        // Check if already logged in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Already logged in, redirect to main page
+                window.location.href = 'index.html';
+            }
+        });
+
+        console.log('🔥 Facebook Signup Page Ready!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body class="bg-[#f0f2f5] text-black antialiased max-w-md mx-auto min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Header Title Bar -->
+    <header class="bg-white sticky top-0 z-45 shadow-sm">
+        <div id="default-header" class="flex items-center justify-between px-4 py-3 transition-all duration-200">
+            <div class="flex items-center space-x-3">
+                <button onclick="history.back()" class="text-xl font-bold text-gray-800"><i class="fa-solid fa-arrow-left"></i></button>
+                <h1 class="text-2xl font-bold tracking-tight text-black">Notifications</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="markAllAsRead()" class="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-lg transition" title="Mark all as read">
+                    <i class="fa-solid fa-check"></i>
+                </button>
+                <button onclick="toggleSearch()" class="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-lg transition" title="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar Overlay (Hidden by default) -->
+        <div id="search-header" class="hidden items-center px-4 py-2.5 bg-white space-x-3 border-b">
+            <button onclick="toggleSearch()" class="text-gray-600 text-lg"><i class="fa-solid fa-arrow-left"></i></button>
+            <input type="text" id="searchInput" onkeyup="filterNotifications()" placeholder="Search notifications..." class="flex-1 bg-gray-100 px-4 py-2 rounded-full text-sm outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+    </header>
+
+    <!-- Notification Content Area -->
+    <main class="flex-1 pb-6" id="notification-list">
+
+        <!-- TODAY SECTION -->
+        <div class="px-4 pt-3 pb-1 section-header-today">
+            <h2 class="text-lg font-bold text-gray-900">Today</h2>
+        </div>
+
+        <!-- Notification 1 -->
+        <div onclick="openDetail('Sadiyatul Esha posted a photo.', '11 hours ago', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces')" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
+            <div class="relative shrink-0 mr-3">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
+                <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
+                    <i class="fa-solid fa-comment"></i>
+                </div>
+            </div>
+            <div class="flex-1 pr-6">
+                <p class="text-[15px] leading-snug text-gray-900">
+                    <span class="font-bold">Sadiyatul Esha</span> posted a photo.
+                </p>
+                <span class="text-xs text-gray-500 mt-0.5 block">11 hours ago</span>
+            </div>
+            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+        <!-- Notification 2 -->
+        <div onclick="openDetail('Jëmi Khátűñ posted 1 photo: &quot;- 🥺🫀❤️&quot;.', '9 hours ago', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces')" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
+            <div class="relative shrink-0 mr-3">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
+                <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
+                    <i class="fa-solid fa-comment"></i>
+                </div>
+            </div>
+            <div class="flex-1 pr-6">
+                <p class="text-[15px] leading-snug text-gray-900">
+                    <span class="font-bold">Jëmi Khátűñ</span> posted 1 photo: "- 🥺🫀❤️".
+                </p>
+                <span class="text-xs text-gray-500 mt-0.5 block">9 hours ago</span>
+            </div>
+            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+        <!-- EARLIER SECTION -->
+        <div class="px-4 pt-5 pb-1 section-header-earlier">
+            <h2 class="text-lg font-bold text-gray-900">Earlier</h2>
+        </div>
+
+        <!-- Notification 3 -->
+        <div onclick="openDetail('সরকারি দপ্তরে আউটসোর্সিং চাকরি খবর: সরকারি কর্মচারীদের দীর্ঘ প্রতীক্ষার অবসান ঘটিয়ে প্রথম থেকে ২০তম গ্রেড পর্যন্ত মূল বেতন সর্বোচ্চ...', '18 Aug at 22:46', null)" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
+            <div class="relative shrink-0 mr-3">
+                <div class="w-14 h-14 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center text-center p-1 border">Govt</div>
+                <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
+                    <i class="fa-solid fa-people-group"></i>
+                </div>
+            </div>
+            <div class="flex-1 pr-6">
+                <p class="text-[15px] leading-snug text-gray-900">
+                    সরকারি দপ্তরে আউটসোর্সিং চাকরি খবর: "সরকারি কর্মচারীদের দীর্ঘ প্রতীক্ষার অবসান ঘটিয়ে প্রথম থেকে ২০তম গ্রেড পর্যন্ত মূল বেতন সর্বোচ্চ...
+                </p>
+                <span class="text-xs text-gray-500 mt-0.5 block">18 Aug at 22:46</span>
+            </div>
+            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+        <!-- Notification 4 -->
+        <div class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative">
+            <div class="shrink-0 mr-3">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
+            </div>
+            <div class="flex-1 pr-6">
+                <p class="text-[15px] leading-snug text-gray-900" onclick="openDetail('MD Tohid Islam sent you a friend request.', '18 August at 21:48', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces')">
+                    <span class="font-bold">MD Tohid Islam</span> sent you a friend request.
+                </p>
+                <div class="flex items-center space-x-1.5 text-xs text-gray-500 mt-0.5">
+                    <span class="text-blue-500"><i class="fa-solid fa-user-plus"></i></span>
+                    <span>18 August at 21:48</span>
+                    <span>•</span>
+                    <span>14 mutual friends</span>
+                </div>
+                <div class="flex space-x-2 mt-3">
+                    <button onclick="handleAction(this, 'Confirmed')" class="flex-1 bg-[#1877f2] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+                        Confirm
+                    </button>
+                    <button onclick="handleAction(this, 'Deleted')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 px-4 rounded-lg text-sm transition">
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <button class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+        <!-- Notification 5 -->
+        <div class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative">
+            <div class="relative shrink-0 mr-3">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
+                <div class="absolute bottom-0 right-0 bg-amber-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
+                    <i class="fa-solid fa-flag"></i>
+                </div>
+            </div>
+            <div class="flex-1 pr-6">
+                <p class="text-[15px] leading-snug text-gray-900" onclick="openDetail('Sami\'s Odyssey invited you to follow Wander Of Bangladesh.', '17 Aug at 23:36', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces')">
+                    <span class="font-bold">Sami's Odyssey</span> invited you to follow <span class="font-bold">Wander Of Bangladesh</span>.
+                </p>
+                <span class="text-xs text-gray-500 mt-0.5 block">17 Aug at 23:36</span>
+                <div class="flex space-x-2 mt-3">
+                    <button onclick="handleAction(this, 'Accepted')" class="flex-1 bg-[#1877f2] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+                        Accept
+                    </button>
+                    <button onclick="handleAction(this, 'Declined')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 px-4 rounded-lg text-sm transition">
+                        Decline
+                    </button>
+                </div>
+            </div>
+            <button class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+        <!-- Notification 6 -->
+        <div onclick="openDetail('মোজােরের ভাই Vlogs commented on Saion Singh\'s post: &quot;মাশাআল্লাহ...&quot;', '17 Aug at 22:15', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces')" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
+            <div class="shrink-0 mr-3">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
+            </div>
+            <div class="flex-1 pr-6">
+                <p class="text-[15px] leading-snug text-gray-900">
+                    <span class="font-bold">মোজােরের ভাই Vlogs</span> commented on <span class="font-bold">Saion Singh's</span> post: "মাশাআল্লাহ..."
+                </p>
+                <span class="text-xs text-gray-500 mt-0.5 block">17 Aug at 22:15</span>
+            </div>
+            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- FULL SCREEN DETAIL VIEW OVERLAY -->
+    <div id="detailView" class="fixed inset-0 bg-white z-50 flex flex-col transform translate-x-full transition-transform duration-300">
+        <div class="flex items-center px-4 py-3 border-b shadow-sm">
+            <button onclick="closeDetail()" class="text-xl font-bold text-gray-800 mr-4"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2 class="text-xl font-bold text-black">Notification Details</h2>
+        </div>
+        <div class="p-6 flex-1 flex flex-col items-center text-center">
+            <div id="detailAvatarContainer" class="mb-4">
+                <img id="detailImg" src="" alt="" class="w-24 h-24 rounded-full object-cover shadow-md hidden">
+            </div>
+            <p id="detailText" class="text-lg text-gray-900 font-medium mb-4 leading-relaxed"></p>
+            <span id="detailTime" class="text-sm text-gray-500"></span>
+        </div>
+    </div>
+
+    <!-- TOAST MESSAGE NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+        All notifications marked as read
+    </div>
+
+    <!-- JavaScript For Interactivity -->
+    <script>
+        function toggleSearch() {
+            const defaultHeader = document.getElementById('default-header');
+            const searchHeader = document.getElementById('search-header');
+            const searchInput = document.getElementById('searchInput');
+
+            if (searchHeader.classList.contains('hidden')) {
+                defaultHeader.classList.add('hidden');
+                searchHeader.classList.remove('hidden');
+                searchHeader.classList.add('flex');
+                searchInput.focus();
+            } else {
+                searchHeader.classList.add('hidden');
+                searchHeader.classList.remove('flex');
+                defaultHeader.classList.remove('hidden');
+                searchInput.value = '';
+                filterNotifications();
+            }
+        }
+
+        function filterNotifications() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let items = document.getElementsByClassName('notif-item');
+
+            Array.from(items).forEach(item => {
+                let text = item.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function openDetail(text, time, imgSrc) {
+            document.getElementById('detailText').innerText = text;
+            document.getElementById('detailTime').innerText = time;
+            
+            const imgElem = document.getElementById('detailImg');
+            if (imgSrc) {
+                imgElem.src = imgSrc;
+                imgElem.classList.remove('hidden');
+            } else {
+                imgElem.classList.add('hidden');
+            }
+
+            document.getElementById('detailView').classList.remove('translate-x-full');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailView').classList.add('translate-x-full');
+        }
+
+        function handleAction(button, actionType) {
+            event.stopPropagation();
+            const parentDiv = button.parentElement;
+            parentDiv.innerHTML = `<span class="text-sm font-bold text-blue-600">Request ${actionType}</span>`;
+        }
+
+        function markAllAsRead() {
+            const toast = document.getElementById('toast');
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

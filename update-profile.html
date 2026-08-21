@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Profile · Facebook</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <!-- Cloudinary Upload Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .profile-container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 540px;
+            margin: 20px auto;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-16px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .profile-header .logo {
+            color: #1877f2;
+            font-size: 40px;
+            font-weight: bold;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+
+        .profile-header h2 {
+            font-size: 22px;
+            color: #1c1e21;
+            font-weight: 600;
+        }
+
+        .profile-header p {
+            color: #606770;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Avatar */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .avatar-wrapper img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #1877f2;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            transition: 0.3s;
+        }
+
+        .avatar-wrapper:hover img {
+            filter: brightness(0.9);
+        }
+
+        .avatar-edit-icon {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: #1877f2;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: 0.2s;
+        }
+
+        .avatar-edit-icon:hover {
+            background: #166fe5;
+            transform: scale(1.05);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1c1e21;
+            margin-bottom: 5px;
+        }
+
+        .form-group label .required {
+            color: #e41e3f;
+            margin-left: 2px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+            background: #fafafa;
+            color: #1c1e21;
+        }
+
+        .form-group input:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px #e7f3ff;
+            background: #fff;
+        }
+
+        .form-group input::placeholder {
+            color: #90949c;
+            font-size: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 14px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #606770;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .update-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1877f2;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 6px;
+        }
+
+        .update-btn:hover {
+            background: #166fe5;
+        }
+
+        .update-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #dadde1;
+        }
+
+        .back-link a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link p {
+            color: #606770;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .success-message {
+            color: #42b72a;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            background: #f0fff0;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 16px;
+            border: 1px solid #a3e4a3;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .error-message {
+            color: #e41e3f;
+            font-size: 13px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .toast-msg {
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Current info display */
+        .current-info {
+            background: #f7f8fa;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e4e6eb;
+        }
+
+        .current-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+
+        .current-info .info-row .label {
+            color: #65676b;
+            font-weight: 500;
+        }
+
+        .current-info .info-row .value {
+            color: #1c1e21;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .status-badge.online {
+            background: #31a24c;
+            color: #fff;
+        }
+        .status-badge.offline {
+            background: #b0b3b8;
+            color: #fff;
+        }
+
+        /* Cloudinary upload button style */
+        .cloudinary-upload-btn {
+            background: #1a8d5e;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cloudinary-upload-btn:hover {
+            background: #147a4f;
+        }
+
+        .upload-info {
+            font-size: 12px;
+            color: #65676b;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 500px) {
+            .profile-container {
+                padding: 24px 16px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .avatar-wrapper img {
+                width: 96px;
+                height: 96px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast-msg"></div>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="logo">facebook</div>
+            <h2><i class="fa-regular fa-pen-to-square"></i> Update Profile</h2>
+            <p>Change your display name and photo</p>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="success-message">
+            <i class="fa-solid fa-check-circle"></i> Profile updated successfully!
+        </div>
+
+        <!-- Current Info -->
+        <div class="current-info" id="current-info">
+            <div class="info-row">
+                <span class="label"><i class="fa-regular fa-user"></i> Current Name</span>
+                <span class="value" id="current-name-display">Loading...</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-regular fa-envelope"></i> Email</span>
+                <span class="value" id="current-email-display">Loading...</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-regular fa-circle"></i> Status</span>
+                <span class="value" id="current-status-display">
+                    <span class="status-badge offline">Offline</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="avatar-section">
+            <div class="avatar-wrapper" id="avatar-wrapper">
+                <img id="profile-pic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80" alt="Profile Picture" />
+                <div class="avatar-edit-icon" id="avatar-edit-trigger">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+            </div>
+            <button class="cloudinary-upload-btn" id="cloudinary-upload-btn">
+                <i class="fa-solid fa-cloud-upload-alt"></i> Upload Photo (Cloudinary)
+            </button>
+            <div class="upload-info">Images are uploaded to Cloudinary and shared across all your posts</div>
+        </div>
+
+        <form id="profile-form" autocomplete="off">
+            <!-- First Name & Last Name -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" id="first-name" placeholder="First name" required />
+                    <div class="error-message" id="first-name-error">Please enter your first name</div>
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" id="last-name" placeholder="Last name" required />
+                    <div class="error-message" id="last-name-error">Please enter your last name</div>
+                </div>
+            </div>
+
+            <div class="helper-text">
+                Your display name will be updated across Facebook. Changes are saved instantly.
+            </div>
+
+            <button type="submit" class="update-btn" id="update-btn">
+                <i class="fa-regular fa-floppy-disk"></i> Update Profile
+            </button>
+        </form>
+
+        <div class="back-link">
+            <p><i class="fa-regular fa-circle-left"></i> Go back to</p>
+            <a href="index.html"><i class="fa-solid fa-house"></i> Homepage</a>
+        </div>
+    </div>
+
+    <script>
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== DOM REFS ==========
+        const form = document.getElementById('profile-form');
+        const firstName = document.getElementById('first-name');
+        const lastName = document.getElementById('last-name');
+        const updateBtn = document.getElementById('update-btn');
+        const successMessage = document.getElementById('success-message');
+        const toast = document.getElementById('toast');
+        const currentNameDisplay = document.getElementById('current-name-display');
+        const currentEmailDisplay = document.getElementById('current-email-display');
+        const currentStatusDisplay = document.getElementById('current-status-display');
+        const profilePic = document.getElementById('profile-pic');
+        const cloudinaryBtn = document.getElementById('cloudinary-upload-btn');
+
+        const firstNameError = document.getElementById('first-name-error');
+        const lastNameError = document.getElementById('last-name-error');
+
+        // ========== CLOUDINARY CONFIG ==========
+        const CLOUD_NAME = 'dhvtgzy5x';
+        const UPLOAD_PRESET = 'Rosenews';
+
+        // ========== TOAST ==========
+        let toastTimer;
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ========== LOAD CURRENT USER DATA ==========
+        async function loadUserProfile(user) {
+            try {
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const fullName = data.fullName || data.firstName + ' ' + data.lastName || user.displayName || 'User';
+                    currentNameDisplay.textContent = fullName;
+                    currentEmailDisplay.textContent = user.email || 'No email';
+
+                    const status = data.status || 'offline';
+                    currentStatusDisplay.innerHTML = `<span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+
+                    if (data.firstName) firstName.value = data.firstName;
+                    if (data.lastName) lastName.value = data.lastName;
+                    if (data.photoURL) {
+                        profilePic.src = data.photoURL;
+                    } else if (user.photoURL) {
+                        profilePic.src = user.photoURL;
+                    }
+                } else {
+                    const nameParts = user.displayName ? user.displayName.split(' ') : ['User', ''];
+                    firstName.value = nameParts[0] || '';
+                    lastName.value = nameParts.slice(1).join(' ') || '';
+                    currentNameDisplay.textContent = user.displayName || 'User';
+                    currentEmailDisplay.textContent = user.email || 'No email';
+                    if (user.photoURL) profilePic.src = user.photoURL;
+                    currentStatusDisplay.innerHTML = `<span class="status-badge offline">Offline</span>`;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showToast('Error loading profile data');
+            }
+        }
+
+        // ========== UPDATE ALL POSTS WITH NEW NAME & PHOTO ==========
+        async function updateAllPosts(userId, fullName, photoURL) {
+            try {
+                const postsSnapshot = await db.collection('all-user-post')
+                    .where('userId', '==', userId)
+                    .get();
+
+                if (!postsSnapshot.empty) {
+                    const batch = db.batch();
+                    postsSnapshot.forEach(doc => {
+                        batch.update(doc.ref, {
+                            userName: fullName,
+                            userImage: photoURL || profilePic.src
+                        });
+                    });
+                    await batch.commit();
+                    console.log(`✅ Updated ${postsSnapshot.size} posts with new name: ${fullName}`);
+                    return postsSnapshot.size;
+                }
+                return 0;
+            } catch (postError) {
+                console.log('Could not update all posts (non-critical):', postError);
+                return -1;
+            }
+        }
+
+        // ========== UPDATE PROFILE ==========
+        async function updateProfile(e) {
+            e.preventDefault();
+
+            const user = auth.currentUser;
+            if (!user) {
+                showToast('Please login first');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const first = firstName.value.trim();
+            const last = lastName.value.trim();
+
+            let valid = true;
+            if (first.length < 2) {
+                firstNameError.textContent = 'First name must be at least 2 characters';
+                firstNameError.classList.add('show');
+                valid = false;
+            } else {
+                firstNameError.classList.remove('show');
+            }
+            if (last.length < 2) {
+                lastNameError.textContent = 'Last name must be at least 2 characters';
+                lastNameError.classList.add('show');
+                valid = false;
+            } else {
+                lastNameError.classList.remove('show');
+            }
+
+            if (!valid) {
+                showToast('Please fix the errors before updating');
+                return;
+            }
+
+            const fullName = `${first} ${last}`;
+
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = '<span class="spinner"></span> Updating...';
+
+            try {
+                // 1. Update Firebase Auth displayName
+                await user.updateProfile({
+                    displayName: fullName
+                });
+
+                // 2. Update Firestore user document
+                await db.collection('users').doc(user.uid).set({
+                    firstName: first,
+                    lastName: last,
+                    fullName: fullName,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+
+                // 3. Update ALL posts with new name (Cloudinary photo URL will be used if set)
+                const currentPhoto = profilePic.src;
+                const updatedCount = await updateAllPosts(user.uid, fullName, currentPhoto);
+
+                // 4. Update UI
+                currentNameDisplay.textContent = fullName;
+                successMessage.classList.add('show');
+                successMessage.innerHTML = `<i class="fa-solid fa-check-circle"></i> Profile updated! ${updatedCount > 0 ? updatedCount + ' posts updated with new name!' : ''}`;
+
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 5000);
+
+                showToast(`✅ Profile updated! ${updatedCount > 0 ? updatedCount + ' posts updated!' : ''}`);
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Update error:', error);
+                showToast('Error: ' + error.message);
+                updateBtn.disabled = false;
+                updateBtn.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> Update Profile';
+            }
+        }
+
+        // ========== CLOUDINARY UPLOAD ==========
+        function openCloudinaryUpload() {
+            const user = auth.currentUser;
+            if (!user) {
+                showToast('Please login first');
+                return;
+            }
+
+            const widget = cloudinary.createUploadWidget({
+                cloudName: CLOUD_NAME,
+                uploadPreset: UPLOAD_PRESET,
+                sources: ['local', 'url', 'camera', 'google_drive', 'dropbox'],
+                multiple: false,
+                cropping: true,
+                croppingAspectRatio: 1,
+                croppingDefaultSelectionRatio: 1,
+                showAdvancedOptions: false,
+                styles: {
+                    palette: {
+                        window: '#FFFFFF',
+                        sourceBg: '#f0f2f5',
+                        windowBorder: '#ccd0d5',
+                        tabIcon: '#1877f2',
+                        inactiveTabIcon: '#65676b',
+                        menuIcons: '#1877f2',
+                        link: '#1877f2',
+                        action: '#1877f2',
+                        inProgress: '#1877f2',
+                        complete: '#42b72a',
+                        error: '#e41e3f',
+                        textDark: '#1c1e21',
+                        textLight: '#65676b'
+                    }
+                }
+            }, function(error, result) {
+                if (error) {
+                    console.error('Cloudinary error:', error);
+                    showToast('Upload failed: ' + error.message);
+                    return;
+                }
+                if (result && result.event === 'success') {
+                    const imageUrl = result.info.secure_url;
+                    console.log('✅ Cloudinary upload success:', imageUrl);
+                    profilePic.src = imageUrl;
+                    showToast('✅ Photo uploaded to Cloudinary! Saving profile...');
+
+                    // Save photo URL to Firestore
+                    db.collection('users').doc(user.uid).set({
+                        photoURL: imageUrl,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true })
+                    .then(async () => {
+                        // Update all posts with new photo URL
+                        const updatedCount = await updateAllPosts(user.uid, user.displayName || 'User', imageUrl);
+                        showToast(`✅ Photo saved! ${updatedCount > 0 ? updatedCount + ' posts updated!' : ''}`);
+                        setTimeout(() => window.location.reload(), 1200);
+                    })
+                    .catch(err => {
+                        console.error('Error saving photo:', err);
+                        showToast('Error saving photo: ' + err.message);
+                    });
+                }
+            });
+            widget.open();
+        }
+
+        // ========== EVENT LISTENERS ==========
+        form.addEventListener('submit', updateProfile);
+
+        cloudinaryBtn.addEventListener('click', openCloudinaryUpload);
+
+        // Click on avatar also triggers Cloudinary upload
+        document.getElementById('avatar-wrapper').addEventListener('click', openCloudinaryUpload);
+
+        firstName.addEventListener('input', () => {
+            if (firstName.value.trim().length >= 2) {
+                firstNameError.classList.remove('show');
+            }
+        });
+
+        lastName.addEventListener('input', () => {
+            if (lastName.value.trim().length >= 2) {
+                lastNameError.classList.remove('show');
+            }
+        });
+
+        // ========== AUTH STATE ==========
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadUserProfile(user);
+                // Real-time updates
+                db.collection('users').doc(user.uid).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.fullName) {
+                            currentNameDisplay.textContent = data.fullName;
+                        }
+                        if (data.photoURL) {
+                            profilePic.src = data.photoURL;
+                        }
+                        if (data.firstName) firstName.value = data.firstName;
+                        if (data.lastName) lastName.value = data.lastName;
+                        const status = data.status || 'offline';
+                        currentStatusDisplay.innerHTML = `<span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                    }
+                });
+
+                // Set user online
+                db.collection('users').doc(user.uid).set({ status: 'online' }, { merge: true });
+
+                window.addEventListener('beforeunload', () => {
+                    db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
+                });
+
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        console.log('🔥 Profile Update Page with Cloudinary upload ready!');
+        console.log('📌 All posts will be updated instantly with new name and photo!');
+    </script>
+</body>
+</html>

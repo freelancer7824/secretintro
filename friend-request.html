@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends - Facebook</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #050505;
+        }
+
+        /* Top Header Navigation Bar */
+        .fb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e4e6eb;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .fb-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fb-header-left i {
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+        }
+
+        .fb-header-left h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #050505;
+        }
+
+        .fb-header-right i {
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+            background: #f0f2f5;
+            padding: 8px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Filter Pills / Tabs */
+        .filter-container {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            overflow-x: auto;
+            border-bottom: 1px solid #f0f2f5;
+            background: #ffffff;
+        }
+
+        .filter-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-pill {
+            background-color: #f0f2f5;
+            color: #050505;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .filter-pill.active {
+            background-color: #e7f3ff;
+            color: #1877f2;
+        }
+
+        .filter-pill:hover {
+            background-color: #e4e6eb;
+        }
+
+        .filter-pill .active-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #31a24c;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 16px 8px 16px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #050505;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .section-title .count {
+            color: #65676b;
+            font-weight: 400;
+            font-size: 16px;
+        }
+
+        .section-action {
+            color: #1877f2;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .section-action:hover {
+            text-decoration: underline;
+        }
+
+        /* User Card */
+        .user-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #ffffff;
+            transition: 0.2s;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .user-card:hover {
+            background: #f7f8fa;
+        }
+
+        .user-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-grow: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 76px;
+            height: 76px;
+            flex-shrink: 0;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 14px;
+            height: 14px;
+            background-color: #31a24c;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #050505;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mutual-friends-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mutual-avatars {
+            display: flex;
+        }
+
+        .mutual-avatars img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ffffff;
+            margin-left: -6px;
+        }
+
+        .mutual-avatars img:first-child {
+            margin-left: 0;
+        }
+
+        .mutual-text {
+            font-size: 13px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .time-text {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        /* Action Buttons */
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #1b74e4;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #166fe5;
+        }
+
+        .btn-primary:active {
+            background-color: #155db2;
+        }
+
+        .btn-secondary {
+            background-color: #e4e6eb;
+            color: #050505;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d8dadf;
+        }
+
+        .btn-secondary:active {
+            background-color: #c8cad0;
+        }
+
+        .btn-success {
+            background-color: #42b72a;
+            color: #ffffff;
+        }
+
+        .btn-success:hover {
+            background-color: #36a420;
+        }
+
+        .btn-danger {
+            background-color: #e41e3f;
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background-color: #c91a36;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            font-size: 14px;
+            font-weight: 600;
+            color: #65676b;
+            padding: 4px 12px;
+            background: #f0f2f5;
+            border-radius: 6px;
+        }
+
+        .status-badge.friend {
+            color: #42b72a;
+            background: #e8f5e9;
+        }
+
+        .status-badge.requested {
+            color: #f57c00;
+            background: #fff3e0;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #f0f2f5;
+            margin: 4px 16px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #65676b;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #ccd0d5;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #050505;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+        }
+
+        .loading-spinner i {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        /* Load More Button */
+        .load-more-container {
+            text-align: center;
+            padding: 16px;
+        }
+
+        .load-more-btn {
+            background: #f0f2f5;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #050505;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .load-more-btn:hover {
+            background: #e4e6eb;
+        }
+
+        .load-more-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Toast */
+        .toast-msg {
+            background: #333;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .avatar-container {
+                width: 60px;
+                height: 60px;
+            }
+            .user-name {
+                font-size: 14px;
+            }
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .mutual-text {
+                font-size: 11px;
+            }
+            .user-card {
+                padding: 8px 12px;
+            }
+            .fb-header-left h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast-msg"></div>
+
+    <!-- Top Header Navigation -->
+    <div class="fb-header">
+        <div class="fb-header-left">
+            <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
+            <h1>Friends</h1>
+        </div>
+        <div class="fb-header-right">
+            <i class="fa-solid fa-magnifying-glass" onclick="showToast('Search feature coming soon')"></i>
+        </div>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="filter-container">
+        <button class="filter-pill active" data-filter="all" onclick="filterFriends('all', this)">
+            <span class="active-dot"></span><span id="online-count">0</span> active
+        </button>
+        <button class="filter-pill" data-filter="requests" onclick="filterFriends('requests', this)">Friend requests</button>
+        <button class="filter-pill" data-filter="suggestions" onclick="filterFriends('suggestions', this)">Suggestions</button>
+        <button class="filter-pill" data-filter="friends" onclick="filterFriends('friends', this)">Your friends</button>
+    </div>
+
+    <!-- Friend Requests Section -->
+    <div id="requests-section">
+        <div class="section-header">
+            <div class="section-title">Friend requests <span class="count" id="request-count">(0)</span></div>
+            <span class="section-action" onclick="showToast('View all requests')">See All</span>
+        </div>
+        <div id="requests-list">
+            <!-- Dynamically rendered -->
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- People You May Know Section -->
+    <div id="suggestions-section">
+        <div class="section-header">
+            <div class="section-title">People you may know</div>
+        </div>
+        <div id="suggestions-list">
+            <!-- Dynamically rendered -->
+        </div>
+        <div class="load-more-container" id="suggestions-load-more" style="display:none;">
+            <button class="load-more-btn" onclick="loadMoreSuggestions()">
+                <i class="fa-solid fa-chevron-down"></i> Load More Suggestions
+            </button>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Your Friends Section -->
+    <div id="friends-section">
+        <div class="section-header">
+            <div class="section-title">Your friends <span class="count" id="friends-count">(0)</span></div>
+            <span class="section-action" onclick="showToast('View all friends')">See All</span>
+        </div>
+        <div id="friends-list">
+            <!-- Dynamically rendered -->
+        </div>
+    </div>
+
+    <script>
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== DOM REFS ==========
+        const requestsList = document.getElementById('requests-list');
+        const suggestionsList = document.getElementById('suggestions-list');
+        const friendsList = document.getElementById('friends-list');
+        const requestCount = document.getElementById('request-count');
+        const friendsCount = document.getElementById('friends-count');
+        const onlineCount = document.getElementById('online-count');
+        const loadMoreContainer = document.getElementById('suggestions-load-more');
+
+        let toastTimer;
+        let currentUserId = null;
+        let allSuggestions = [];
+        let suggestionPage = 1;
+        const SUGGESTIONS_PER_PAGE = 20;
+        let isLoadingMore = false;
+
+        // ========== TOAST ==========
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ========== GO BACK ==========
+        function goBack() {
+            if (window.parent && window.parent.closeIframe) {
+                window.parent.closeIframe();
+            } else {
+                history.back();
+            }
+        }
+
+        // ========== ESCAPE HTML ==========
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ========== CACHE HELPERS ==========
+        function getCache(key) {
+            try {
+                const data = localStorage.getItem('fb_friends_' + key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    // Check if cache is still valid (5 minutes)
+                    if (parsed.timestamp && Date.now() - parsed.timestamp < 300000) {
+                        return parsed.data;
+                    }
+                }
+                return null;
+            } catch { return null; }
+        }
+
+        function setCache(key, data) {
+            try {
+                localStorage.setItem('fb_friends_' + key, JSON.stringify({
+                    data: data,
+                    timestamp: Date.now()
+                }));
+            } catch {}
+        }
+
+        // ========== GET USER DATA WITH CACHE ==========
+        async function getUserData(uid) {
+            const cacheKey = 'user_' + uid;
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            try {
+                const doc = await db.collection('users').doc(uid).get();
+                if (doc.exists) {
+                    const data = { id: uid, ...doc.data() };
+                    setCache(cacheKey, data);
+                    return data;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error fetching user:', error);
+                return null;
+            }
+        }
+
+        // ========== GET ALL USERS EXCEPT CURRENT WITH CACHE ==========
+        async function getAllUsersExcept(currentUid) {
+            const cacheKey = 'all_users_except_' + currentUid;
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            try {
+                const snapshot = await db.collection('users').get();
+                const users = [];
+                snapshot.forEach(doc => {
+                    if (doc.id !== currentUid) {
+                        users.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                setCache(cacheKey, users);
+                return users;
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                return [];
+            }
+        }
+
+        // ========== GET MUTUAL FRIENDS COUNT WITH CACHE ==========
+        async function getMutualFriendsCount(currentUid, targetUid) {
+            const cacheKey = 'mutual_' + currentUid + '_' + targetUid;
+            const cached = getCache(cacheKey);
+            if (cached !== null) return cached;
+
+            try {
+                const currentDoc = await db.collection('users').doc(currentUid).get();
+                const targetDoc = await db.collection('users').doc(targetUid).get();
+                
+                if (!currentDoc.exists || !targetDoc.exists) return 0;
+                
+                const currentFriends = currentDoc.data().friends || [];
+                const targetFriends = targetDoc.data().friends || [];
+                
+                let mutual = 0;
+                if (currentFriends.length > 0 && typeof currentFriends[0] === 'string') {
+                    mutual = currentFriends.filter(id => targetFriends.includes(id)).length;
+                }
+                
+                setCache(cacheKey, mutual);
+                return mutual;
+            } catch (error) {
+                console.error('Error calculating mutual friends:', error);
+                return 0;
+            }
+        }
+
+        // ========== GET MUTUAL FRIEND AVATARS WITH CACHE ==========
+        async function getMutualFriendAvatars(currentUid, targetUid, limit = 2) {
+            const cacheKey = 'mutual_avatars_' + currentUid + '_' + targetUid;
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            try {
+                const currentDoc = await db.collection('users').doc(currentUid).get();
+                const targetDoc = await db.collection('users').doc(targetUid).get();
+                
+                if (!currentDoc.exists || !targetDoc.exists) return [];
+                
+                const currentFriends = currentDoc.data().friends || [];
+                const targetFriends = targetDoc.data().friends || [];
+                
+                const mutual = currentFriends.filter(id => targetFriends.includes(id));
+                const avatars = [];
+                
+                for (const uid of mutual.slice(0, limit)) {
+                    const userData = await getUserData(uid);
+                    if (userData) {
+                        avatars.push(userData.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80');
+                    }
+                }
+                
+                setCache(cacheKey, avatars);
+                return avatars;
+            } catch (error) {
+                console.error('Error getting mutual avatars:', error);
+                return [];
+            }
+        }
+
+        // ========== RENDER FRIEND REQUESTS ==========
+        async function renderFriendRequests(currentUid) {
+            try {
+                const doc = await db.collection('users').doc(currentUid).get();
+                if (!doc.exists) {
+                    requestsList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-user"></i><h3>No friend requests</h3></div>';
+                    requestCount.textContent = '(0)';
+                    return;
+                }
+
+                const data = doc.data();
+                const friendRequestsFrom = data.friendRequestsFrom || [];
+                
+                if (friendRequestsFrom.length === 0) {
+                    requestsList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-user"></i><h3>No friend requests</h3></div>';
+                    requestCount.textContent = '(0)';
+                    return;
+                }
+
+                requestCount.textContent = `(${friendRequestsFrom.length})`;
+
+                // Load all users in parallel for speed
+                const userPromises = friendRequestsFrom.map(uid => getUserData(uid));
+                const users = await Promise.all(userPromises);
+                
+                const mutualPromises = friendRequestsFrom.map(uid => getMutualFriendsCount(currentUid, uid));
+                const mutualCounts = await Promise.all(mutualPromises);
+                
+                const avatarPromises = friendRequestsFrom.map(uid => getMutualFriendAvatars(currentUid, uid));
+                const avatarResults = await Promise.all(avatarPromises);
+
+                let html = '';
+                for (let i = 0; i < friendRequestsFrom.length; i++) {
+                    const uid = friendRequestsFrom[i];
+                    const user = users[i];
+                    if (!user) continue;
+
+                    html += `
+                        <div class="user-card" data-uid="${uid}">
+                            <div class="user-left" onclick="openProfile('${uid}')">
+                                <div class="avatar-container">
+                                    <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="${escapeHTML(user.fullName || 'User')}">
+                                    ${user.status === 'online' ? '<div class="online-dot"></div>' : ''}
+                                </div>
+                                <div class="user-info">
+                                    <div class="user-name">${escapeHTML(user.fullName || user.email || 'User')}</div>
+                                    <div class="mutual-friends-row">
+                                        <div class="mutual-avatars">
+                                            ${avatarResults[i].map(img => `<img src="${img}" alt="mutual">`).join('')}
+                                        </div>
+                                        <span class="mutual-text">${mutualCounts[i]} mutual friends</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn btn-primary" onclick="acceptFriendRequest('${uid}')"><i class="fa-solid fa-check"></i> Confirm</button>
+                                <button class="btn btn-secondary" onclick="rejectFriendRequest('${uid}')"><i class="fa-solid fa-xmark"></i> Delete</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                requestsList.innerHTML = html;
+            } catch (error) {
+                console.error('Error rendering friend requests:', error);
+                requestsList.innerHTML = '<div class="empty-state">Error loading friend requests</div>';
+            }
+        }
+
+        // ========== RENDER SUGGESTIONS ==========
+        async function renderSuggestions(currentUid, page = 1, append = false) {
+            try {
+                const doc = await db.collection('users').doc(currentUid).get();
+                if (!doc.exists) {
+                    suggestionsList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-user"></i><h3>No suggestions</h3></div>';
+                    loadMoreContainer.style.display = 'none';
+                    return;
+                }
+
+                const data = doc.data();
+                const friends = data.friends || [];
+                const friendRequests = data.friendRequests || [];
+                const friendRequestsFrom = data.friendRequestsFrom || [];
+                
+                // Get all users except current, friends, and those who have sent requests
+                allSuggestions = await getAllUsersExcept(currentUid);
+                
+                const filtered = allSuggestions.filter(u => 
+                    !friends.includes(u.id) && 
+                    !friendRequests.includes(u.id) &&
+                    !friendRequestsFrom.includes(u.id)
+                );
+
+                // Shuffle
+                const shuffled = filtered.sort(() => Math.random() - 0.5);
+                allSuggestions = shuffled;
+
+                const totalSuggestions = allSuggestions.length;
+                const start = 0;
+                const end = page * SUGGESTIONS_PER_PAGE;
+                const pageSuggestions = allSuggestions.slice(start, end);
+
+                if (pageSuggestions.length === 0) {
+                    if (!append) {
+                        suggestionsList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-user"></i><h3>No suggestions</h3><p>You\'re all caught up!</p></div>';
+                    }
+                    loadMoreContainer.style.display = 'none';
+                    return;
+                }
+
+                // Load all user data in parallel
+                const userPromises = pageSuggestions.map(user => getUserData(user.id));
+                const users = await Promise.all(userPromises);
+                
+                const mutualPromises = pageSuggestions.map(user => getMutualFriendsCount(currentUid, user.id));
+                const mutualCounts = await Promise.all(mutualPromises);
+                
+                const avatarPromises = pageSuggestions.map(user => getMutualFriendAvatars(currentUid, user.id));
+                const avatarResults = await Promise.all(avatarPromises);
+
+                let html = '';
+                for (let i = 0; i < pageSuggestions.length; i++) {
+                    const user = users[i];
+                    if (!user) continue;
+
+                    html += `
+                        <div class="user-card" data-uid="${user.id}">
+                            <div class="user-left" onclick="openProfile('${user.id}')">
+                                <div class="avatar-container">
+                                    <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="${escapeHTML(user.fullName || 'User')}">
+                                    ${user.status === 'online' ? '<div class="online-dot"></div>' : ''}
+                                </div>
+                                <div class="user-info">
+                                    <div class="user-name">${escapeHTML(user.fullName || user.email || 'User')}</div>
+                                    <div class="mutual-friends-row">
+                                        <div class="mutual-avatars">
+                                            ${avatarResults[i].map(img => `<img src="${img}" alt="mutual">`).join('')}
+                                        </div>
+                                        <span class="mutual-text">${mutualCounts[i]} mutual friends</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn btn-primary" onclick="sendFriendRequest('${user.id}')"><i class="fa-solid fa-user-plus"></i> Add friend</button>
+                                <button class="btn btn-secondary" onclick="dismissSuggestion('${user.id}')"><i class="fa-solid fa-xmark"></i> Remove</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (append) {
+                    suggestionsList.innerHTML += html;
+                } else {
+                    suggestionsList.innerHTML = html;
+                }
+
+                // Show/hide load more button
+                if (end < totalSuggestions) {
+                    loadMoreContainer.style.display = 'block';
+                } else {
+                    loadMoreContainer.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Error rendering suggestions:', error);
+                if (!append) {
+                    suggestionsList.innerHTML = '<div class="empty-state">Error loading suggestions</div>';
+                }
+                loadMoreContainer.style.display = 'none';
+            }
+        }
+
+        // ========== LOAD MORE SUGGESTIONS ==========
+        async function loadMoreSuggestions() {
+            if (isLoadingMore) return;
+            isLoadingMore = true;
+            
+            const btn = document.querySelector('.load-more-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+            
+            suggestionPage++;
+            await renderSuggestions(currentUserId, suggestionPage, true);
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i> Load More Suggestions';
+            isLoadingMore = false;
+        }
+
+        // ========== RENDER FRIENDS ==========
+        async function renderFriends(currentUid) {
+            try {
+                const doc = await db.collection('users').doc(currentUid).get();
+                if (!doc.exists) {
+                    friendsList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-user"></i><h3>No friends yet</h3></div>';
+                    friendsCount.textContent = '(0)';
+                    return;
+                }
+
+                const data = doc.data();
+                const friends = data.friends || [];
+                
+                if (friends.length === 0) {
+                    friendsList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-user"></i><h3>No friends yet</h3><p>Start adding friends to see them here</p></div>';
+                    friendsCount.textContent = '(0)';
+                    return;
+                }
+
+                friendsCount.textContent = `(${friends.length})`;
+
+                // Load all friends in parallel
+                const userPromises = friends.map(uid => getUserData(uid));
+                const users = await Promise.all(userPromises);
+                
+                const mutualPromises = friends.map(uid => getMutualFriendsCount(currentUid, uid));
+                const mutualCounts = await Promise.all(mutualPromises);
+                
+                const avatarPromises = friends.map(uid => getMutualFriendAvatars(currentUid, uid));
+                const avatarResults = await Promise.all(avatarPromises);
+
+                let html = '';
+                for (let i = 0; i < friends.length; i++) {
+                    const uid = friends[i];
+                    const user = users[i];
+                    if (!user) continue;
+
+                    html += `
+                        <div class="user-card" data-uid="${uid}">
+                            <div class="user-left" onclick="openProfile('${uid}')">
+                                <div class="avatar-container">
+                                    <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="${escapeHTML(user.fullName || 'User')}">
+                                    ${user.status === 'online' ? '<div class="online-dot"></div>' : ''}
+                                </div>
+                                <div class="user-info">
+                                    <div class="user-name">${escapeHTML(user.fullName || user.email || 'User')}</div>
+                                    <div class="mutual-friends-row">
+                                        <div class="mutual-avatars">
+                                            ${avatarResults[i].map(img => `<img src="${img}" alt="mutual">`).join('')}
+                                        </div>
+                                        <span class="mutual-text">${mutualCounts[i]} mutual friends</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <span class="status-badge friend"><i class="fa-solid fa-check-circle"></i> Friends</span>
+                                <button class="btn btn-danger" onclick="unfriendUser('${uid}')"><i class="fa-solid fa-user-minus"></i> Unfriend</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                friendsList.innerHTML = html;
+            } catch (error) {
+                console.error('Error rendering friends:', error);
+                friendsList.innerHTML = '<div class="empty-state">Error loading friends</div>';
+            }
+        }
+
+        // ========== UPDATE ONLINE COUNT (FRIENDS ONLY) ==========
+        async function updateOnlineCount(currentUid) {
+            try {
+                const doc = await db.collection('users').doc(currentUid).get();
+                if (!doc.exists) {
+                    onlineCount.textContent = '0';
+                    return;
+                }
+
+                const friends = doc.data().friends || [];
+                if (friends.length === 0) {
+                    onlineCount.textContent = '0';
+                    return;
+                }
+
+                // Check which friends are online
+                let onlineFriends = 0;
+                for (const uid of friends) {
+                    const userData = await getUserData(uid);
+                    if (userData && userData.status === 'online') {
+                        onlineFriends++;
+                    }
+                }
+
+                onlineCount.textContent = onlineFriends;
+            } catch (error) {
+                console.error('Error updating online count:', error);
+                onlineCount.textContent = '0';
+            }
+        }
+
+        // ========== FRIEND REQUEST ACTIONS ==========
+        async function acceptFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(uid),
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+
+                await db.collection('users').doc(uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+
+                // Clear cache
+                localStorage.removeItem('fb_friends_user_' + currentUser.uid);
+                localStorage.removeItem('fb_friends_all_users_except_' + currentUser.uid);
+
+                showToast('✅ Friend request accepted!');
+                loadAllData(currentUser.uid);
+            } catch (error) {
+                console.error('Error accepting friend request:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        async function rejectFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+
+                await db.collection('users').doc(uid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+
+                // Clear cache
+                localStorage.removeItem('fb_friends_user_' + currentUser.uid);
+
+                showToast('Friend request rejected');
+                loadAllData(currentUser.uid);
+            } catch (error) {
+                console.error('Error rejecting friend request:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        async function sendFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            const btn = event.target.closest('.btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayUnion(uid)
+                });
+
+                await db.collection('users').doc(uid).update({
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+
+                // Clear cache
+                localStorage.removeItem('fb_friends_user_' + currentUser.uid);
+                localStorage.removeItem('fb_friends_all_users_except_' + currentUser.uid);
+
+                showToast('✅ Friend request sent!');
+                loadAllData(currentUser.uid);
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                showToast('Error: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add friend';
+            }
+        }
+
+        async function unfriendUser(uid) {
+            if (!confirm('Are you sure you want to unfriend this person?')) return;
+
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+
+                await db.collection('users').doc(uid).update({
+                    friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+
+                // Clear cache
+                localStorage.removeItem('fb_friends_user_' + currentUser.uid);
+                localStorage.removeItem('fb_friends_all_users_except_' + currentUser.uid);
+
+                showToast('Unfriended successfully');
+                loadAllData(currentUser.uid);
+            } catch (error) {
+                console.error('Error unfriending:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        function dismissSuggestion(uid) {
+            const card = document.querySelector(`.user-card[data-uid="${uid}"]`);
+            if (card) {
+                card.style.display = 'none';
+            }
+            showToast('Suggestion dismissed');
+        }
+
+        // ========== OPEN PROFILE ==========
+        function openProfile(uid) {
+            if (window.parent && window.parent.openProfileIframe) {
+                window.parent.openProfileIframe(uid);
+            } else {
+                window.location.href = `profile.html?user=${uid}`;
+            }
+        }
+
+        // ========== FILTER FRIENDS ==========
+        function filterFriends(filter, btn) {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+
+            const requestsSection = document.getElementById('requests-section');
+            const suggestionsSection = document.getElementById('suggestions-section');
+            const friendsSection = document.getElementById('friends-section');
+
+            if (filter === 'requests') {
+                requestsSection.style.display = 'block';
+                suggestionsSection.style.display = 'none';
+                friendsSection.style.display = 'none';
+            } else if (filter === 'suggestions') {
+                requestsSection.style.display = 'none';
+                suggestionsSection.style.display = 'block';
+                friendsSection.style.display = 'none';
+            } else if (filter === 'friends') {
+                requestsSection.style.display = 'none';
+                suggestionsSection.style.display = 'none';
+                friendsSection.style.display = 'block';
+            } else {
+                requestsSection.style.display = 'block';
+                suggestionsSection.style.display = 'block';
+                friendsSection.style.display = 'block';
+            }
+        }
+
+        // ========== LOAD ALL DATA ==========
+        async function loadAllData(uid) {
+            currentUserId = uid;
+            suggestionPage = 1;
+            
+            // Load all sections in parallel for speed
+            await Promise.all([
+                renderFriendRequests(uid),
+                renderSuggestions(uid, 1, false),
+                renderFriends(uid),
+                updateOnlineCount(uid)
+            ]);
+        }
+
+        // ========== SETUP REAL-TIME LISTENERS ==========
+        function setupRealtimeListeners(uid) {
+            // Listen for user document changes
+            db.collection('users').doc(uid).onSnapshot(() => {
+                loadAllData(uid);
+            });
+        }
+
+        // ========== AUTH STATE ==========
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                await db.collection('users').doc(user.uid).set({ status: 'online' }, { merge: true });
+                await loadAllData(user.uid);
+                setupRealtimeListeners(user.uid);
+
+                window.addEventListener('beforeunload', () => {
+                    db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
+                });
+
+                console.log('🔥 Friends page loaded for:', user.uid);
+            } else {
+                showToast('Please login to view friends');
+                setTimeout(() => {
+                    if (window.parent && window.parent.location) {
+                        window.parent.location.href = 'index.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }, 1500);
+            }
+        });
+
+        // ========== INITIAL SETUP ==========
+        console.log('🔥 Friends Page with Optimized Loading');
+        console.log('✅ Friend-only active count');
+        console.log('✅ Fast loading with caching');
+        console.log('✅ Load more suggestions (20 at a time)');
+        console.log('✅ Real-time updates');
+    </script>
+
+</body>
+</html>

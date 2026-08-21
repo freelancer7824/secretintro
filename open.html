@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post View - Facebook</title>
+    <!-- FontAwesome for Facebook-like Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #050505;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 60px; /* Space for sticky comment bar */
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e4e6eb;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-left i {
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+        }
+
+        /* Post Header Section */
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #ffffff;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .author-meta h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #050505;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .author-sub-meta {
+            font-size: 12px;
+            color: #65676b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .post-header-actions i {
+            font-size: 20px;
+            color: #65676b;
+            cursor: pointer;
+        }
+
+        /* Post Content / Image Box */
+        .post-content-container {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 350px;
+        }
+
+        .post-content-container img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+        }
+
+        .post-text-overlay {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            padding: 0 24px;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Reaction & Counts Stats Bar */
+        .post-stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-bottom: 1px solid #e4e6eb;
+            font-size: 13.5px;
+            color: #65676b;
+        }
+
+        .stats-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-left i {
+            background-color: #1877f2;
+            color: white;
+            font-size: 10px;
+            padding: 4px;
+            border-radius: 50%;
+        }
+
+        /* Interaction Buttons Bar (Like, Comment, Share) */
+        .interaction-bar {
+            display: flex;
+            border-bottom: 1px solid #e4e6eb;
+            padding: 4px 0;
+        }
+
+        .interaction-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 0;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #65676b;
+            cursor: pointer;
+        }
+
+        .interaction-btn i {
+            font-size: 16px;
+        }
+
+        /* Comments Header / Filter Dropdown */
+        .comments-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #65676b;
+        }
+
+        .comments-section-header span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #050505;
+            cursor: pointer;
+        }
+
+        /* Comments List */
+        .comments-list {
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .comment-bubble-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comment-bubble {
+            background-color: #f0f2f5;
+            padding: 10px 12px;
+            border-radius: 18px;
+            max-width: 100%;
+        }
+
+        .comment-author {
+            font-size: 13px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 2px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: #050505;
+            line-height: 1.4;
+        }
+
+        .comment-footer-actions {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #65676b;
+            margin-top: 4px;
+            padding-left: 12px;
+        }
+
+        .comment-footer-actions span {
+            cursor: pointer;
+        }
+
+        /* Nested Reply Comment */
+        .reply-comment-item {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .reply-comment-item::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            width: 10px;
+            height: 18px;
+            border-left: 2px solid #ccd0d5;
+            border-bottom: 2px solid #ccd0d5;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Sticky Comment Input Bar */
+        .comment-input-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            border-top: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .current-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .input-wrapper {
+            flex-grow: 1;
+            background-color: #f0f2f5;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+        }
+
+        .input-wrapper input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #050505;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #65676b;
+        }
+
+        .input-icons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            color: #65676b;
+        }
+
+        .input-icons i {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <i class="fa-solid fa-arrow-left" onclick="history.back()"></i>
+        </div>
+    </div>
+
+    <!-- Post Header -->
+    <div class="post-header">
+        <div class="author-info">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60" alt="Author Avatar" class="author-avatar">
+            <div class="author-meta">
+                <h4>online income</h4>
+                <div class="author-sub-meta">
+                    <span>Tanha Islam</span> · <span>1h</span> · <i class="fa-solid fa-earth-americas" style="font-size: 10px;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="post-header-actions">
+            <i class="fa-solid fa-ellipsis"></i>
+        </div>
+    </div>
+
+    <!-- Post Image & Text Overlay -->
+    <div class="post-content-container">
+        <!-- Background colorful abstract image matching the screenshot -->
+        <img src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=60" alt="Post Background">
+        <div class="post-text-overlay">
+            akta kaj lage kew dite paren..
+        </div>
+    </div>
+
+    <!-- Reaction & Counts Stats Bar -->
+    <div class="post-stats-bar">
+        <div class="stats-left">
+            <i class="fa-solid fa-thumbs-up"></i> 6
+        </div>
+        <div class="stats-right">
+            <span>38 comments</span>
+        </div>
+    </div>
+
+    <!-- Interaction Buttons (Like, Comment, Share) -->
+    <div class="interaction-bar">
+        <button class="interaction-btn" onclick="toggleLike(this)">
+            <i class="fa-regular fa-thumbs-up"></i> Like
+        </button>
+        <button class="interaction-btn" onclick="focusCommentInput()">
+            <i class="fa-regular fa-comment"></i> Comment
+        </button>
+        <button class="interaction-btn" onclick="alert('Share link copied!')">
+            <i class="fa-solid fa-share"></i> Share
+        </button>
+    </div>
+
+    <!-- Comments Filter Header -->
+    <div class="comments-section-header">
+        <span>Most relevant <i class="fa-solid fa-caret-down" style="font-size: 12px;"></i></span>
+    </div>
+
+    <!-- Comments List -->
+    <div class="comments-list">
+        <!-- Comment 1 -->
+        <div class="comment-item">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=60" alt="Mantasha" class="comment-avatar">
+            <div class="comment-bubble-container">
+                <div class="comment-bubble">
+                    <div class="comment-author">Mantasha Islam Supti</div>
+                    <div class="comment-text">Inbox me</div>
+                </div>
+                <div class="comment-footer-actions">
+                    <span>58m</span>
+                    <span onclick="likeComment(this)">Like</span>
+                    <span onclick="focusCommentInput()">Reply</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comment 2 with Nested Reply -->
+        <div class="comment-item" style="flex-direction: column;">
+            <div style="display: flex; gap: 10px;">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60" alt="Rissiya" class="comment-avatar">
+                <div class="comment-bubble-container">
+                    <div class="comment-bubble">
+                        <div class="comment-author">Rissiya Afrin Mile</div>
+                        <div class="comment-text">Kono rokom invest cara kaj korte caile inbox</div>
+                    </div>
+                    <div class="comment-footer-actions">
+                        <span>1h</span>
+                        <span onclick="likeComment(this)">Like</span>
+                        <span onclick="focusCommentInput()">Reply</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Comment Input Bar -->
+    <div class="comment-input-bar">
+        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="Your Avatar" class="current-user-avatar">
+        <div class="input-wrapper">
+            <input type="text" id="commentInput" placeholder="Comment as SHOPO...">
+            <div class="input-icons">
+                <i class="fa-solid fa-images" style="color: #65676b;"></i>
+                <i class="fa-solid fa-face-smile" style="color: #65676b;"></i>
+                <i class="fa-solid fa-gift" style="color: #65676b;"></i>
+                <i class="fa-solid fa-face-grin-hearts" style="color: #65676b;" onclick="submitComment()"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Interactivity -->
+    <script>
+        function toggleLike(btn) {
+            const icon = btn.querySelector('i');
+            if(icon.classList.contains('fa-regular')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+                btn.style.color = '#1877f2';
+            } else {
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+                btn.style.color = '#65676b';
+            }
+        }
+
+        function likeComment(el) {
+            if(el.style.color === 'rgb(24, 119, 242)') {
+                el.style.color = '#65676b';
+                el.innerText = 'Like';
+            } else {
+                el.style.color = '#1877f2';
+                el.innerText = 'Liked';
+            }
+        }
+
+        function focusCommentInput() {
+            document.getElementById('commentInput').focus();
+        }
+
+        function submitComment() {
+            const input = document.getElementById('commentInput');
+            const val = input.value.trim();
+            if(val !== '') {
+                const list = document.querySelector('.comments-list');
+                const newComment = document.createElement('div');
+                newComment.className = 'comment-item';
+                newComment.innerHTML = `
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="You" class="comment-avatar">
+                    <div class="comment-bubble-container">
+                        <div class="comment-bubble">
+                            <div class="comment-author">SHOPON HASAN PRIYO</div>
+                            <div class="comment-text">${val}</div>
+                        </div>
+                        <div class="comment-footer-actions">
+                            <span>Just now</span>
+                            <span>Like</span>
+                            <span>Reply</span>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(newComment);
+                input.value = '';
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Create Post - Facebook</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #ffffff;
+            color: #050505;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .toast-msg {
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e4e6eb;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .nav-left i {
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .nav-left i:hover {
+            background: #f0f2f5;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #050505;
+        }
+        .post-top-btn {
+            background: none;
+            border: none;
+            color: #1877f2;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .post-top-btn:hover {
+            background: #f0f2f5;
+        }
+        .post-top-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .user-info-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e4e6eb;
+        }
+        .user-details h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 2px;
+        }
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background-color: #e4e6eb;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #050505;
+            cursor: pointer;
+        }
+        .privacy-badge i {
+            font-size: 11px;
+        }
+        .text-input-container {
+            padding: 16px;
+            flex-grow: 1;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+        .text-input-container textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 18px;
+            resize: none;
+            background: transparent;
+            color: #050505;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        .text-input-container textarea::placeholder {
+            color: #65676b;
+            font-style: italic;
+        }
+        .text-input-container.banner-mode {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 8px 16px;
+        }
+        .text-input-container.banner-mode textarea {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .text-input-container.banner-mode textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+        .photo-preview-container {
+            padding: 0 16px 16px 16px;
+            display: none;
+        }
+        .photo-preview-container.show {
+            display: block;
+        }
+        .photo-preview-wrapper {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f0f2f5;
+            border: 1px solid #e4e6eb;
+        }
+        .photo-preview-wrapper img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            display: block;
+            background: #fff;
+        }
+        .remove-photo-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .remove-photo-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .upload-progress {
+            display: none;
+            padding: 8px 16px;
+            align-items: center;
+            gap: 12px;
+        }
+        .upload-progress.show {
+            display: flex;
+        }
+        .upload-progress .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: #e4e6eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .upload-progress .progress-fill {
+            height: 100%;
+            background: #1877f2;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .upload-progress .progress-text {
+            font-size: 13px;
+            color: #65676b;
+            font-weight: 500;
+        }
+        .theme-picker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            overflow-x: auto;
+            border-top: 1px solid #f0f2f5;
+            border-bottom: 1px solid #f0f2f5;
+            background: #ffffff;
+            white-space: nowrap;
+        }
+        .theme-picker::-webkit-scrollbar {
+            display: none;
+        }
+        .theme-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+        .theme-btn.active {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.3);
+        }
+        .theme-back-btn {
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #050505;
+            border: 1px solid #ccd0d5;
+        }
+        .theme-white { background: #ffffff; border: 1px solid #ccd0d5; }
+        .theme-purple { background: #8a2be2; }
+        .theme-red { background: #e41e3f; }
+        .theme-dark { background: #212529; }
+        .theme-gradient-1 { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .theme-gradient-2 { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
+        .theme-gradient-3 { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+        .theme-dark-blue { background: #3b5998; }
+        .theme-mention { background: #f0f2f5; color: #050505; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
+        .options-list {
+            padding: 4px 0;
+            border-top: 1px solid #f0f2f5;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .option-item:active {
+            background-color: #f0f2f5;
+        }
+        .option-item i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+        .fa-images { color: #45bd62; }
+        .fa-music { color: #f02849; }
+        .fa-user-tag { color: #1877f2; }
+        .fa-location-dot { color: #f02849; }
+        .fa-face-smile { color: #f7b125; }
+        .fa-facebook-messenger { color: #0084ff; }
+        .fa-calendar-days { color: #f02849; }
+        .fa-video { color: #f02849; }
+        #photoInput { display: none; }
+        .bottom-action-container {
+            padding: 12px 16px;
+            background: #ffffff;
+            border-top: 1px solid #e4e6eb;
+            margin-top: auto;
+        }
+        .post-main-btn {
+            width: 100%;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        .post-main-btn:hover {
+            background-color: #166fe5;
+        }
+        .post-main-btn:active {
+            background-color: #0d5fb8;
+        }
+        .post-main-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .selected-theme-label {
+            font-size: 12px;
+            color: #65676b;
+            padding: 0 16px 8px 16px;
+            display: none;
+        }
+        .selected-theme-label.show {
+            display: block;
+        }
+        .option-item .upload-indicator {
+            margin-left: auto;
+            font-size: 12px;
+            color: #1877f2;
+        }
+        .option-item .upload-indicator i {
+            font-size: 14px;
+            color: #1877f2;
+            width: auto;
+        }
+        @media (max-width: 500px) {
+            .text-input-container.banner-mode {
+                min-height: 160px;
+                margin: 8px 12px;
+            }
+            .text-input-container.banner-mode textarea {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast-msg"></div>
+
+    <div class="top-nav">
+        <div class="nav-left">
+            <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
+            <div class="nav-title">Create post</div>
+        </div>
+        <button class="post-top-btn" id="postTopBtn" onclick="handlePost()">POST</button>
+    </div>
+
+    <div class="user-info-section">
+        <img id="userProfilePic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="Profile Picture" class="profile-pic">
+        <div class="user-details">
+            <h4 id="userDisplayName">Loading...</h4>
+            <div class="privacy-badge" onclick="showToast('Privacy: Public')">
+                <i class="fa-solid fa-earth-americas"></i> Public <i class="fa-solid fa-caret-down"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-input-container" id="textContainer">
+        <textarea id="postText" rows="4" placeholder="What's on your mind?"></textarea>
+    </div>
+
+    <div class="photo-preview-container" id="photoPreviewContainer">
+        <div class="photo-preview-wrapper">
+            <img id="photoPreview" src="" alt="Selected photo">
+            <button class="remove-photo-btn" onclick="removePhoto()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="upload-progress" id="uploadProgress">
+        <span class="progress-text">Uploading...</span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-text" id="progressPercent">0%</span>
+    </div>
+
+    <div class="selected-theme-label" id="themeLabel">Banner mode active</div>
+
+    <div class="theme-picker">
+        <div class="theme-btn theme-back-btn" onclick="scrollToLeft()"><i class="fa-solid fa-chevron-left" style="font-size: 12px;"></i></div>
+        <div class="theme-btn theme-white active" onclick="setTheme('white', this)" data-theme="white"></div>
+        <div class="theme-btn theme-purple" onclick="setTheme('purple', this)" data-theme="purple"></div>
+        <div class="theme-btn theme-red" onclick="setTheme('red', this)" data-theme="red"></div>
+        <div class="theme-btn theme-dark" onclick="setTheme('dark', this)" data-theme="dark"></div>
+        <div class="theme-btn theme-gradient-1" onclick="setTheme('gradient-1', this)" data-theme="gradient-1"></div>
+        <div class="theme-btn theme-gradient-2" onclick="setTheme('gradient-2', this)" data-theme="gradient-2"></div>
+        <div class="theme-btn theme-gradient-3" onclick="setTheme('gradient-3', this)" data-theme="gradient-3"></div>
+        <div class="theme-btn theme-dark-blue" onclick="setTheme('dark-blue', this)" data-theme="dark-blue"></div>
+        <div class="theme-btn theme-mention" onclick="showToast('@mention coming soon')"><i class="fa-solid fa-at"></i></div>
+    </div>
+
+    <div class="options-list">
+        <div class="option-item" onclick="triggerPhotoUpload()">
+            <i class="fa-solid fa-images"></i> Photos/Videos
+            <span class="upload-indicator" id="photoIndicator"><i class="fa-solid fa-plus"></i> Add</span>
+        </div>
+        <div class="option-item" onclick="triggerAction('Music')">
+            <i class="fa-solid fa-music"></i> Music
+        </div>
+        <div class="option-item" onclick="triggerAction('Tag people')">
+            <i class="fa-solid fa-user-tag"></i> Tag people
+        </div>
+        <div class="option-item" onclick="triggerAction('Add location')">
+            <i class="fa-solid fa-location-dot"></i> Add location
+        </div>
+        <div class="option-item" onclick="triggerAction('Feeling/activity')">
+            <i class="fa-solid fa-face-smile"></i> Feeling/activity
+        </div>
+        <div class="option-item" onclick="triggerAction('Get messages')">
+            <i class="fa-brands fa-facebook-messenger"></i> Get messages
+        </div>
+        <div class="option-item" onclick="triggerAction('Create Event')">
+            <i class="fa-solid fa-calendar-days"></i> Create Event
+        </div>
+        <div class="option-item" onclick="triggerAction('Go live')">
+            <i class="fa-solid fa-video"></i> Go live
+        </div>
+    </div>
+
+    <input type="file" id="photoInput" accept="image/*,video/*">
+
+    <div class="bottom-action-container">
+        <button class="post-main-btn" id="postMainBtn" onclick="handlePost()">POST</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dhvtgzy5x/image/upload';
+        const CLOUDINARY_UPLOAD_PRESET = 'Rosenews';
+
+        const toast = document.getElementById('toast');
+        const postText = document.getElementById('postText');
+        const postTopBtn = document.getElementById('postTopBtn');
+        const postMainBtn = document.getElementById('postMainBtn');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userProfilePic = document.getElementById('userProfilePic');
+        const textContainer = document.getElementById('textContainer');
+        const themeLabel = document.getElementById('themeLabel');
+        const photoInput = document.getElementById('photoInput');
+        const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+        const photoPreview = document.getElementById('photoPreview');
+        const photoIndicator = document.getElementById('photoIndicator');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+
+        let toastTimer;
+        let selectedTheme = 'white';
+        let isBannerMode = false;
+        let selectedImageFile = null;
+        let uploadedImageUrl = '';
+        let isUploading = false;
+        let currentUser = null;
+        let currentUserData = {};
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // ========== LOAD USER PROFILE ==========
+        async function loadUserProfile(user) {
+            try {
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    currentUserData = data;
+                    const fullName = data.fullName || data.firstName + ' ' + data.lastName || user.displayName || user.email?.split('@')[0] || 'User';
+                    userDisplayName.textContent = fullName;
+                    if (data.photoURL) {
+                        userProfilePic.src = data.photoURL;
+                    } else if (user.photoURL) {
+                        userProfilePic.src = user.photoURL;
+                    }
+                } else {
+                    userDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'User';
+                    if (user.photoURL) userProfilePic.src = user.photoURL;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                userDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'User';
+            }
+        }
+
+        // ========== AUTH STATE ==========
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadUserProfile(user);
+                // Real-time update
+                db.collection('users').doc(user.uid).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        currentUserData = data;
+                        const fullName = data.fullName || data.firstName + ' ' + data.lastName || user.displayName;
+                        if (fullName) userDisplayName.textContent = fullName;
+                        if (data.photoURL) userProfilePic.src = data.photoURL;
+                    }
+                });
+            } else {
+                userDisplayName.textContent = 'Guest User';
+                showToast('Please login to create posts');
+                setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+            }
+        });
+
+        // ========== PHOTO UPLOAD ==========
+        function triggerPhotoUpload() {
+            photoInput.click();
+        }
+
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('File too large. Max 10MB.');
+                return;
+            }
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                showToast('Please select an image or video.');
+                return;
+            }
+            selectedImageFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.src = e.target.result;
+                photoPreviewContainer.classList.add('show');
+                photoIndicator.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#31a24c;"></i> Selected';
+            };
+            reader.readAsDataURL(file);
+            uploadToCloudinary(file);
+        });
+
+        async function uploadToCloudinary(file) {
+            if (isUploading) return;
+            isUploading = true;
+            uploadedImageUrl = '';
+            uploadProgress.classList.add('show');
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        progressFill.style.width = percent + '%';
+                        progressPercent.textContent = percent + '%';
+                    }
+                });
+
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
+                        } else { reject(new Error('Upload failed: ' + xhr.status)); }
+                    };
+                    xhr.onerror = function() { reject(new Error('Network error')); };
+                });
+
+                xhr.open('POST', CLOUDINARY_URL);
+                xhr.send(formData);
+
+                const response = await uploadPromise;
+                uploadedImageUrl = response.secure_url || response.url;
+                if (uploadedImageUrl) {
+                    photoPreview.src = uploadedImageUrl;
+                    photoIndicator.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#31a24c;"></i> Uploaded';
+                    showToast('✅ Photo uploaded!');
+                } else {
+                    showToast('Failed to get uploaded URL');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Failed to upload: ' + error.message);
+                removePhoto();
+            } finally {
+                isUploading = false;
+                setTimeout(() => { uploadProgress.classList.remove('show'); }, 1500);
+            }
+        }
+
+        function removePhoto() {
+            selectedImageFile = null;
+            uploadedImageUrl = '';
+            photoPreviewContainer.classList.remove('show');
+            photoPreview.src = '';
+            photoInput.value = '';
+            photoIndicator.innerHTML = '<i class="fa-solid fa-plus"></i> Add';
+            uploadProgress.classList.remove('show');
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+        }
+
+        // ========== SET THEME ==========
+        function setTheme(themeName, btnElement) {
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            selectedTheme = themeName;
+            const container = document.querySelector('.text-input-container');
+            const textarea = document.getElementById('postText');
+
+            container.classList.remove('banner-mode');
+            container.style.background = 'transparent';
+            container.style.color = '#050505';
+            textarea.style.color = '#050505';
+            textarea.style.textAlign = 'left';
+            textarea.style.fontSize = '18px';
+            textarea.style.fontWeight = '400';
+            themeLabel.classList.remove('show');
+
+            const isColorTheme = themeName !== 'white';
+            if (isColorTheme) {
+                container.classList.add('banner-mode');
+                isBannerMode = true;
+                themeLabel.classList.add('show');
+                themeLabel.textContent = '🎨 Banner mode active';
+                const themes = {
+                    'purple': '#8a2be2',
+                    'red': '#e41e3f',
+                    'dark': '#212529',
+                    'gradient-1': 'linear-gradient(135deg, #ff416c, #ff4b2b)',
+                    'gradient-2': 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)',
+                    'gradient-3': 'linear-gradient(135deg, #f2994a, #f2c94c)',
+                    'dark-blue': '#3b5998'
+                };
+                container.style.background = themes[themeName] || '#8a2be2';
+                container.style.color = '#fff';
+                textarea.style.color = '#fff';
+                textarea.style.textAlign = 'center';
+                textarea.style.fontSize = '24px';
+                textarea.style.fontWeight = '600';
+                textarea.style.minHeight = '100px';
+            } else {
+                isBannerMode = false;
+                container.style.background = 'transparent';
+                container.style.color = '#050505';
+                textarea.style.color = '#050505';
+                textarea.style.textAlign = 'left';
+                textarea.style.fontSize = '18px';
+                textarea.style.fontWeight = '400';
+                textarea.style.minHeight = 'auto';
+            }
+        }
+
+        // ========== HANDLE POST ==========
+        async function handlePost() {
+            const text = postText.value.trim();
+            if (!text && !uploadedImageUrl) {
+                showToast('Please write something or add a photo!');
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                showToast('Please login first!');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            postTopBtn.disabled = true;
+            postMainBtn.disabled = true;
+            postTopBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            postMainBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+
+            try {
+                const userName = currentUserData.fullName || user.displayName || user.email?.split('@')[0] || 'User';
+                const userImage = currentUserData.photoURL || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60';
+                const isBanner = isBannerMode && selectedTheme !== 'white';
+
+                const postData = {
+                    userName: userName,
+                    userId: user.uid,
+                    userImage: userImage,
+                    caption: text || '📷 Photo post',
+                    fullText: text || '📷 Photo post',
+                    imageUrl: uploadedImageUrl || '',
+                    likes: 0,
+                    likedBy: [],
+                    comments: [],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isBanner: isBanner,
+                    bannerTheme: isBanner ? selectedTheme : null
+                };
+
+                const docRef = await db.collection('all-user-post').add(postData);
+                showToast('🎉 Post created successfully!');
+
+                // Reset form
+                postText.value = '';
+                removePhoto();
+                setTheme('white', document.querySelector('.theme-white'));
+                textContainer.style.background = 'transparent';
+                textContainer.classList.remove('banner-mode');
+
+                // Navigate back to feed
+                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+
+            } catch (error) {
+                console.error('Error creating post:', error);
+                showToast('Error: ' + error.message);
+            } finally {
+                postTopBtn.disabled = false;
+                postMainBtn.disabled = false;
+                postTopBtn.innerHTML = 'POST';
+                postMainBtn.innerHTML = 'POST';
+            }
+        }
+
+        function triggerAction(actionName) {
+            showToast('Opening ' + actionName + ' selector...');
+        }
+
+        function scrollToLeft() {
+            document.querySelector('.theme-picker').scrollBy({ left: -100, behavior: 'smooth' });
+        }
+
+        postText.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                handlePost();
+            }
+        });
+
+        postText.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        console.log('🔥 Create Post: Posts will appear on user profile with real name & photo!');
+    </script>
+</body>
+</html>
