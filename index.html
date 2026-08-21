@@ -1,457 +1,2740 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Facebook · User Status</title>
-  
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecretIntro · Online Status</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            color: #050505;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* ----- LOGIN OVERLAY ----- */
+        #login-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        #login-overlay.show {
+            display: flex;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .login-card .logo {
+            color: #1877f2;
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+        .login-card .sub {
+            color: #606770;
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: 0.2s;
+            background: #fafafa;
+        }
+        .login-card input:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px #e7f3ff;
+            background: #fff;
+        }
+        .login-card .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1877f2;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 4px;
+        }
+        .login-card .login-btn:hover {
+            background: #166fe5;
+        }
+        .login-card .forgot {
+            display: block;
+            margin: 16px 0 20px;
+            color: #1877f2;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .login-card .forgot:hover {
+            text-decoration: underline;
+        }
+        .login-card .hr {
+            border-top: 1px solid #dadde1;
+            margin: 20px 0;
+        }
+        .login-card .create-account-btn {
+            background: #42b72a;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .login-card .create-account-btn:hover {
+            background: #36a420;
+        }
+        .login-card .meta-brand {
+            color: #8a8d91;
+            font-size: 12px;
+            margin-top: 24px;
+        }
+        /* ----- MAIN APP ----- */
+        #app-main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .header .logo {
+            color: #1877f2;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+        .header-icons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: #e4e6eb;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: #050505;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .header-icon:hover {
+            background: #d8dadf;
+        }
+        .header .logout-btn {
+            background: #e4e6eb;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            color: #050505;
+            transition: 0.2s;
+        }
+        .header .logout-btn:hover {
+            background: #d8dadf;
+        }
+        /* ----- FULL SCREEN NAV OVERLAY ----- */
+        #nav-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 30px;
+        }
+        #nav-overlay.show {
+            display: flex;
+        }
+        .nav-overlay-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px 24px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s ease;
+        }
+        .nav-overlay-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+        .nav-overlay-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .nav-overlay-close {
+            background: #e4e6eb;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .nav-overlay-close:hover {
+            background: #d8dadf;
+        }
+        .nav-overlay-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #050505;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .nav-overlay-item:hover {
+            background: #f0f2f5;
+        }
+        .nav-overlay-item i {
+            width: 28px;
+            font-size: 22px;
+            color: #1877f2;
+            text-align: center;
+        }
+        .nav-overlay-item .badge {
+            margin-left: auto;
+            background: #e41e3f;
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        /* Nav Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: #fff;
+            border-bottom: 1px solid #ced0d4;
+            padding: 0 8px;
+            position: sticky;
+            top: 56px;
+            z-index: 90;
+        }
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 22px;
+            color: #65676b;
+            position: relative;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-tab.active {
+            color: #1877f2;
+        }
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #1877f2;
+        }
+        .badge-tab {
+            position: absolute;
+            top: 4px;
+            right: 18px;
+            background: #e41e3f;
+            color: #fff;
+            font-size: 11px;
+            padding: 1px 5px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        /* Post box */
+        .post-box {
+            background: #fff;
+            padding: 10px 16px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .profile-container {
+            position: relative;
+            cursor: pointer;
+        }
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background: #31a24c;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border: 2px solid #fff;
+        }
+        .post-input {
+            flex: 1;
+            border: 1px solid #ccd0d5;
+            border-radius: 20px;
+            padding: 9px 15px;
+            font-size: 15px;
+            background: #f0f2f5;
+            outline: none;
+            cursor: pointer;
+        }
+        .post-input:hover {
+            background: #e4e6eb;
+        }
+        .photo-icon {
+            color: #45bd62;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        /* Stories */
+        .stories-container {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #fff;
+            margin-top: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .stories-container::-webkit-scrollbar {
+            display: none;
+        }
+        .story-card {
+            min-width: 105px;
+            height: 175px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .story-card:hover {
+            transform: scale(1.02);
+        }
+        .story-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .create-story {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e4e6eb;
+        }
+        .create-story img {
+            height: 65%;
+        }
+        .create-story-content {
+            height: 35%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding-top: 15px;
+        }
+        .plus-icon-btn {
+            position: absolute;
+            top: -16px;
+            width: 32px;
+            height: 32px;
+            background: #1877f2;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #fff;
+            font-size: 14px;
+        }
+        .create-story-content span {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            padding: 0 5px;
+        }
+        .story-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #1877f2;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+        .story-name {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        /* Story Viewer Modal */
+        #story-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .story-viewer-container {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 90vh;
+            max-height: 750px;
+            background: #242526;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .story-viewer-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px);
+            opacity: 0.4;
+            z-index: 1;
+        }
+        .story-viewer-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .story-top-bar {
+            padding: 12px 16px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .story-progress-bars {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+        .story-progress {
+            flex: 1;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .story-progress-fill {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: progressAnim 5s linear forwards;
+        }
+        @keyframes progressAnim {
+            0% {
+                transform: scaleX(0);
+            }
+            100% {
+                transform: scaleX(1);
+            }
+        }
+        .story-user-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .story-user-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .story-user-details img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #1877f2;
+            object-fit: cover;
+        }
+        .story-user-text h4 {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .story-user-text span {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+        .story-close-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .story-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .story-main-image-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .story-main-image-area img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .story-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.2s;
+        }
+        .story-nav-arrow:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: #000;
+        }
+        .story-prev {
+            left: 10px;
+        }
+        .story-next {
+            right: 10px;
+        }
+        .story-footer {
+            padding: 12px 16px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .story-message-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .story-message-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .story-reactions {
+            display: flex;
+            gap: 8px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .story-reactions i {
+            transition: transform 0.2s;
+        }
+        .story-reactions i:hover {
+            transform: scale(1.2);
+        }
+        /* Feed post */
+        .feed-post {
+            background: #fff;
+            margin-top: 8px;
+            padding-top: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .feed-post:hover {
+            background: #fafafa;
+        }
+        .feed-post.banner-post {
+            padding: 0;
+            overflow: hidden;
+        }
+        .feed-post.banner-post .banner-content {
+            padding: 40px 20px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .feed-post.banner-post .banner-content .post-caption {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 600;
+            padding: 0;
+            line-height: 1.5;
+        }
+        .feed-post.banner-post .post-header {
+            position: relative;
+            z-index: 2;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .feed-post.banner-post .post-stats,
+        .feed-post.banner-post .post-actions,
+        .feed-post.banner-post .comments-section {
+            background: #fff;
+            position: relative;
+            z-index: 2;
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+        .post-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .post-user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .post-meta h4 {
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .post-meta h4:hover {
+            text-decoration: underline;
+        }
+        .post-meta span {
+            font-size: 12px;
+            color: #65676b;
+        }
+        .post-options {
+            display: flex;
+            gap: 12px;
+            color: #65676b;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .post-options i {
+            pointer-events: auto;
+        }
+        .post-caption {
+            padding: 10px 16px;
+            font-size: 16px;
+            font-weight: 500;
+            pointer-events: none;
+        }
+        .post-image-content {
+            width: 100%;
+            background: #000;
+        }
+        .post-image-content img {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        .post-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-bottom: 1px solid #ced0d4;
+            font-size: 13px;
+            color: #65676b;
+        }
+        .stat-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .like-icon-circle {
+            background: #1877f2;
+            color: #fff;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+        }
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 4px 0;
+        }
+        .action-btn {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 0;
+            color: #65676b;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+            pointer-events: auto;
+        }
+        .action-btn:hover {
+            background: #f0f2f5;
+        }
+        .action-btn.liked {
+            color: #1877f2;
+        }
+        .comments-section {
+            padding: 10px 16px;
+            background: #f9f9f9;
+            border-top: 1px solid #e4e6eb;
+            display: none;
+            pointer-events: auto;
+        }
+        .comments-section.active {
+            display: block;
+        }
+        .comment-item {
+            font-size: 13px;
+            margin-bottom: 8px;
+            background: #fff;
+            padding: 6px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            width: 100%;
+            cursor: pointer;
+        }
+        .comment-item:hover {
+            background: #f0f2f5;
+        }
+        .comment-box-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            pointer-events: auto;
+        }
+        .comment-box-input input {
+            flex: 1;
+            padding: 6px 12px;
+            border: 1px solid #ccd0d5;
+            border-radius: 18px;
+            outline: none;
+            font-size: 13px;
+        }
+        .comment-box-input button {
+            background: #1877f2;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ccd0d5;
+            border-radius: 6px;
+            resize: none;
+            outline: none;
+            margin-bottom: 15px;
+        }
+        .modal-content button {
+            background: #1877f2;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        /* toast */
+        .toast-msg {
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        /* Feed container */
+        #feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 20px;
+        }
+        .loading-text {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+            font-size: 16px;
+        }
+        /* Read more */
+        .read-more-btn {
+            color: #1877f2;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 4px;
+            pointer-events: auto;
+        }
+        .read-more-btn:hover {
+            text-decoration: underline;
+        }
+        .caption-text {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .caption-text.truncated {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .banner-post .caption-text {
+            color: #fff;
+        }
+        .banner-post .caption-text.truncated {
+            -webkit-line-clamp: 5;
+        }
+        /* ----- FULL SCREEN POST DETAIL OVERLAY ----- */
+        #post-detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 2500;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0;
+        }
+        #post-detail-overlay.show {
+            display: block;
+        }
+        .post-detail-header {
+            background: #fff;
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .post-detail-header .back-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #050505;
+            padding: 4px 8px;
+        }
+        .post-detail-header .back-btn:hover {
+            color: #1877f2;
+        }
+        .post-detail-body {
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 0 80px 0;
+            overflow-x: hidden;
+        }
+        .post-detail-body .feed-post {
+            cursor: default;
+            box-shadow: none;
+            margin-top: 0;
+            border-radius: 0;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        .post-detail-body .feed-post:hover {
+            background: #fff;
+        }
+        .post-detail-body .feed-post .post-caption {
+            pointer-events: auto;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+        .post-detail-body .feed-post .post-image-content {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+        }
+        .post-detail-body .feed-post .post-image-content img {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .post-detail-body .feed-post.banner-post .banner-content {
+            padding: 40px 20px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+        }
+        .post-detail-body .feed-post.banner-post .banner-content .post-caption {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 600;
+            padding: 0 10px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        .post-detail-body .comments-section {
+            display: block !important;
+            background: #ffffff;
+            border-top: none;
+            padding: 0 16px 20px;
+            overflow-x: hidden;
+        }
+        .post-detail-body .comment-box-input {
+            margin-top: 12px;
+            padding-bottom: 12px;
+        }
+        .post-detail-body .post-stats {
+            padding: 10px 16px;
+            border-bottom: 1px solid #ced0d4;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .post-detail-body .post-actions {
+            border-bottom: 1px solid #ced0d4;
+            flex-wrap: wrap;
+        }
+        .post-detail-body .comments-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #65676b;
+            border-bottom: 1px solid #e4e6eb;
+        }
+        .post-detail-body .comments-section-header span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #050505;
+            cursor: pointer;
+        }
+        .post-detail-body .comments-list {
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-x: hidden;
+        }
+        .post-detail-body .comment-item-detail {
+            display: flex;
+            gap: 10px;
+            overflow-x: hidden;
+            flex-wrap: wrap;
+        }
+        .post-detail-body .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .post-detail-body .comment-bubble-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        .post-detail-body .comment-bubble {
+            background-color: #f0f2f5;
+            padding: 10px 12px;
+            border-radius: 18px;
+            max-width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .post-detail-body .comment-author {
+            font-size: 13px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 2px;
+        }
+        .post-detail-body .comment-text {
+            font-size: 14px;
+            color: #050505;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .post-detail-body .comment-footer-actions {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #65676b;
+            margin-top: 4px;
+            padding-left: 12px;
+            flex-wrap: wrap;
+        }
+        .post-detail-body .comment-footer-actions span {
+            cursor: pointer;
+        }
+        .post-detail-body .comment-footer-actions span:hover {
+            text-decoration: underline;
+        }
+        .post-detail-body .reply-comment-item {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+        .post-detail-body .reply-comment-item::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            width: 10px;
+            height: 18px;
+            border-left: 2px solid #ccd0d5;
+            border-bottom: 2px solid #ccd0d5;
+            border-bottom-left-radius: 4px;
+        }
+        .post-detail-body .comment-input-bar {
+            position: sticky;
+            bottom: 0;
+            background: #ffffff;
+            border-top: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            gap: 8px;
+            margin: 0 -16px;
+            z-index: 5;
+            overflow-x: hidden;
+            flex-wrap: nowrap;
+        }
+        .post-detail-body .current-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .post-detail-body .input-wrapper {
+            flex-grow: 1;
+            background-color: #f0f2f5;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            min-width: 0;
+        }
+        .post-detail-body .input-wrapper input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #050505;
+            width: 100%;
+            min-width: 0;
+        }
+        .post-detail-body .input-wrapper input::placeholder {
+            color: #65676b;
+        }
+        .post-detail-body .input-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            color: #65676b;
+            flex-shrink: 0;
+        }
+        .post-detail-body .input-icons i {
+            cursor: pointer;
+        }
+        .post-detail-body .input-icons .send-icon {
+            color: #1877f2;
+            font-size: 20px;
+        }
+        .detail-loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #65676b;
+            font-size: 16px;
+        }
+        .detail-loading i {
+            margin-right: 10px;
+        }
+        .post-detail-body .feed-post .comment-box-input {
+            display: none !important;
+        }
+        .post-detail-body .feed-post .comments-section {
+            padding: 0;
+        }
+        .reply-container {
+            margin-left: 42px;
+            margin-top: 8px;
+            border-left: 2px solid #e4e6eb;
+            padding-left: 12px;
+        }
+        .reply-container .comment-item-detail {
+            margin-bottom: 8px;
+        }
+        .reply-container .comment-item-detail:last-child {
+            margin-bottom: 0;
+        }
+        #scroll-loader {
+            text-align: center;
+            padding: 20px;
+            color: #65676b;
+            display: none;
+        }
+        #scroll-loader .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e4e6eb;
+            border-top: 3px solid #1877f2;
+            border-radius: 50%;
+            animation: spin 1s linear forwards;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        #end-of-feed {
+            text-align: center;
+            padding: 30px;
+            color: #65676b;
+            font-size: 14px;
+            display: none;
+        }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #f0f2f5;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    }
+        /* ----- FULL SCREEN IFRAME OVERLAY ----- */
+        .iframe-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 2600;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+        .iframe-overlay.show {
+            display: block;
+        }
+        .iframe-overlay iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #f0f2f5;
+        }
+        .iframe-back-btn {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 2700;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #050505;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .iframe-back-btn:hover {
+            background: #fff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        .iframe-back-btn.show {
+            display: flex;
+        }
 
-    /* Full-screen iframe */
-    .fullscreen-iframe {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      display: block;
-      background: #fff;
-      margin: 0;
-      padding: 0;
-      z-index: 1;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
+        .online-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 6px;
+        }
+        .online-status.active {
+            background: #31a24c;
+        }
+        .online-status.inactive {
+            background: #b0b3b8;
+        }
 
-    .fullscreen-iframe.loaded {
-      opacity: 1;
-    }
-
-    /* Loading state */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #f0f2f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      transition: opacity 0.8s ease;
-    }
-
-    .loading-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .loading-spinner {
-      width: 44px;
-      height: 44px;
-      border: 4px solid #e4e6eb;
-      border-top: 4px solid #1877f2;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    .loading-overlay .loading-text {
-      margin-top: 18px;
-      color: #65676b;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .loading-overlay .loading-sub {
-      color: #8a8d91;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    .loading-overlay .progress-bar {
-      width: 220px;
-      height: 4px;
-      background: #e4e6eb;
-      border-radius: 4px;
-      margin-top: 18px;
-      overflow: hidden;
-    }
-
-    .loading-overlay .progress-bar .progress-fill {
-      height: 100%;
-      background: #1877f2;
-      border-radius: 4px;
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Toast message */
-    .toast-msg {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 200;
-      background: #333;
-      color: #fff;
-      padding: 10px 24px;
-      border-radius: 30px;
-      font-size: 14px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      display: none;
-      animation: fadeInDown 0.3s ease;
-    }
-
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translate(-50%, -20px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .loading-overlay .loading-text {
-        font-size: 13px;
-      }
-      .loading-overlay .loading-sub {
-        font-size: 11px;
-      }
-      .loading-spinner {
-        width: 34px;
-        height: 34px;
-      }
-      .loading-overlay .progress-bar {
-        width: 160px;
-      }
-    }
-  </style>
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 768px) {
+            .post-detail-body .feed-post .post-image-content img {
+                max-height: 350px;
+            }
+            .post-detail-body .feed-post.banner-post .banner-content .post-caption {
+                font-size: 18px;
+            }
+            .post-detail-body .comment-input-bar {
+                padding: 8px 8px;
+                gap: 6px;
+            }
+            .post-detail-body .input-wrapper {
+                padding: 4px 8px;
+            }
+            .post-detail-body .input-icons {
+                gap: 4px;
+                font-size: 16px;
+            }
+            .post-detail-body .action-btn {
+                font-size: 12px;
+                padding: 6px 0;
+                white-space: nowrap;
+            }
+            .post-detail-body .post-stats {
+                font-size: 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .post-detail-body .feed-post .post-image-content img {
+                max-height: 250px;
+            }
+            .post-detail-body .feed-post.banner-post .banner-content {
+                padding: 30px 15px;
+                min-height: 120px;
+            }
+            .post-detail-body .feed-post.banner-post .banner-content .post-caption {
+                font-size: 16px;
+            }
+            .post-detail-body .post-detail-header {
+                padding: 8px 12px;
+            }
+            .post-detail-body .post-detail-header .back-btn {
+                font-size: 18px;
+            }
+            .post-detail-body .comment-item-detail {
+                gap: 6px;
+            }
+            .post-detail-body .comment-avatar {
+                width: 28px;
+                height: 28px;
+            }
+            .post-detail-body .comment-bubble {
+                padding: 6px 10px;
+            }
+            .post-detail-body .comment-author {
+                font-size: 12px;
+            }
+            .post-detail-body .comment-text {
+                font-size: 13px;
+            }
+            .post-detail-body .action-btn {
+                font-size: 11px;
+                padding: 4px 0;
+            }
+            .post-detail-body .post-header {
+                padding: 0 10px;
+            }
+            .post-detail-body .post-meta h4 {
+                font-size: 13px;
+            }
+            .post-detail-body .post-meta span {
+                font-size: 10px;
+            }
+            .post-detail-body .post-caption {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            .post-detail-body .post-stats {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            .post-detail-body .comments-section {
+                padding: 0 10px 15px;
+            }
+            .post-detail-body .comments-section-header {
+                font-size: 12px;
+                padding: 8px 10px 4px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Connecting to Facebook...</div>
-    <div class="loading-sub">Please wait while we load your feed</div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
+    <!-- TOAST -->
+    <div id="toast" class="toast-msg"></div>
+
+    <!-- ========== LOGIN OVERLAY ========== -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <div class="logo">SecretIntro</div>
+            <div class="sub">Connect with friends and the world around you.</div>
+            <input type="text" id="login-email" placeholder="Mobile number or email address" value="demo@user.com" />
+            <input type="password" id="login-password" placeholder="Password" value="demopass" />
+            <button class="login-btn" id="login-btn">Log in</button>
+            <a class="forgot" onclick="alert('Reset password functionality')">Forgotten password?</a>
+            <div class="hr"></div>
+            <button class="create-account-btn" id="create-account-btn">Create new account</button>
+            <div class="meta-brand">Meta</div>
+        </div>
     </div>
-  </div>
 
-  <!-- Toast -->
-  <div class="toast-msg" id="toast"></div>
+    <!-- ========== FULL SCREEN NAV OVERLAY ========== -->
+    <div id="nav-overlay">
+        <div class="nav-overlay-content">
+            <div class="nav-overlay-header">
+                <h2><i class="fa-solid fa-bars" style="color:#1877f2;margin-right:10px;"></i>Menu</h2>
+                <button class="nav-overlay-close" id="nav-overlay-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="nav-overlay-item" onclick="openProfileIframe()">
+                <i class="fa-solid fa-user"></i> Profile
+            </div>
+            <div class="nav-overlay-item" onclick="openIframe('friends.html','Friends')">
+                <i class="fa-solid fa-user-group"></i> Friends
+            </div>
+            <div class="nav-overlay-item" onclick="openIframe('messenger.html','Messenger')">
+                <i class="fa-brands fa-facebook-messenger"></i> Messenger
+                <span class="badge">15+</span>
+            </div>
+            <div class="nav-overlay-item" onclick="openIframe('videos.html','Videos')">
+                <i class="fa-solid fa-clapperboard"></i> Videos
+            </div>
+            <div class="nav-overlay-item" onclick="openIframe('notifications.html','Notifications')">
+                <i class="fa-solid fa-bell"></i> Notifications
+                <span class="badge">3</span>
+            </div>
+            <div class="nav-overlay-item" onclick="openIframe('settings.html','Settings')">
+                <i class="fa-solid fa-gear"></i> Settings
+            </div>
+            <div class="nav-overlay-item" onclick="openIframe('help.html','Help')">
+                <i class="fa-solid fa-circle-question"></i> Help
+            </div>
+            <div class="nav-overlay-item" style="border-top:1px solid #e4e6eb;margin-top:8px;padding-top:16px;" onclick="auth.signOut();showToast('Logged out');">
+                <i class="fa-solid fa-sign-out-alt" style="color:#e41e3f;"></i> Logout
+            </div>
+        </div>
+    </div>
 
-  <!-- FULL SCREEN IFRAME -->
-  <iframe 
-    class="fullscreen-iframe" 
-    id="mainIframe"
-    src="vs.html" 
-    title="Facebook Clone"
-    allowfullscreen
-    loading="eager"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-  ></iframe>
+    <!-- ========== STORY VIEWER MODAL ========== -->
+    <div id="story-viewer-modal">
+        <div class="story-viewer-container">
+            <div class="story-viewer-bg" id="viewer-bg"></div>
+            <div class="story-viewer-content">
+                <div class="story-top-bar">
+                    <div class="story-progress-bars">
+                        <div class="story-progress"><div class="story-progress-fill" id="progress-fill"></div></div>
+                    </div>
+                    <div class="story-user-info">
+                        <div class="story-user-details">
+                            <img id="viewer-user-pic" src="" alt="User">
+                            <div class="story-user-text">
+                                <h4 id="viewer-username"></h4>
+                                <span id="viewer-time">1h</span>
+                            </div>
+                        </div>
+                        <button class="story-close-btn" id="close-story-viewer"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div class="story-main-image-area">
+                    <button class="story-nav-arrow story-prev" id="story-prev-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                    <img id="viewer-story-img" src="" alt="Story Image">
+                    <button class="story-nav-arrow story-next" id="story-next-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="story-footer">
+                    <input type="text" class="story-message-input" placeholder="Send message...">
+                    <div class="story-reactions">
+                        <span onclick="showToast('❤️ Loved!')">❤️</span>
+                        <span onclick="showToast('😆 Laughed!')">😆</span>
+                        <span onclick="showToast('😮 Surprised!')">😮</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    // ========== FIREBASE CONFIG ==========
-    const firebaseConfig = {
-      apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
-      authDomain: "money-generate-dbab3.firebaseapp.com",
-      databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
-      projectId: "money-generate-dbab3",
-      storageBucket: "money-generate-dbab3.firebasestorage.app",
-      messagingSenderId: "579756089926",
-      appId: "1:579756089926:web:abbe35377e3657889be047"
-    };
+    <!-- ========== FULL SCREEN POST DETAIL OVERLAY ========== -->
+    <div id="post-detail-overlay">
+        <div class="post-detail-header">
+            <button class="back-btn" id="detail-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+        </div>
+        <div class="post-detail-body" id="post-detail-body">
+            <div class="detail-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading post...</div>
+        </div>
+    </div>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    <!-- ========== FULL SCREEN IFRAME OVERLAY ========== -->
+    <div id="iframe-overlay" class="iframe-overlay">
+        <iframe id="iframe-content" src="about:blank"></iframe>
+    </div>
+    <button class="iframe-back-btn" id="iframe-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
 
-    // ========== DOM REFS ==========
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const toast = document.getElementById('toast');
-    const mainIframe = document.getElementById('mainIframe');
-    const progressFill = document.getElementById('progressFill');
+    <!-- ========== MAIN APP ========== -->
+    <div id="app-main">
 
-    let toastTimer = null;
-    let statusUpdateInterval = null;
-    let iframeLoaded = false;
-    let progressInterval = null;
-    let progressValue = 0;
-    let isFirstLoad = true;
+        <!-- Header -->
+        <div class="header">
+            <div class="logo" onclick="location.reload()">Secret Intro</div>
+            <div class="header-icons">
+                <div class="header-icon" id="open-post-modal" title="Create Post"><i class="fa-solid fa-plus"></i></div>
+                <div class="header-icon" id="search-icon" title="Search"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="header-icon" id="nav-toggle-btn" title="Menu"><i class="fa-solid fa-bars"></i></div>
+                <button class="logout-btn" id="logout-btn"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
 
-    // ========== SLOW PROGRESS SIMULATION ==========
-    function startSlowProgress() {
-      progressValue = 0;
-      if (progressInterval) clearInterval(progressInterval);
-      
-      // Slower progress - takes about 8-12 seconds to reach 90%
-      progressInterval = setInterval(() => {
-        if (progressValue < 90) {
-          // Slower increment: 0.5% to 3% per step
-          const increment = 0.5 + Math.random() * 2.5;
-          progressValue += increment;
-          if (progressValue > 90) progressValue = 90;
-          progressFill.style.width = progressValue + '%';
+        <!-- Nav Tabs -->
+        <div class="nav-tabs">
+            <div onclick="window.location.href='home.html'" class="nav-tab active" title="Home"><i class="fa-solid fa-house"></i></div>
+            <div class="nav-tab" id="tab-friends" title="Friends"><i class="fa-solid fa-user-group"></i></div>
+            <div class="nav-tab" id="tab-messenger" title="Messenger"><i class="fa-brands fa-facebook-messenger"></i><span class="badge-tab">15+</span></div>
+            <div class="nav-tab" id="tab-videos" title="Videos"><i class="fa-solid fa-clapperboard"></i></div>
+            <div class="nav-tab" id="tab-notifications" title="Notifications"><i class="fa-solid fa-bell"></i></div>
+            <div class="nav-tab" id="nav-menu-tab" title="Menu"><i class="fa-solid fa-bars"></i></div>
+        </div>
+
+        <!-- What's on your mind? -->
+        <div class="post-box">
+            <div class="profile-container" onclick="openProfileIframe()">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Profile" class="profile-pic" id="header-profile-pic">
+                <div class="online-dot"></div>
+            </div>
+            <input type="text" class="post-input" id="trigger-post" placeholder="What's on your mind?" onclick="openIframe('create-post.html','Create Post')">
+            <i class="fa-solid fa-images photo-icon" id="trigger-photo" title="Upload Photo" onclick="openIframe('upload-photo.html','Upload Photo')"></i>
+        </div>
+
+        <!-- Stories -->
+        <div class="stories-container" id="stories-container"></div>
+
+        <!-- ====== DYNAMIC FEED ====== -->
+        <div id="feed-container">
+            <div class="loading-text" id="feed-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading posts...</div>
+            <div id="scroll-loader"><div class="spinner"></div></div>
+            <div id="end-of-feed">You've seen all posts</div>
+        </div>
+
+    </div>
+
+    <!-- Create Post Modal -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <h3>Create Post</h3><br>
+            <textarea id="modal-text" placeholder="What's on your mind?"></textarea><br>
+            <button id="close-modal">Post</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== DOM REFS ==========
+        const loginOverlay = document.getElementById('login-overlay');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const loginBtn = document.getElementById('login-btn');
+        const createAccountBtn = document.getElementById('create-account-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const toast = document.getElementById('toast');
+        const feedContainer = document.getElementById('feed-container');
+        const feedLoading = document.getElementById('feed-loading');
+        const detailOverlay = document.getElementById('post-detail-overlay');
+        const detailBody = document.getElementById('post-detail-body');
+        const detailBackBtn = document.getElementById('detail-back-btn');
+        const scrollLoader = document.getElementById('scroll-loader');
+        const endOfFeed = document.getElementById('end-of-feed');
+        const storiesContainer = document.getElementById('stories-container');
+        const iframeOverlay = document.getElementById('iframe-overlay');
+        const iframeContent = document.getElementById('iframe-content');
+        const iframeBackBtn = document.getElementById('iframe-back-btn');
+        const navOverlay = document.getElementById('nav-overlay');
+        const navToggleBtn = document.getElementById('nav-toggle-btn');
+        const navMenuTab = document.getElementById('nav-menu-tab');
+        const navOverlayClose = document.getElementById('nav-overlay-close');
+
+        // ========== ONLINE / OFFLINE STATE ==========
+        function setUserStatus(uid, status) {
+            if (!uid) return;
+            db.collection('users').doc(uid).update({
+                status: status,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(err => console.warn('Status update error:', err));
         }
-      }, 300);
-    }
 
-    function completeProgress() {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-      }
-      progressValue = 100;
-      progressFill.style.width = '100%';
-      
-      // Wait a bit longer before hiding loading
-      setTimeout(() => {
-        loadingOverlay.classList.add('hidden');
-        mainIframe.classList.add('loaded');
-        isFirstLoad = false;
-      }, 600);
-    }
-
-    // ========== TOAST ==========
-    function showToast(msg) {
-      toast.textContent = msg;
-      toast.style.display = 'block';
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toast.style.display = 'none';
-      }, 3000);
-    }
-
-    // ========== UPDATE USER STATUS TO ONLINE ==========
-    async function setUserOnline(user) {
-      if (!user) return;
-      try {
-        await db.collection('users').doc(user.uid).set({
-          status: 'online',
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        console.log('✅ User status set to online:', user.uid);
-      } catch (error) {
-        console.error('Error setting user online:', error);
-      }
-    }
-
-    // ========== UPDATE USER STATUS TO OFFLINE ==========
-    async function setUserOffline(user) {
-      if (!user) return;
-      try {
-        await db.collection('users').doc(user.uid).set({
-          status: 'offline',
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        console.log('👤 User status set to offline:', user.uid);
-      } catch (error) {
-        console.error('Error setting user offline:', error);
-      }
-    }
-
-    // ========== CHECK IF IFRAME IS FULLY LOADED ==========
-    function checkIframeLoaded() {
-      try {
-        const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
-        if (iframeDoc && iframeDoc.readyState === 'complete') {
-          // Check if there's visible content (not just blank)
-          const bodyText = iframeDoc.body?.innerText || '';
-          const hasContent = bodyText.length > 50 || iframeDoc.querySelectorAll('div, img, p').length > 3;
-          
-          if (hasContent && !iframeLoaded) {
-            iframeLoaded = true;
-            completeProgress();
-            return true;
-          }
-        }
-        return false;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    // ========== MAIN AUTH HANDLER ==========
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        // User is logged in - set online status
-        await setUserOnline(user);
-        
-        // Show welcome
-        showToast(`👋 Welcome ${user.displayName || user.email?.split('@')[0] || 'User'}`);
-
-        // Start periodic status refresh
-        if (statusUpdateInterval) clearInterval(statusUpdateInterval);
-        statusUpdateInterval = setInterval(() => {
-          setUserOnline(user);
-        }, 30000);
-
-        // Listen for user profile changes
-        db.collection('users').doc(user.uid).onSnapshot((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-          }
-        });
-
-        // If the iframe loads, update status and complete loading
-        mainIframe.addEventListener('load', () => {
-          setUserOnline(user);
-          // Wait a bit for content to render
-          setTimeout(() => {
-            if (!iframeLoaded) {
-              checkIframeLoaded();
-            }
-          }, 1500);
-        });
-
-        // If user is active on page, set online
+        // Listen to visibility change (tab close / background)
         document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) {
-            setUserOnline(user);
-          }
+            const user = auth.currentUser;
+            if (!user) return;
+            if (document.hidden) {
+                setUserStatus(user.uid, 'offline');
+            } else {
+                setUserStatus(user.uid, 'online');
+            }
         });
 
-        // Before page unload, set offline
+        // Before page unload (browser close, refresh)
         window.addEventListener('beforeunload', () => {
-          setUserOffline(user);
+            const user = auth.currentUser;
+            if (user) setUserStatus(user.uid, 'offline');
         });
 
-        // Start slow progress
-        startSlowProgress();
-
-        // Check iframe load status every 800ms (slower check)
-        const loadCheckInterval = setInterval(() => {
-          if (checkIframeLoaded()) {
-            clearInterval(loadCheckInterval);
-          }
-        }, 800);
-
-        // Fallback: If iframe doesn't load in 15 seconds, force show
-        setTimeout(() => {
-          if (!iframeLoaded) {
-            iframeLoaded = true;
-            completeProgress();
-            console.log('⚠️ Fallback: Forced load completion');
-          }
-        }, 15000);
-
-      } else {
-        // No user - show login required
-        loadingOverlay.classList.add('hidden');
-        mainIframe.classList.add('loaded');
-        showToast('🔑 Please login to Facebook');
-
-        setTimeout(() => {
-          mainIframe.src = 'vs.html';
-        }, 2000);
-      }
-    });
-
-    // ========== HANDLE IFRAME NAVIGATION ==========
-    mainIframe.addEventListener('load', () => {
-      const user = auth.currentUser;
-      if (user) {
-        setUserOnline(user);
-        if (!iframeLoaded && !isFirstLoad) {
-          // If navigating within the app, show loading briefly
-          loadingOverlay.classList.remove('hidden');
-          startSlowProgress();
-          setTimeout(() => {
-            checkIframeLoaded();
-          }, 2000);
+        // ========== CREATE USER DOCUMENT ==========
+        async function createUserDocument(user) {
+            if (!user) return;
+            try {
+                const docRef = db.collection('users').doc(user.uid);
+                const doc = await docRef.get();
+                if (!doc.exists) {
+                    const userData = {
+                        uid: user.uid,
+                        fullName: user.displayName || user.email?.split('@')[0] || 'User',
+                        email: user.email || '',
+                        photoURL: user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+                        bio: 'Hey there! I\'m using Facebook Clone',
+                        location: 'Rajshahi',
+                        birthday: '21 March',
+                        relationship: 'Single',
+                        language: 'English',
+                        phone: '+880 1234 567890',
+                        workTitle: 'Freelancer',
+                        workRole: 'Chief marketing officer (CMO)',
+                        coverPhoto: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
+                        status: 'online',
+                        friends: ['Md Hridoy Hasan', 'SM Pasha Hasan', 'Nur-Alom Shekh'],
+                        mutual: 12,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    await docRef.set(userData);
+                    console.log('✅ User document created');
+                } else {
+                    await docRef.update({ status: 'online', updatedAt: new Date().toISOString() });
+                }
+            } catch (error) {
+                console.error('Error creating user document:', error);
+            }
         }
-      }
-    });
 
-    // ========== GET URL PARAMETERS ==========
-    function getUrlParams() {
-      const params = new URLSearchParams(window.location.search);
-      return {
-        userId: params.get('user'),
-        page: params.get('page'),
-        postId: params.get('post')
-      };
-    }
-
-    // ========== SET IFRAME SOURCE ==========
-    function setIframeSource() {
-      const params = getUrlParams();
-      let url = 'vs.html';
-      
-      if (params.page) {
-        url = `${params.page}.html`;
-        if (params.userId) {
-          url += `?user=${params.userId}`;
+        // ========== PROFILE NAVIGATION ==========
+        function openProfileIframe(targetUserId) {
+            const userId = targetUserId || auth.currentUser?.uid;
+            if (!userId) { showToast('Please login first'); return; }
+            const url = `profile.html?user=${userId}`;
+            iframeContent.src = url;
+            iframeOverlay.classList.add('show');
+            iframeBackBtn.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            history.pushState({ iframeOverlay: true, url: url }, '');
         }
-        if (params.postId) {
-          url += `${params.userId ? '&' : '?'}post=${params.postId}`;
+
+        // ========== GET USER DATA ==========
+        async function getUserData(userId) {
+            try {
+                const doc = await db.collection('users').doc(userId).get();
+                if (doc.exists) return { id: userId, ...doc.data() };
+                return null;
+            } catch (error) { console.error('Error fetching user data:', error); return null; }
         }
-      }
-      
-      if (params.userId && !params.page) {
-        url = `profile.html?user=${params.userId}`;
-      }
 
-      // Only set if different to avoid reload
-      if (mainIframe.src !== url && !mainIframe.src.includes(url)) {
-        mainIframe.src = url;
-      }
-      
-      // Show loading with slow progress
-      if (!iframeLoaded) {
-        loadingOverlay.classList.remove('hidden');
-        startSlowProgress();
-      }
-    }
+        // ========== IFRAME OVERLAY ==========
+        function openIframe(url, title) {
+            if (url === 'profile.html' && auth.currentUser) {
+                url = `profile.html?user=${auth.currentUser.uid}`;
+            }
+            iframeContent.src = url;
+            iframeOverlay.classList.add('show');
+            iframeBackBtn.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            history.pushState({ iframeOverlay: true, url: url }, '');
+        }
 
-    // Initial load
-    setIframeSource();
+        function closeIframe() {
+            iframeOverlay.classList.remove('show');
+            iframeBackBtn.classList.remove('show');
+            document.body.style.overflow = '';
+            iframeContent.src = 'about:blank';
+            if (history.state && history.state.iframeOverlay) history.back();
+        }
 
-    // ========== HANDLE POPSTATE ==========
-    window.addEventListener('popstate', () => {
-      setIframeSource();
-    });
+        iframeBackBtn.addEventListener('click', closeIframe);
 
-    // ========== KEYBOARD SHORTCUTS ==========
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        window.history.back();
-      }
-    });
+        window.addEventListener('popstate', function(e) {
+            if (iframeOverlay.classList.contains('show')) { e.preventDefault();
+                closeIframe(); }
+            if (detailOverlay.classList.contains('show')) { e.preventDefault();
+                closePostDetail(); }
+        });
 
-    console.log('✅ Facebook · User Status Active');
-    console.log('🟢 User status is being tracked in Firebase');
-    console.log('🟢 Loading is slower to ensure content is fully loaded');
-    console.log('📄 Iframe source: home.html');
-  </script>
+        // ========== TOAST ==========
+        let toastTimer;
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+        }
+
+        // ========== STORY VIEWER ==========
+        let currentStoryIndex = 0;
+        let storyDataCache = [];
+        const storyModal = document.getElementById('story-viewer-modal');
+        const viewerUserPic = document.getElementById('viewer-user-pic');
+        const viewerUsername = document.getElementById('viewer-username');
+        const viewerTime = document.getElementById('viewer-time');
+        const viewerStoryImg = document.getElementById('viewer-story-img');
+        const viewerBg = document.getElementById('viewer-bg');
+        const closeStoryViewer = document.getElementById('close-story-viewer');
+        const storyPrevBtn = document.getElementById('story-prev-btn');
+        const storyNextBtn = document.getElementById('story-next-btn');
+        const progressFill = document.getElementById('progress-fill');
+
+        function openStoryViewer(index) {
+            if (storyDataCache.length === 0) return;
+            currentStoryIndex = index % storyDataCache.length;
+            updateStoryView();
+            storyModal.style.display = 'flex';
+        }
+
+        function updateStoryView() {
+            const story = storyDataCache[currentStoryIndex];
+            if (!story) return;
+            viewerUserPic.src = story.pic || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            viewerUsername.textContent = story.name || 'User';
+            viewerTime.textContent = story.time || '1h';
+            viewerStoryImg.src = story.img || story.pic || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80';
+            viewerBg.style.backgroundImage = `url('${story.img || story.pic}')`;
+            progressFill.style.animation = 'none';
+            progressFill.offsetHeight;
+            progressFill.style.animation = 'progressAnim 5s linear forwards';
+        }
+
+        closeStoryViewer.addEventListener('click', () => { storyModal.style.display = 'none'; });
+        storyPrevBtn.addEventListener('click', () => {
+            if (storyDataCache.length === 0) return;
+            currentStoryIndex = (currentStoryIndex - 1 + storyDataCache.length) % storyDataCache.length;
+            updateStoryView();
+        });
+        storyNextBtn.addEventListener('click', () => {
+            if (storyDataCache.length === 0) return;
+            currentStoryIndex = (currentStoryIndex + 1) % storyDataCache.length;
+            updateStoryView();
+        });
+        window.addEventListener('click', (e) => { if (e.target === storyModal) storyModal.style.display = 'none'; });
+
+        // ========== POST DETAIL ==========
+        let currentDetailPostId = null;
+
+        function openPostDetail(postId) {
+            currentDetailPostId = postId;
+            detailOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            sessionStorage.setItem('feedScrollY', window.scrollY);
+            loadPostDetail(postId);
+            history.pushState({ detailOpen: true }, '');
+        }
+
+        function closePostDetail() {
+            detailOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            const scrollY = parseInt(sessionStorage.getItem('feedScrollY')) || 0;
+            setTimeout(() => window.scrollTo(0, scrollY), 50);
+            if (history.state && history.state.detailOpen) history.back();
+            currentDetailPostId = null;
+        }
+
+        detailBackBtn.addEventListener('click', closePostDetail);
+
+        async function loadPostDetail(postId) {
+            detailBody.innerHTML = '<div class="detail-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading post...</div>';
+            try {
+                const doc = await db.collection('all-user-post').doc(postId).get();
+                if (!doc.exists) { detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Post not found</div>'; return; }
+                const post = { id: doc.id, ...doc.data() };
+                if (!post.comments) post.comments = [];
+                post.comments = post.comments.map(c => ({
+                    id: c.id || Date.now().toString(),
+                    userName: c.userName || 'User',
+                    userImage: c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                    text: c.text || '',
+                    timestamp: c.timestamp || new Date().toISOString(),
+                    replies: c.replies || [],
+                    liked: c.liked || false
+                }));
+                const postEl = createDetailPostElement(post);
+                detailBody.innerHTML = '';
+                detailBody.appendChild(postEl);
+                attachDetailListeners(postId);
+            } catch (error) {
+                console.error('Error loading post detail:', error);
+                detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Error loading post</div>';
+            }
+        }
+
+        function getThemeStyles(theme) {
+            const styles = {
+                'purple': { background: '#8a2be2', color: '#fff' },
+                'red': { background: '#e41e3f', color: '#fff' },
+                'dark': { background: '#212529', color: '#fff' },
+                'gradient-1': { background: 'linear-gradient(135deg, #ff416c, #ff4b2b)', color: '#fff' },
+                'gradient-2': { background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', color: '#fff' },
+                'gradient-3': { background: 'linear-gradient(135deg, #f2994a, #f2c94c)', color: '#fff' },
+                'dark-blue': { background: '#3b5998', color: '#fff' },
+                'white': { background: '#ffffff', color: '#050505' }
+            };
+            return styles[theme] || styles['white'];
+        }
+
+        function createDetailPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'feed-post';
+            div.dataset.postId = post.id;
+
+            const user = auth.currentUser;
+            let userName = post.userName || user?.displayName || user?.email?.split('@')[0] || 'Unknown User';
+            let userImage = post.userImage || user?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            let userId = post.userId || '';
+
+            if (user && post.userId === user.uid) {
+                if (user.displayName) userName = user.displayName;
+                if (user.photoURL) userImage = user.photoURL;
+            }
+
+            const caption = post.caption || '';
+            const fullText = post.fullText || caption;
+            const imageUrl = post.imageUrl || '';
+            const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
+            const likes = post.likes || 0;
+            const comments = post.comments || [];
+            const isBanner = post.isBanner || false;
+            const bannerTheme = post.bannerTheme || 'white';
+            const themeStyle = getThemeStyles(bannerTheme);
+
+            let captionHTML = '';
+            if (caption) {
+                if (isBanner) {
+                    captionHTML = `
+                        <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
+                            <div class="post-caption caption-text">${escapeHTML(caption)}</div>
+                        </div>
+                    `;
+                } else {
+                    captionHTML = `
+                        <div class="post-caption">
+                            <span class="caption-text">${escapeHTML(fullText)}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            const sortedComments = [...comments].reverse();
+            let commentsHTML = '';
+            if (sortedComments.length > 0) {
+                commentsHTML = sortedComments.map((c, index) => {
+                    const hasReplies = c.replies && c.replies.length > 0;
+                    const repliesHTML = hasReplies ? c.replies.map(r => `
+                        <div class="comment-item-detail">
+                            <img src="${r.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
+                            <div class="comment-bubble-container">
+                                <div class="comment-bubble">
+                                    <div class="comment-author">${escapeHTML(r.userName || 'User')}</div>
+                                    <div class="comment-text">${escapeHTML(r.text)}</div>
+                                </div>
+                                <div class="comment-footer-actions">
+                                    <span>${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'Just now'}</span>
+                                    <span class="like-comment-btn" onclick="event.stopPropagation(); likeCommentDetail(this, '${post.id}', '${r.id || index}', 'reply')">Like</span>
+                                    <span onclick="event.stopPropagation(); replyToComment(this, '${escapeHTML(r.userName || 'User')}')">Reply</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') : '';
+                    return `
+                        <div class="comment-item-detail" data-comment-id="${c.id || index}">
+                            <img src="${c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
+                            <div class="comment-bubble-container">
+                                <div class="comment-bubble">
+                                    <div class="comment-author">${escapeHTML(c.userName || 'User')}</div>
+                                    <div class="comment-text">${escapeHTML(c.text)}</div>
+                                </div>
+                                <div class="comment-footer-actions">
+                                    <span>${c.timestamp ? new Date(c.timestamp).toLocaleString() : 'Just now'}</span>
+                                    <span class="like-comment-btn" onclick="event.stopPropagation(); likeCommentDetail(this, '${post.id}', '${c.id || index}', 'comment')">Like</span>
+                                    <span onclick="event.stopPropagation(); replyToComment(this, '${escapeHTML(c.userName || 'User')}')">Reply</span>
+                                </div>
+                                ${hasReplies ? `<div class="reply-container">${repliesHTML}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                commentsHTML = '<div style="padding:12px 0;color:#65676b;text-align:center;font-size:14px;">No comments yet. Be the first to comment!</div>';
+            }
+
+            const currentUser = auth.currentUser;
+            div.innerHTML = `
+                <div class="post-header">
+                    <div class="post-user-info">
+                        <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
+                            <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
+                        </div>
+                        <div class="post-meta">
+                            <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
+                            <span>${timestamp}</span>
+                        </div>
+                    </div>
+                    <div class="post-options">
+                        <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
+                    </div>
+                </div>
+                ${captionHTML}
+                ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy"></div>` : ''}
+                <div class="post-stats">
+                    <div class="stat-left">
+                        <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
+                        <span class="like-count">${likes}</span>
+                    </div>
+                    <div class="stat-right">
+                        <span class="comment-count">${comments.length} comments</span>
+                    </div>
+                </div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn" onclick="event.stopPropagation(); handleLikePost('${post.id}', this)"><i class="fa-regular fa-thumbs-up"></i> Like</div>
+                    <div class="action-btn comment-toggle-btn" onclick="event.stopPropagation();"><i class="fa-regular fa-comment"></i> Comment</div>
+                    <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
+                </div>
+                <div class="comments-section active">
+                    <div class="comments-section-header">
+                        <span>Most relevant <i class="fa-solid fa-caret-down" style="font-size:12px;"></i></span>
+                    </div>
+                    <div class="comments-list" id="detail-comments-list">
+                        ${commentsHTML}
+                    </div>
+                    <div class="comment-input-bar">
+                        <img src="${currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Your Avatar" class="current-user-avatar">
+                        <div class="input-wrapper">
+                            <input type="text" id="detail-comment-input" placeholder="Write a comment...">
+                            <div class="input-icons">
+                                <i class="fa-regular fa-face-smile"></i>
+                                <i class="fa-regular fa-images"></i>
+                                <i class="fa-regular fa-gift"></i>
+                                <i class="fa-regular fa-paper-plane send-icon" id="detail-send-btn"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            if (isBanner) div.classList.add('banner-post');
+            return div;
+        }
+
+        async function likeCommentDetail(el, postId, commentId, type) {
+            el.style.pointerEvents = 'none';
+            if (el.style.color === 'rgb(24, 119, 242)') {
+                el.style.color = '#65676b';
+                el.textContent = 'Like';
+                el.style.pointerEvents = 'auto';
+                el.onclick = function(e) { e.stopPropagation();
+                    likeCommentDetail(this, postId, commentId, type); };
+                return;
+            }
+            el.style.color = '#1877f2';
+            el.textContent = 'Liked';
+            el.style.cursor = 'default';
+            el.onclick = null;
+            try {
+                const doc = await db.collection('all-user-post').doc(postId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    let comments = data.comments || [];
+                    let updatedComments = [...comments];
+                    if (type === 'comment') {
+                        updatedComments = comments.map(c => {
+                            if (c.id === commentId.toString()) return { ...c, liked: true };
+                            return c;
+                        });
+                    } else if (type === 'reply') {
+                        updatedComments = comments.map(c => {
+                            if (c.replies) {
+                                const updatedReplies = c.replies.map(r => {
+                                    if (r.id === commentId.toString()) return { ...r, liked: true };
+                                    return r;
+                                });
+                                return { ...c, replies: updatedReplies };
+                            }
+                            return c;
+                        });
+                    }
+                    await db.collection('all-user-post').doc(postId).set({ ...data, comments: updatedComments }, { merge: true });
+                }
+            } catch (error) {
+                console.error('Error liking comment:', error);
+                el.style.color = '#65676b';
+                el.textContent = 'Like';
+                el.style.pointerEvents = 'auto';
+                el.onclick = function(e) { e.stopPropagation();
+                    likeCommentDetail(this, postId, commentId, type); };
+            }
+        }
+
+        function replyToComment(el, userName) {
+            const input = document.getElementById('detail-comment-input');
+            if (input) { input.value = `@${userName} `;
+                input.focus(); }
+        }
+
+        function attachDetailListeners(postId) {
+            const sendBtn = document.getElementById('detail-send-btn');
+            if (sendBtn) {
+                const newSendBtn = sendBtn.cloneNode(true);
+                sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+                newSendBtn.addEventListener('click', function(e) { e.stopPropagation();
+                    sendComment(postId); });
+            }
+            const commentInput = document.getElementById('detail-comment-input');
+            if (commentInput) {
+                const newCommentInput = commentInput.cloneNode(true);
+                commentInput.parentNode.replaceChild(newCommentInput, commentInput);
+                newCommentInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault();
+                        sendComment(postId); }
+                });
+            }
+        }
+
+        async function handleLikePost(postId, btnElement) {
+            btnElement.style.pointerEvents = 'none';
+            const postDiv = btnElement.closest('.feed-post');
+            const likeCountSpan = postDiv.querySelector('.like-count');
+            let currentLikes = parseInt(likeCountSpan.textContent) || 0;
+            const userId = auth.currentUser?.uid;
+            if (!userId) { showToast('Please login to like');
+                btnElement.style.pointerEvents = 'auto'; return; }
+            try {
+                const doc = await db.collection('all-user-post').doc(postId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const likedBy = data.likedBy || [];
+                    if (likedBy.includes(userId)) {
+                        const newLikedBy = likedBy.filter(id => id !== userId);
+                        await db.collection('all-user-post').doc(postId).update({ likes: currentLikes - 1, likedBy: newLikedBy });
+                        btnElement.classList.remove('liked');
+                        btnElement.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Like';
+                        likeCountSpan.textContent = currentLikes - 1;
+                        showToast('Post unliked');
+                    } else {
+                        const newLikedBy = [...likedBy, userId];
+                        await db.collection('all-user-post').doc(postId).update({ likes: currentLikes + 1, likedBy: newLikedBy });
+                        btnElement.classList.add('liked');
+                        btnElement.innerHTML = '<i class="fa-solid fa-thumbs-up"></i> Liked';
+                        likeCountSpan.textContent = currentLikes + 1;
+                        showToast('Post liked!');
+                    }
+                }
+            } catch (error) { console.error('Error handling like:', error);
+                showToast('Error: ' + error.message); }
+            btnElement.style.pointerEvents = 'auto';
+        }
+
+        async function sendComment(postId) {
+            const input = document.getElementById('detail-comment-input');
+            const text = input.value.trim();
+            if (!text) { showToast('Please write a comment'); return; }
+            const user = auth.currentUser;
+            if (!user) { showToast('Please login to comment'); return; }
+            const userName = user.displayName || user.email?.split('@')[0] || 'User';
+            const userImage = user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            const isReply = text.startsWith('@');
+            let replyToUser = '';
+            let commentText = text;
+            if (isReply) {
+                const parts = text.split(' ');
+                replyToUser = parts[0].substring(1);
+                commentText = parts.slice(1).join(' ') || text;
+            }
+            try {
+                const docRef = db.collection('all-user-post').doc(postId);
+                const doc = await docRef.get();
+                if (!doc.exists) { showToast('Post not found'); return; }
+                const data = doc.data();
+                let comments = data.comments || [];
+                const newComment = {
+                    id: Date.now().toString(),
+                    userName: userName,
+                    userImage: userImage,
+                    text: isReply ? commentText : text,
+                    timestamp: new Date().toISOString(),
+                    replies: [],
+                    liked: false
+                };
+                if (isReply) {
+                    let found = false;
+                    const updatedComments = comments.map(c => {
+                        if (c.userName === replyToUser && !found) {
+                            found = true;
+                            if (!c.replies) c.replies = [];
+                            c.replies.push({
+                                id: Date.now().toString(),
+                                userName: userName,
+                                userImage: userImage,
+                                text: commentText,
+                                timestamp: new Date().toISOString(),
+                                liked: false
+                            });
+                        }
+                        return c;
+                    });
+                    if (!found) updatedComments.push(newComment);
+                    await docRef.update({ comments: updatedComments });
+                } else {
+                    comments.push(newComment);
+                    await docRef.update({ comments: comments });
+                }
+                showToast('Comment added!');
+                input.value = '';
+                setTimeout(() => { loadPostDetail(postId); }, 300);
+            } catch (error) { console.error('Error adding comment:', error);
+                showToast('Error: ' + error.message); }
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function toggleReadMore(postId, fullText, event) {
+            event.stopPropagation();
+            const captionSpan = document.getElementById(`caption-${postId}`);
+            if (!captionSpan) return;
+            if (captionSpan.classList.contains('truncated')) {
+                captionSpan.textContent = fullText;
+                captionSpan.classList.remove('truncated');
+                const btn = captionSpan.parentElement.querySelector('.read-more-btn');
+                if (btn) btn.textContent = 'show less';
+            } else {
+                captionSpan.textContent = fullText.substring(0, 150) + '...';
+                captionSpan.classList.add('truncated');
+                const btn = captionSpan.parentElement.querySelector('.read-more-btn');
+                if (btn) btn.textContent = 'read more';
+            }
+        }
+
+        // ========== INFINITE SCROLL ==========
+        let lastDoc = null;
+        let isLoading = false;
+        let hasMore = true;
+        let postsLoaded = 0;
+        const POSTS_PER_PAGE = 10;
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // ========== LOAD STORIES ==========
+        async function loadStories() {
+            try {
+                const user = auth.currentUser;
+                let stories = [];
+
+                if (user) {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    const userData = userDoc.exists ? userDoc.data() : {};
+                    const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
+                    const userPic = user.photoURL || userData.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+
+                    const userStoryDoc = await db.collection('stories').doc(user.uid).get();
+                    if (userStoryDoc.exists) {
+                        const storyData = userStoryDoc.data();
+                        stories.push({ name: userName, pic: userPic, img: storyData.imageUrl || userPic, time: 'Now',
+                            uid: user.uid });
+                    } else {
+                        stories.push({ name: userName, pic: userPic, img: userPic, time: 'Now', uid: user.uid });
+                    }
+                }
+
+                const storiesSnapshot = await db.collection('stories').orderBy('timestamp', 'desc').limit(10).get();
+                storiesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.uid !== user?.uid) {
+                        stories.push({ name: data.userName || 'User', pic: data.userImage ||
+                                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                            img: data.imageUrl || data.userImage ||
+                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                            time: '1h', uid: data.uid });
+                    }
+                });
+
+                storyDataCache = stories.length > 0 ? stories : [
+                    { name: 'Md Rhoman', pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+                        img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                        time: '1h' },
+                    { name: 'হাবিবুর সোহান', pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+                        img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+                        time: '3h' },
+                    { name: 'MD M', pic: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+                        img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80',
+                        time: '5h' }
+                ];
+
+                renderStories();
+            } catch (error) { console.error('Error loading stories:', error); }
+        }
+
+        function renderStories() {
+            storiesContainer.innerHTML = `
+                <div class="story-card create-story" onclick="openIframe('create-story.html','Create Story')">
+                    <img src="${auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}" alt="Create Story">
+                    <div class="create-story-content">
+                        <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
+                        <span>Create story</span>
+                    </div>
+                </div>
+            `;
+            storyDataCache.forEach((story, index) => {
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                card.onclick = () => openStoryViewer(index);
+                card.innerHTML = `
+                    <span class="story-badge">${index === 0 ? 'Now' : '1'}</span>
+                    <img src="${story.pic || story.img}" alt="Story">
+                    <div class="story-name">${story.name || 'User'}</div>
+                `;
+                storiesContainer.appendChild(card);
+            });
+        }
+
+        // ========== LOAD POSTS ==========
+        async function loadPosts(loadMore = false) {
+            if (isLoading || (!loadMore && postsLoaded > 0)) return;
+            if (!loadMore) {
+                postsLoaded = 0;
+                lastDoc = null;
+                hasMore = true;
+                endOfFeed.style.display = 'none';
+                const existingPosts = feedContainer.querySelectorAll('.feed-post');
+                existingPosts.forEach(el => el.remove());
+                feedLoading.style.display = 'block';
+                feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading posts...';
+            } else {
+                scrollLoader.style.display = 'block';
+            }
+            if (!hasMore) { scrollLoader.style.display = 'none';
+                endOfFeed.style.display = 'block'; return; }
+            isLoading = true;
+            try {
+                let query = db.collection('all-user-post')
+                    .orderBy('timestamp', 'desc')
+                    .limit(POSTS_PER_PAGE);
+                if (lastDoc) query = query.startAfter(lastDoc);
+                const snapshot = await query.get();
+                if (snapshot.empty) {
+                    hasMore = false;
+                    scrollLoader.style.display = 'none';
+                    if (postsLoaded === 0) feedLoading.innerHTML = 'No posts yet. Be the first to share!';
+                    else endOfFeed.style.display = 'block';
+                    isLoading = false;
+                    return;
+                }
+                const posts = [];
+                snapshot.forEach(doc => { const data = doc.data();
+                    posts.push({ id: doc.id, ...data }); });
+                const shuffledPosts = shuffleArray(posts);
+                lastDoc = snapshot.docs[snapshot.docs.length - 1];
+                postsLoaded += shuffledPosts.length;
+                feedLoading.style.display = 'none';
+                scrollLoader.style.display = 'none';
+                shuffledPosts.forEach((post) => {
+                    const postEl = createPostElement(post);
+                    feedContainer.insertBefore(postEl, scrollLoader);
+                });
+                attachFeedListeners();
+                hasMore = shuffledPosts.length >= POSTS_PER_PAGE;
+                if (!hasMore) endOfFeed.style.display = 'block';
+                isLoading = false;
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                feedLoading.innerHTML = '⚠️ Failed to load posts. Please refresh.';
+                scrollLoader.style.display = 'none';
+                isLoading = false;
+                showToast('Error loading posts: ' + error.message);
+            }
+        }
+
+        function attachFeedListeners() {
+            document.querySelectorAll('#feed-container .like-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const postDiv = this.closest('.feed-post');
+                    const postId = postDiv.dataset.postId;
+                    handleLikePost(postId, this);
+                });
+            });
+            document.querySelectorAll('#feed-container .comment-toggle-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const postDiv = this.closest('.feed-post');
+                    const postId = postDiv.dataset.postId;
+                    openPostDetail(postId);
+                });
+            });
+        }
+
+        let observer = null;
+
+        function setupInfiniteScroll() {
+            if (observer) observer.disconnect();
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !isLoading && hasMore) loadPosts(true);
+                });
+            }, { root: null, rootMargin: '100px', threshold: 0.1 });
+            observer.observe(scrollLoader);
+        }
+
+        // ========== CREATE POST ELEMENT ==========
+        function createPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'feed-post';
+            div.dataset.postId = post.id;
+            div.dataset.userId = post.userId || '';
+
+            div.addEventListener('click', function(e) {
+                if (e.target.closest('.action-btn') || e.target.closest('.read-more-btn') ||
+                    e.target.closest('.comment-box-input') || e.target.closest('.post-options') ||
+                    e.target.closest('.profile-container') || e.target.closest('.post-meta h4') ||
+                    e.target.closest('.comment-item') || e.target.closest('.comment-count') ||
+                    e.target.closest('.post-image-content')) return;
+                openPostDetail(post.id);
+            });
+
+            const currentUser = auth.currentUser;
+            let userName = post.userName || 'Unknown User';
+            let userImage = post.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            let userId = post.userId || '';
+            if (currentUser && post.userId === currentUser.uid) {
+                if (currentUser.displayName) userName = currentUser.displayName;
+                if (currentUser.photoURL) userImage = currentUser.photoURL;
+            }
+
+            const caption = post.caption || '';
+            const fullText = post.fullText || caption;
+            const imageUrl = post.imageUrl || '';
+            const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
+            const likes = post.likes || 0;
+            const comments = post.comments || [];
+            const isBanner = post.isBanner || false;
+            const bannerTheme = post.bannerTheme || 'white';
+            const themeStyle = getThemeStyles(bannerTheme);
+            const needsReadMore = fullText.length > 150;
+
+            let captionHTML = '';
+            if (caption) {
+                if (isBanner) {
+                    captionHTML = `
+                        <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
+                            <div class="post-caption caption-text">${escapeHTML(caption)}</div>
+                        </div>
+                    `;
+                } else {
+                    const displayText = needsReadMore ? fullText.substring(0, 150) + '...' : fullText;
+                    captionHTML = `
+                        <div class="post-caption">
+                            <span class="caption-text ${needsReadMore ? 'truncated' : ''}" id="caption-${post.id}">${escapeHTML(displayText)}</span>
+                            ${needsReadMore ? `<span class="read-more-btn" onclick="toggleReadMore('${post.id}', '${escapeHTML(fullText)}', event)">read more</span>` : ''}
+                        </div>
+                    `;
+                }
+            }
+
+            const userId_check = auth.currentUser?.uid;
+            const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
+
+            div.innerHTML = `
+                <div class="post-header">
+                    <div class="post-user-info">
+                        <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
+                            <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
+                            <span class="online-status ${(currentUser && post.userId === currentUser.uid) ? 'active' : 'inactive'}"></span>
+                        </div>
+                        <div class="post-meta">
+                            <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
+                            <span>${timestamp}</span>
+                        </div>
+                    </div>
+                    <div class="post-options">
+                        <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
+                    </div>
+                </div>
+                ${captionHTML}
+                ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy" onclick="event.stopPropagation(); openPostDetail('${post.id}')"></div>` : ''}
+                <div class="post-stats">
+                    <div class="stat-left">
+                        <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
+                        <span class="like-count">${likes}</span>
+                    </div>
+                    <div class="stat-right">
+                        <span class="comment-count" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="cursor:pointer;">${comments.length} comments</span>
+                    </div>
+                </div>
+                <div class="post-actions">
+                    <div class="action-btn like-btn ${isLiked ? 'liked' : ''}">${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}</div>
+                    <div class="action-btn comment-toggle-btn"><i class="fa-regular fa-comment"></i> Comment</div>
+                    <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
+                </div>
+                <div class="comments-section">
+                    <div class="comments-list">
+                        ${comments.slice(0, 3).map(c => 
+                            `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')">
+                                <b>${escapeHTML(c.userName || 'User')}:</b> ${escapeHTML(c.text)}
+                            </div>`
+                        ).join('')}
+                        ${comments.length > 3 ? `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="color:#1877f2;font-weight:600;">View all ${comments.length} comments</div>` : ''}
+                    </div>
+                </div>
+            `;
+            if (isBanner) div.classList.add('banner-post');
+
+            // Real-time listener for user updates + status
+            if (post.userId) {
+                db.collection('users').doc(post.userId).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const newName = data.fullName || data.displayName || post.userName;
+                        const newPhoto = data.photoURL || post.userImage;
+                        const nameEl = div.querySelector('.post-meta h4');
+                        const imgEl = div.querySelector('.post-user-info img');
+                        const statusEl = div.querySelector('.online-status');
+                        if (nameEl && newName) nameEl.textContent = newName;
+                        if (imgEl && newPhoto) imgEl.src = newPhoto;
+                        if (statusEl) {
+                            if (auth.currentUser && post.userId === auth.currentUser.uid) {
+                                statusEl.className = 'online-status active';
+                            } else {
+                                statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' : 'inactive');
+                            }
+                        }
+                    }
+                });
+            }
+
+            return div;
+        }
+
+        // ========== AUTH STATE ==========
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                await createUserDocument(user);
+                // Set online status
+                setUserStatus(user.uid, 'online');
+
+                loginOverlay.classList.remove('show');
+                const headerPic = document.getElementById('header-profile-pic');
+                if (headerPic && user.photoURL) headerPic.src = user.photoURL;
+                showToast('Welcome ' + (user.displayName || user.email?.split('@')[0] || 'User'));
+                postsLoaded = 0;
+                lastDoc = null;
+                hasMore = true;
+                loadPosts(false);
+                setupInfiniteScroll();
+                loadStories();
+
+                // Listen to current user profile updates
+                db.collection('users').doc(user.uid).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const newName = data.fullName || data.displayName;
+                        if (newName && newName !== user.displayName) {
+                            user.updateProfile({ displayName: newName }).catch(() => {});
+                        }
+                        if (data.photoURL) {
+                            const headerPic = document.getElementById('header-profile-pic');
+                            if (headerPic) headerPic.src = data.photoURL;
+                            user.updateProfile({ photoURL: data.photoURL }).catch(() => {});
+                        }
+                        // Update status in feed posts
+                        document.querySelectorAll('#feed-container .feed-post').forEach(postEl => {
+                            const userIdAttr = postEl.dataset.userId;
+                            if (userIdAttr === user.uid) {
+                                const nameEl = postEl.querySelector('.post-meta h4');
+                                const imgEl = postEl.querySelector('.post-user-info img');
+                                const statusEl = postEl.querySelector('.online-status');
+                                if (nameEl) nameEl.textContent = newName || 'User';
+                                if (imgEl && data.photoURL) imgEl.src = data.photoURL;
+                                if (statusEl) statusEl.className = 'online-status active';
+                            } else {
+                                // Update status for other users if their doc changes
+                                const statusEl = postEl.querySelector('.online-status');
+                                if (statusEl && data.status !== undefined) {
+                                    statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
+                                        'inactive');
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // Also listen to visibility changes for online/offline
+                if (document.hidden) {
+                    setUserStatus(user.uid, 'offline');
+                } else {
+                    setUserStatus(user.uid, 'online');
+                }
+
+            } else {
+                loginOverlay.classList.add('show');
+                const posts = feedContainer.querySelectorAll('.feed-post');
+                posts.forEach(el => el.remove());
+                feedLoading.style.display = 'block';
+                feedLoading.innerHTML = 'Please login to see posts.';
+                if (observer) observer.disconnect();
+            }
+        });
+
+        // ========== LOGIN ==========
+        loginBtn.addEventListener('click', () => {
+            const email = loginEmail.value.trim();
+            const pass = loginPassword.value.trim();
+            if (!email || !pass) { showToast('Please fill in both fields'); return; }
+            auth.signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    showToast('Login successful!');
+                    createUserDocument(userCredential.user);
+                    setUserStatus(userCredential.user.uid, 'online');
+                })
+                .catch(err => { showToast('Error: ' + err.message); });
+        });
+
+        // ========== CREATE ACCOUNT ==========
+        createAccountBtn.addEventListener('click', () => {
+            const email = loginEmail.value.trim();
+            const pass = loginPassword.value.trim();
+            if (!email || !pass || pass.length < 6) { showToast('Email & password (min 6 chars) required'); return; }
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    showToast('Account created! Welcome.');
+                    createUserDocument(userCredential.user);
+                    setUserStatus(userCredential.user.uid, 'online');
+                })
+                .catch(err => { showToast('Error: ' + err.message); });
+        });
+
+        // ========== LOGOUT ==========
+        logoutBtn.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) setUserStatus(user.uid, 'offline');
+            auth.signOut().then(() => {
+                showToast('Logged out');
+                toggleNavOverlay(false);
+            });
+        });
+
+        // ========== UI INTERACTIONS ==========
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        function toggleNavOverlay(show) {
+            if (show) { navOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden'; } else { navOverlay.classList.remove('show');
+                document.body.style.overflow = ''; }
+        }
+        navToggleBtn.addEventListener('click', () => toggleNavOverlay(true));
+        navMenuTab.addEventListener('click', () => toggleNavOverlay(true));
+        navOverlayClose.addEventListener('click', () => toggleNavOverlay(false));
+        navOverlay.addEventListener('click', (e) => { if (e.target === navOverlay) toggleNavOverlay(false); });
+
+        // Top icon clicks
+        document.getElementById('search-icon').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('search.html', 'Search'); });
+        document.getElementById('tab-friends').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('friend-request.html', 'Friends'); });
+        document.getElementById('tab-messenger').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('messenger.html', 'Messenger'); });
+        document.getElementById('tab-videos').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('videos.html', 'Videos'); });
+        document.getElementById('tab-notifications').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('notifications.html', 'Notifications'); });
+        document.getElementById('trigger-post').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('create-post.html', 'Create Post'); });
+        document.getElementById('trigger-photo').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('upload-photo.html', 'Upload Photo'); });
+        document.getElementById('open-post-modal').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('create-post.html', 'Create Post'); });
+
+        // Modal for creating post
+        const postModal = document.getElementById('post-modal');
+        const closeModal = document.getElementById('close-modal');
+        const modalText = document.getElementById('modal-text');
+        closeModal.addEventListener('click', async () => {
+            if (modalText.value.trim()) {
+                const user = auth.currentUser;
+                if (user) {
+                    const userName = user.displayName || user.email?.split('@')[0] || 'Anonymous';
+                    try {
+                        await db.collection('all-user-post').add({
+                            userName: userName,
+                            userId: user.uid,
+                            userImage: user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                            caption: modalText.value.trim(),
+                            fullText: modalText.value.trim(),
+                            imageUrl: '',
+                            likes: 0,
+                            likedBy: [],
+                            comments: [],
+                            isBanner: false,
+                            bannerTheme: 'white',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        showToast('Post created successfully!');
+                        modalText.value = '';
+                        postsLoaded = 0;
+                        lastDoc = null;
+                        hasMore = true;
+                        loadPosts(false);
+                    } catch (err) { showToast('Error creating post: ' + err.message); }
+                } else showToast('Please login first');
+            }
+            postModal.style.display = 'none';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && loginOverlay.classList.contains('show')) loginBtn.click();
+        });
+
+        // ========== EXPOSE GLOBALLY ==========
+        window.openProfileIframe = openProfileIframe;
+        window.openIframe = openIframe;
+        window.openPostDetail = openPostDetail;
+        window.toggleReadMore = toggleReadMore;
+        window.handleLikePost = handleLikePost;
+        window.likeCommentDetail = likeCommentDetail;
+        window.replyToComment = replyToComment;
+        window.showToast = showToast;
+        window.openStoryViewer = openStoryViewer;
+        window.getUserData = getUserData;
+
+        console.log('🔥 Firebase connected · Online/Offline status enabled');
+    </script>
+
 </body>
 </html>
