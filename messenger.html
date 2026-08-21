@@ -143,7 +143,7 @@
             color: #65676b;
             margin-bottom: 4px;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .note-bubble-top::after {
@@ -284,7 +284,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             cursor: pointer;
             z-index: 999;
         }
@@ -321,14 +321,18 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0,132,255,0.3);
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3);
             cursor: pointer;
             z-index: 999;
         }
 
         @keyframes rotateRing {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Chat Room */
@@ -538,8 +542,14 @@
         }
 
         @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-6px); }
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-6px);
+            }
         }
 
         .time-divider {
@@ -631,7 +641,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -683,8 +693,12 @@
         }
 
         @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         .skeleton-item {
@@ -779,7 +793,7 @@
     <div id="inbox-page" style="display:flex; flex-direction:column; height:100vh;">
         <div class="top-nav">
             <div class="nav-left">
-                <i class="fa-solid fa-arrow-left" onclick="history.back()"></i>
+                <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
                 <div class="nav-title">Messages</div>
             </div>
             <div class="nav-right">
@@ -979,7 +993,7 @@
                 const data = doc.data();
                 const typingUsers = data.typingUsers || [];
                 const isRecipientTyping = typingUsers.includes(currentRecipientId);
-                
+
                 const typingIndicator = document.querySelector('.typing-indicator');
                 if (isRecipientTyping) {
                     if (!typingIndicator) {
@@ -1230,10 +1244,10 @@
                 for (let i = 0; i < messages.length; i++) {
                     const msg = messages[i];
                     const isOutgoing = msg.sender === currentUser.uid;
-                    
+
                     // Check if it's a reply
                     const isReply = msg.replyTo && msg.replyTo.text;
-                    
+
                     const row = document.createElement('div');
                     row.className = `message-row ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
@@ -1243,7 +1257,7 @@
                     }
 
                     let contentHTML = '';
-                    
+
                     // Reply indicator
                     if (isReply) {
                         contentHTML += `
@@ -1370,7 +1384,7 @@
 
                 chatInput.value = '';
                 messagesBody.scrollTop = messagesBody.scrollHeight;
-                
+
                 // Clear typing status
                 await setTypingStatus(currentChatId, false);
 
@@ -1424,13 +1438,22 @@
             imageInput.value = '';
         }
 
+        // ========== GO BACK ==========
+        function goBack() {
+            if (window.parent && window.parent.location) {
+                window.parent.history.back();
+            } else {
+                history.back();
+            }
+        }
+
         // ========== TYPING HANDLER ==========
         chatInput.addEventListener('input', async () => {
             if (!currentChatId || !currentUser) return;
-            
+
             const text = chatInput.value.trim();
             const shouldType = text.length > 0;
-            
+
             if (shouldType && !isTyping) {
                 isTyping = true;
                 await setTypingStatus(currentChatId, true);
@@ -1438,7 +1461,7 @@
                 isTyping = false;
                 await setTypingStatus(currentChatId, false);
             }
-            
+
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(async () => {
                 if (isTyping) {
