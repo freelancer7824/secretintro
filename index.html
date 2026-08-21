@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Facebook · Firebase Clone</title>
+    <title>SecretIntro · Firebase Clone</title>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Firebase SDKs -->
@@ -1058,6 +1058,67 @@
         const navMenuTab = document.getElementById('nav-menu-tab');
         const navOverlayClose = document.getElementById('nav-overlay-close');
 
+        // ========== IFRAME STATUS TRACKING ==========
+        let isIframeOpen = false;
+        let iframeStatusInterval = null;
+        let currentIframeUser = null;
+
+        // ========== UPDATE USER STATUS BASED ON IFRAME ==========
+        async function updateUserStatusBasedOnIframe(user) {
+            if (!user) return;
+            
+            try {
+                if (isIframeOpen) {
+                    // Iframe is open - set user to ONLINE
+                    await db.collection('users').doc(user.uid).set({
+                        status: 'online',
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    console.log('🟢 User set to ONLINE (iframe open):', user.uid);
+                } else {
+                    // Iframe is closed - set user to OFFLINE
+                    await db.collection('users').doc(user.uid).set({
+                        status: 'offline',
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    console.log('🔴 User set to OFFLINE (iframe closed):', user.uid);
+                }
+            } catch (error) {
+                console.error('Error updating user status:', error);
+            }
+        }
+
+        // ========== START IFRAME STATUS MONITOR ==========
+        function startIframeStatusMonitor(user) {
+            if (iframeStatusInterval) clearInterval(iframeStatusInterval);
+            
+            // Update status immediately
+            updateUserStatusBasedOnIframe(user);
+            
+            // Check every 5 seconds if iframe status changed
+            iframeStatusInterval = setInterval(() => {
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    // Check if iframe is still open
+                    const iframeIsOpen = iframeOverlay.classList.contains('show');
+                    if (iframeIsOpen !== isIframeOpen) {
+                        isIframeOpen = iframeIsOpen;
+                        updateUserStatusBasedOnIframe(currentUser);
+                    }
+                }
+            }, 5000);
+        }
+
+        // ========== STOP IFRAME STATUS MONITOR ==========
+        function stopIframeStatusMonitor() {
+            if (iframeStatusInterval) {
+                clearInterval(iframeStatusInterval);
+                iframeStatusInterval = null;
+            }
+        }
+
         // ========== CREATE USER DOCUMENT ON FIRST LOGIN ==========
         async function createUserDocument(user) {
             if (!user) return;
@@ -1079,7 +1140,7 @@
                         workTitle: 'Freelancer',
                         workRole: 'Chief marketing officer (CMO)',
                         coverPhoto: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
-                        status: 'online',
+                        status: 'offline',
                         friends: ['Md Hridoy Hasan', 'SM Pasha Hasan', 'Nur-Alom Shekh'],
                         mutual: 12,
                         createdAt: new Date().toISOString(),
@@ -1088,7 +1149,7 @@
                     await docRef.set(userData);
                     console.log('✅ User document created for:', user.uid);
                 } else {
-                    await docRef.update({ status: 'online', updatedAt: new Date().toISOString() });
+                    await docRef.update({ status: 'offline', updatedAt: new Date().toISOString() });
                 }
             } catch (error) {
                 console.error('Error creating user document:', error);
@@ -1107,6 +1168,14 @@
             iframeOverlay.classList.add('show');
             iframeBackBtn.classList.add('show');
             document.body.style.overflow = 'hidden';
+            
+            // Update iframe status
+            isIframeOpen = true;
+            const user = auth.currentUser;
+            if (user) {
+                updateUserStatusBasedOnIframe(user);
+            }
+            
             history.pushState({ iframeOverlay: true, url: url }, '');
         }
 
@@ -1165,6 +1234,14 @@
             iframeOverlay.classList.add('show');
             iframeBackBtn.classList.add('show');
             document.body.style.overflow = 'hidden';
+            
+            // Update iframe status
+            isIframeOpen = true;
+            const user = auth.currentUser;
+            if (user) {
+                updateUserStatusBasedOnIframe(user);
+            }
+            
             history.pushState({ iframeOverlay: true, url: url }, '');
         }
 
@@ -1173,6 +1250,14 @@
             iframeBackBtn.classList.remove('show');
             document.body.style.overflow = '';
             iframeContent.src = 'about:blank';
+            
+            // Update iframe status - set to offline
+            isIframeOpen = false;
+            const user = auth.currentUser;
+            if (user) {
+                updateUserStatusBasedOnIframe(user);
+            }
+            
             if (history.state && history.state.iframeOverlay) {
                 history.back();
             }
@@ -1999,12 +2084,29 @@
             const userId_check = auth.currentUser?.uid;
             const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
 
+            // Get user status - check if user is online
+            let userStatus = 'inactive';
+            if (currentUser && post.userId === currentUser.uid) {
+                userStatus = 'active';
+            } else {
+                // Check if the user is online in Firebase
+                db.collection('users').doc(userId).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const statusEl = div.querySelector('.online-status');
+                        if (statusEl && data.status === 'online') {
+                            statusEl.className = 'online-status active';
+                        }
+                    }
+                }).catch(() => {});
+            }
+
             div.innerHTML = `
                 <div class="post-header">
                     <div class="post-user-info">
                         <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
                             <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
-                            <span class="online-status ${(currentUser && post.userId === currentUser.uid) ? 'active' : 'inactive'}"></span>
+                            <span class="online-status ${userStatus}"></span>
                         </div>
                         <div class="post-meta">
                             <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
@@ -2056,8 +2158,12 @@
                         const statusEl = div.querySelector('.online-status');
                         if (nameEl && newName) nameEl.textContent = newName;
                         if (imgEl && newPhoto) imgEl.src = newPhoto;
-                        if (statusEl && auth.currentUser && post.userId === auth.currentUser.uid) {
-                            statusEl.className = 'online-status active';
+                        if (statusEl) {
+                            if (data.status === 'online') {
+                                statusEl.className = 'online-status active';
+                            } else {
+                                statusEl.className = 'online-status inactive';
+                            }
                         }
                     }
                 });
@@ -2084,6 +2190,9 @@
                 setupInfiniteScroll();
                 loadStories();
 
+                // Start iframe status monitor
+                startIframeStatusMonitor(user);
+
                 // Real-time listener for current user's profile updates
                 db.collection('users').doc(user.uid).onSnapshot((doc) => {
                     if (doc.exists) {
@@ -2105,7 +2214,13 @@
                                 const statusEl = postEl.querySelector('.online-status');
                                 if (nameEl) nameEl.textContent = newName || 'User';
                                 if (imgEl && data.photoURL) imgEl.src = data.photoURL;
-                                if (statusEl) statusEl.className = 'online-status active';
+                                if (statusEl) {
+                                    if (isIframeOpen) {
+                                        statusEl.className = 'online-status active';
+                                    } else {
+                                        statusEl.className = 'online-status inactive';
+                                    }
+                                }
                             }
                         });
                     }
@@ -2117,6 +2232,9 @@
                 feedLoading.style.display = 'block';
                 feedLoading.innerHTML = 'Please login to see posts.';
                 if (observer) observer.disconnect();
+                
+                // Stop iframe status monitor
+                stopIframeStatusMonitor();
             }
         });
 
@@ -2154,9 +2272,18 @@
 
         // ========== LOGOUT ==========
         logoutBtn.addEventListener('click', () => {
+            // Set user to offline before logout
+            const user = auth.currentUser;
+            if (user) {
+                db.collection('users').doc(user.uid).set({
+                    status: 'offline',
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).catch(() => {});
+            }
             auth.signOut().then(() => {
                 showToast('Logged out');
                 toggleNavOverlay(false);
+                stopIframeStatusMonitor();
             });
         });
 
@@ -2229,6 +2356,8 @@
         window.getAllUsers = getAllUsers;
 
         console.log('🔥 Firebase connected · Profile navigation enabled');
+        console.log('🟢 Iframe status tracking active - user shows ONLINE when iframe is open');
+        console.log('🔴 User shows OFFLINE when iframe is closed');
     </script>
     
 </body>
