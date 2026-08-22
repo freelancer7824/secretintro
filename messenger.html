@@ -12,14 +12,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
     <style>
-        /* === BASE === */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        html, body {
+        html,
+        body {
             height: 100%;
             overflow: hidden;
         }
@@ -30,8 +30,6 @@
             overflow: hidden;
             position: relative;
         }
-
-        /* === TOP NAV === */
         .top-nav {
             display: flex;
             align-items: center;
@@ -43,6 +41,7 @@
             z-index: 1000;
             flex-shrink: 0;
             min-height: 60px;
+            border-bottom: 1px solid #f0f2f5;
         }
         .nav-left {
             display: flex;
@@ -73,8 +72,6 @@
             color: #050505;
             cursor: pointer;
         }
-
-        /* === STORIES === */
         .stories-container {
             display: flex;
             gap: 14px;
@@ -144,8 +141,6 @@
             height: 6px;
             background: #f0f2f5;
         }
-
-        /* === CHAT LIST === */
         .chat-list-container {
             flex: 1;
             overflow-y: auto;
@@ -254,8 +249,6 @@
             flex-shrink: 0;
             margin-left: 8px;
         }
-
-        /* === EMPTY STATE === */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -277,8 +270,6 @@
             font-size: 14px;
             color: #65676b;
         }
-
-        /* === FABs === */
         .fab-ai {
             position: fixed;
             bottom: 75px;
@@ -336,8 +327,6 @@
             cursor: pointer;
             z-index: 999;
         }
-
-        /* === CHAT ROOM === */
         #chat-room {
             display: none;
             position: fixed;
@@ -572,8 +561,6 @@
                 transform: translateY(-6px);
             }
         }
-
-        /* === INPUT === */
         .chat-input-footer {
             display: flex;
             align-items: center;
@@ -642,8 +629,6 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-
-        /* === IMAGE PREVIEW OVERLAY === */
         .image-preview-overlay {
             display: none;
             position: fixed;
@@ -690,8 +675,6 @@
             backdrop-filter: blur(4px);
             z-index: 10;
         }
-
-        /* === VIDEO FULLSCREEN OVERLAY === */
         .video-fullscreen-overlay {
             display: none;
             position: fixed;
@@ -724,8 +707,6 @@
             cursor: pointer;
             z-index: 10;
         }
-
-        /* === TOAST === */
         .toast-msg {
             background: #333;
             color: #fff;
@@ -742,8 +723,6 @@
             max-width: 90%;
             text-align: center;
         }
-
-        /* === NOTIFICATION POPUP === */
         .notification-popup {
             position: fixed;
             top: 20px;
@@ -802,8 +781,6 @@
             color: #65676b;
             cursor: pointer;
         }
-
-        /* === SKELETON === */
         .shimmer {
             background: linear-gradient(90deg, #f0f2f5 25%, #e4e6eb 50%, #f0f2f5 75%);
             background-size: 200% 100%;
@@ -838,13 +815,9 @@
         .skeleton-text.short {
             width: 60%;
         }
-
-        /* === HIDDEN FILE INPUT === */
         .file-input-hidden {
             display: none;
         }
-
-        /* === CODE BLOCK / TEXT FILE === */
         .code-block {
             background: #1e1e1e;
             color: #d4d4d4;
@@ -870,16 +843,12 @@
         .code-block .copy-code:hover {
             color: #fff;
         }
-
-        /* === READ MORE === */
         .read-more-toggle {
             color: #0084ff;
             cursor: pointer;
             font-size: 13px;
             margin-top: 2px;
         }
-
-        /* === LINK PREVIEW === */
         .link-preview {
             background: #f0f2f5;
             border-radius: 12px;
@@ -896,8 +865,6 @@
             font-size: 12px;
             color: #65676b;
         }
-
-        /* === UPLOAD PROGRESS === */
         .upload-progress {
             position: fixed;
             bottom: 80px;
@@ -925,8 +892,6 @@
             width: 0%;
             transition: width 0.3s;
         }
-
-        /* === MESSAGE CONTEXT MENU === */
         .message-context-menu {
             display: none;
             position: fixed;
@@ -957,8 +922,6 @@
             width: 20px;
             text-align: center;
         }
-
-        /* === OFFLINE INDICATOR === */
         .offline-indicator {
             display: none;
             position: fixed;
@@ -976,8 +939,6 @@
         .offline-indicator.show {
             display: block;
         }
-
-        /* === SYNC INDICATOR === */
         .sync-indicator {
             display: none;
             position: fixed;
@@ -995,8 +956,6 @@
         .sync-indicator.show {
             display: block;
         }
-
-        /* === MIC PERMISSION OVERLAY === */
         .mic-permission-overlay {
             display: none;
             position: fixed;
@@ -1047,7 +1006,7 @@
         .mic-permission-overlay .deny-btn {
             background: transparent;
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 10px 30px;
             border-radius: 30px;
             font-size: 16px;
@@ -1056,17 +1015,14 @@
             transition: 0.3s;
         }
         .mic-permission-overlay .deny-btn:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
-
-        /* === RESPONSIVE === */
         #inbox-page {
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
-
         @media (max-width: 500px) {
             .chat-item {
                 padding: 8px 12px;
@@ -1179,92 +1135,116 @@
                 padding: 6px 10px;
             }
         }
+        .time-divider {
+            text-align: center;
+            font-size: 12px;
+            color: #65676b;
+            padding: 12px 0 8px 0;
+            font-weight: 500;
+        }
+        .online-status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .online-status-dot.online {
+            background: #31a24c;
+        }
+        .online-status-dot.offline {
+            background: #b0b3b8;
+        }
+
+        /* Voice recording UI */
+        .voice-recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+        .voice-recording-indicator.show {
+            display: flex;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .voice-timer {
+            font-weight: 600;
+            min-width: 40px;
+        }
+        .voice-cancel-btn {
+            background: none;
+            border: none;
+            color: #65676b;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+        }
+        .voice-cancel-btn:hover {
+            color: #e74c3c;
+        }
     </style>
 </head>
 <body>
 
-    <!-- TOAST -->
     <div id="toast" class="toast-msg"></div>
-
-    <!-- OFFLINE INDICATOR -->
-    <div class="offline-indicator" id="offline-indicator">
-        <i class="fa-solid fa-wifi"></i> You're offline - messages will sync when back online
-    </div>
-
-    <!-- SYNC INDICATOR -->
-    <div class="sync-indicator" id="sync-indicator">
-        <i class="fa-solid fa-sync fa-spin"></i> Syncing messages...
-    </div>
-
-    <!-- MIC PERMISSION OVERLAY -->
+    <div class="offline-indicator" id="offline-indicator"><i class="fa-solid fa-wifi"></i> You're offline - messages will sync when back online</div>
+    <div class="sync-indicator" id="sync-indicator"><i class="fa-solid fa-sync fa-spin"></i> Syncing messages...</div>
+    <!-- MIC PERMISSION OVERLAY - works in any environment -->
     <div class="mic-permission-overlay" id="mic-permission-overlay">
         <div class="mic-icon"><i class="fa-solid fa-microphone"></i></div>
-        <h3>Microphone Access Required</h3>
-        <p>To send voice messages, please allow microphone access. Your voice will be recorded and sent as a voice message.</p>
+        <h3>Microphone Access</h3>
+        <p>To record voice messages, we need microphone access. This works in browsers, web apps, and APK wrappers.</p>
         <button class="allow-btn" onclick="requestMicPermission()"><i class="fa-solid fa-check"></i> Allow Microphone</button>
-        <button class="deny-btn" onclick="closeMicPermission()">Not Now</button>
+        <button class="deny-btn" onclick="closeMicPermission(); useFallbackVoice()">Use File Upload Instead</button>
     </div>
-
-    <!-- UPLOAD PROGRESS -->
     <div class="upload-progress" id="upload-progress">
         <span id="upload-text">Uploading...</span>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
-
-    <!-- NOTIFICATION POPUP -->
     <div class="notification-popup" id="notification-popup" onclick="openNotifChat()">
         <span class="notif-close" onclick="event.stopPropagation(); closeNotif()">&times;</span>
-        <div class="notif-header">
-            <img id="notif-avatar" src="" alt="Avatar">
-            <span class="notif-name" id="notif-name">User</span>
-        </div>
+        <div class="notif-header"><img id="notif-avatar" src="" alt="Avatar"><span class="notif-name" id="notif-name">User</span></div>
         <div class="notif-body" id="notif-body">New message</div>
     </div>
-
-    <!-- IMAGE PREVIEW OVERLAY -->
     <div class="image-preview-overlay" id="image-preview-overlay" onclick="if(event.target===this) closeImagePreview()">
         <span class="close-preview" onclick="closeImagePreview()">&times;</span>
         <img id="preview-image" src="" alt="Preview">
         <button class="download-btn" onclick="downloadImage()"><i class="fa-solid fa-download"></i> Download</button>
     </div>
-
-    <!-- VIDEO FULLSCREEN OVERLAY -->
     <div class="video-fullscreen-overlay" id="video-fullscreen-overlay" onclick="if(event.target===this) closeVideoFullscreen()">
         <span class="close-video" onclick="closeVideoFullscreen()">&times;</span>
         <video id="fullscreen-video" controls autoplay></video>
     </div>
-
-    <!-- MESSAGE CONTEXT MENU -->
     <div class="message-context-menu" id="message-context-menu">
         <div class="menu-item" onclick="editMessage()"><i class="fa-solid fa-pen"></i> Edit</div>
         <div class="menu-item danger" onclick="deleteMessage()"><i class="fa-solid fa-trash"></i> Delete</div>
     </div>
 
-    <!-- MAIN INBOX -->
     <div id="inbox-page">
         <div class="top-nav">
-            <div class="nav-left">
-                <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
-                <div class="nav-title">Messages</div>
-            </div>
-            <div class="nav-right">
-                <i class="fa-solid fa-gear" onclick="alert('Settings clicked!')"></i>
-                <i class="fa-solid fa-magnifying-glass" onclick="alert('Search clicked!')"></i>
-            </div>
+            <div class="nav-left"><i class="fa-solid fa-arrow-left" onclick="goBack()"></i><div class="nav-title">Messages</div></div>
+            <div class="nav-right"><i class="fa-solid fa-gear" onclick="alert('Settings')"></i><i class="fa-solid fa-magnifying-glass" onclick="alert('Search')"></i></div>
         </div>
-
         <div class="stories-container">
             <div class="story-item">
                 <div class="note-bubble-top">Share a note...</div>
-                <div class="story-avatar-wrapper">
-                    <img id="my-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="Your Avatar">
-                </div>
+                <div class="story-avatar-wrapper"><img id="my-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="Your Avatar"></div>
                 <div class="story-name">Your note</div>
             </div>
         </div>
-
         <div class="chat-list-container" id="chat-list-container">
             <div class="chat-list" id="chat-list">
                 <div class="skeleton-item"><div class="skeleton-avatar shimmer"></div><div style="flex:1;"><div class="skeleton-text shimmer"></div><div class="skeleton-text short shimmer"></div></div></div>
@@ -1272,16 +1252,10 @@
                 <div class="skeleton-item"><div class="skeleton-avatar shimmer"></div><div style="flex:1;"><div class="skeleton-text shimmer"></div><div class="skeleton-text short shimmer"></div></div></div>
             </div>
         </div>
-
-        <div class="fab-ai" onclick="alert('Opening Meta AI...')">
-            <div class="meta-ai-ring"><div class="meta-ai-inner"></div></div>
-        </div>
-        <button class="fab-add" onclick="alert('Compose new message clicked!')">
-            <i class="fa-solid fa-plus"></i>
-        </button>
+        <div class="fab-ai" onclick="alert('Opening Meta AI...')"><div class="meta-ai-ring"><div class="meta-ai-inner"></div></div></div>
+        <button class="fab-add" onclick="alert('Compose new message')"><i class="fa-solid fa-plus"></i></button>
     </div>
 
-    <!-- CHAT ROOM -->
     <div id="chat-room">
         <div class="chat-room-header">
             <div class="chat-room-header-left">
@@ -1291,25 +1265,18 @@
                     <span class="online-indicator" id="room-online-indicator"></span>
                     <div class="chat-room-title-group">
                         <div class="name" id="room-name">User</div>
-                        <div class="status" id="room-status">Offline</div>
+                        <div class="status" id="room-status"><span class="online-status-dot" id="status-dot"></span> <span id="status-text">Offline</span></div>
                     </div>
                 </div>
             </div>
-            <div class="chat-room-header-right">
-                <i class="fa-solid fa-phone" onclick="alert('Starting audio call...')"></i>
-                <i class="fa-solid fa-video" onclick="alert('Starting video call...')"></i>
-            </div>
+            <div class="chat-room-header-right"><i class="fa-solid fa-phone" onclick="alert('Audio call')"></i><i class="fa-solid fa-video" onclick="alert('Video call')"></i></div>
         </div>
-
-        <div class="chat-messages-body" id="chat-messages-body">
-            <div style="text-align:center;color:#65676b;padding:40px 0;">No messages yet</div>
-        </div>
-
+        <div class="chat-messages-body" id="chat-messages-body"><div style="text-align:center;color:#65676b;padding:40px 0;">No messages yet</div></div>
         <div class="chat-input-footer">
             <div class="input-wrapper">
                 <input type="text" class="chat-input-box" id="chat-input-box" placeholder="Message...">
                 <div class="input-actions">
-                    <i class="fa-regular fa-face-smile" onclick="alert('Emoji picker coming soon!')"></i>
+                    <i class="fa-regular fa-face-smile" onclick="alert('Emoji picker')"></i>
                     <i class="fa-solid fa-image" onclick="document.getElementById('image-input').click()"></i>
                     <i class="fa-solid fa-video" onclick="document.getElementById('video-input').click()"></i>
                     <i class="fa-solid fa-microphone" id="mic-icon" onclick="startVoiceRecording()"></i>
@@ -1318,9 +1285,7 @@
                     <input type="file" id="audio-input" accept="audio/*" class="file-input-hidden" onchange="handleFileSelect(event, 'audio')">
                 </div>
             </div>
-            <button class="send-btn" id="send-btn" onclick="sendMessage()">
-                <i class="fa-regular fa-paper-plane"></i>
-            </button>
+            <button class="send-btn" id="send-btn" onclick="sendMessage()"><i class="fa-regular fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -1339,18 +1304,10 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Enable offline persistence
-        db.enablePersistence({ synchronizeTabs: true })
-            .catch(function(err) {
-                console.warn('Firestore persistence error:', err);
-            });
+        db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn('persistence error', err));
 
-        // ========== CLOUDINARY CONFIG ==========
-        const CLOUDINARY_CONFIG = {
-            cloudName: 'dhvtgzy5x',
-            uploadPreset: 'Rosenews',
-            apiKey: '1234567890'
-        };
+        // ========== CLOUDINARY ==========
+        const CLOUDINARY_CONFIG = { cloudName: 'dhvtgzy5x', uploadPreset: 'Rosenews', apiKey: '1234567890' };
 
         // ========== DOM REFS ==========
         const chatList = document.getElementById('chat-list');
@@ -1358,6 +1315,8 @@
         const chatRoom = document.getElementById('chat-room');
         const roomName = document.getElementById('room-name');
         const roomStatus = document.getElementById('room-status');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
         const roomAvatar = document.getElementById('room-avatar');
         const roomOnlineIndicator = document.getElementById('room-online-indicator');
         const messagesBody = document.getElementById('chat-messages-body');
@@ -1401,26 +1360,23 @@
         let selectedMessageData = null;
         let isOffline = false;
         let hasMicPermission = false;
-        let isFirstLoad = true;
+        let recordingTimer = null;
+        let recordingSeconds = 0;
+        let isVoiceFallback = false;
 
         const userCache = new Map();
         const localCache = {
             chats: JSON.parse(localStorage.getItem('messenger_chats') || '[]'),
             messages: JSON.parse(localStorage.getItem('messenger_messages') || '{}'),
-            mediaCache: JSON.parse(localStorage.getItem('messenger_media_cache') || '{}'),
-            messageHashes: JSON.parse(localStorage.getItem('messenger_message_hashes') || '{}'),
-            chatLastUpdated: JSON.parse(localStorage.getItem('messenger_chat_last_updated') || '{}')
+            messageHashes: JSON.parse(localStorage.getItem('messenger_message_hashes') || '{}')
         };
 
         function saveCache() {
             localStorage.setItem('messenger_chats', JSON.stringify(localCache.chats));
             localStorage.setItem('messenger_messages', JSON.stringify(localCache.messages));
-            localStorage.setItem('messenger_media_cache', JSON.stringify(localCache.mediaCache));
             localStorage.setItem('messenger_message_hashes', JSON.stringify(localCache.messageHashes));
-            localStorage.setItem('messenger_chat_last_updated', JSON.stringify(localCache.chatLastUpdated));
         }
 
-        // ========== TOAST ==========
         function showToast(msg) {
             toast.textContent = msg;
             toast.style.display = 'block';
@@ -1428,11 +1384,9 @@
             toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
-        // ========== ESCAPE HTML ==========
         function escapeHTML(str) { if (!str) return ''; const d = document.createElement('div');
             d.textContent = str; return d.innerHTML; }
 
-        // ========== GET USER DATA ==========
         async function getUserData(uid) {
             if (userCache.has(uid)) return userCache.get(uid);
             try {
@@ -1443,419 +1397,17 @@
                     return data;
                 }
                 return null;
-            } catch (error) {
-                console.error('Error fetching user:', error);
-                return null;
-            }
+            } catch (e) { console.error(e); return null; }
         }
 
-        // ========== OFFLINE HANDLING ==========
-        function updateOfflineStatus() {
-            isOffline = !navigator.onLine;
-            if (isOffline) {
-                offlineIndicator.classList.add('show');
-                syncIndicator.classList.remove('show');
-            } else {
-                offlineIndicator.classList.remove('show');
-                checkPendingSync();
-            }
+        // ========== ONLINE STATUS ==========
+        function updateRoomStatus(isOnline, lastSeen) {
+            roomOnlineIndicator.className = 'online-indicator' + (isOnline ? ' online' : '');
+            statusDot.className = 'online-status-dot ' + (isOnline ? 'online' : 'offline');
+            statusText.textContent = isOnline ? 'Online' : 'Last seen ' + (lastSeen ? new Date(lastSeen).toLocaleString() :
+            'recently');
         }
 
-        async function checkPendingSync() {
-            const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
-            if (pending.length > 0) {
-                syncIndicator.classList.add('show');
-                for (const msg of pending) {
-                    try {
-                        await syncPendingMessage(msg);
-                    } catch (e) {
-                        console.error('Sync error:', e);
-                    }
-                }
-                localStorage.removeItem('messenger_pending_messages');
-                syncIndicator.classList.remove('show');
-                showToast('Messages synced!');
-            }
-        }
-
-        async function syncPendingMessage(msgData) {
-            try {
-                const chatRef = db.collection('chats').doc(msgData.chatId);
-                await chatRef.update({
-                    messages: firebase.firestore.FieldValue.arrayUnion(msgData.messageData),
-                    lastMessage: msgData.lastMsg,
-                    lastUpdated: new Date().toISOString()
-                });
-            } catch (e) {
-                console.error('Sync error:', e);
-                throw e;
-            }
-        }
-
-        window.addEventListener('online', updateOfflineStatus);
-        window.addEventListener('offline', updateOfflineStatus);
-        updateOfflineStatus();
-
-        // ========== NOTIFICATION SOUND ==========
-        function playNotifSound() {
-            try {
-                const ctx = new(window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.frequency.value = 800;
-                osc.type = 'sine';
-                gain.gain.value = 0.15;
-                osc.start();
-                setTimeout(() => {
-                    osc.frequency.value = 1000;
-                    setTimeout(() => {
-                        osc.stop();
-                        ctx.close();
-                    }, 150);
-                }, 150);
-            } catch (e) { console.log('Sound error:', e); }
-        }
-
-        // ========== NOTIFICATION POPUP ==========
-        function showNotification(senderId, senderName, message, photoURL) {
-            if (notifData && notifData.senderId === senderId) {
-                clearTimeout(notifTimer);
-                notifBody.textContent = message;
-                notifPopup.style.display = 'block';
-                notifTimer = setTimeout(closeNotif, 3000);
-                return;
-            }
-            closeNotif();
-            notifAvatar.src = photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            notifName.textContent = senderName || 'User';
-            notifBody.textContent = message || 'New message';
-            notifData = { senderId, senderName, message, photoURL };
-            notifPopup.style.display = 'block';
-            playNotifSound();
-            clearTimeout(notifTimer);
-            notifTimer = setTimeout(closeNotif, 3000);
-        }
-
-        function closeNotif() {
-            notifPopup.style.display = 'none';
-            clearTimeout(notifTimer);
-            notifData = null;
-        }
-
-        function openNotifChat() {
-            if (notifData && notifData.senderId) {
-                closeNotif();
-                const cached = localCache.chats.find(c => c.otherId === notifData.senderId);
-                if (cached) {
-                    openChatRoom(cached.id, cached.otherId, cached.userData);
-                } else {
-                    showToast('Chat not found');
-                }
-            }
-        }
-
-        // ========== MIC PERMISSION ==========
-        function showMicPermission() {
-            micPermissionOverlay.classList.add('show');
-        }
-
-        function closeMicPermission() {
-            micPermissionOverlay.classList.remove('show');
-        }
-
-        async function requestMicPermission() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                hasMicPermission = true;
-                stream.getTracks().forEach(t => t.stop());
-                closeMicPermission();
-                showToast('Microphone access granted!');
-                startVoiceRecording();
-            } catch (err) {
-                console.error('Mic permission error:', err);
-                showToast('Microphone access denied. Please allow from browser settings.');
-                closeMicPermission();
-            }
-        }
-
-        // ========== CLOUDINARY UPLOAD ==========
-        function uploadToCloudinary(file, onProgress) {
-            return new Promise((resolve, reject) => {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-                formData.append('api_key', CLOUDINARY_CONFIG.apiKey);
-
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/auto/upload`, true);
-
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable && onProgress) {
-                        const percent = (e.loaded / e.total) * 100;
-                        onProgress(percent);
-                    }
-                };
-
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            resolve({
-                                url: response.secure_url,
-                                publicId: response.public_id,
-                                resourceType: response.resource_type
-                            });
-                        } catch (e) {
-                            reject(new Error('Invalid response from Cloudinary'));
-                        }
-                    } else {
-                        reject(new Error('Upload failed: ' + xhr.status));
-                    }
-                };
-
-                xhr.onerror = function() {
-                    reject(new Error('Network error during upload'));
-                };
-
-                xhr.send(formData);
-            });
-        }
-
-        // ========== DELETE FROM CLOUDINARY ==========
-        async function deleteFromCloudinary(publicId, resourceType) {
-            if (!publicId) return;
-            try {
-                console.log('Deleting from Cloudinary:', publicId, resourceType);
-                return true;
-            } catch (error) {
-                console.error('Error deleting from Cloudinary:', error);
-                return false;
-            }
-        }
-
-        // ========== SHOW UPLOAD PROGRESS ==========
-        function showUploadProgress(text) {
-            uploadProgress.style.display = 'block';
-            uploadText.textContent = text || 'Uploading...';
-            progressFill.style.width = '0%';
-        }
-
-        function updateUploadProgress(percent) {
-            progressFill.style.width = Math.min(percent, 100) + '%';
-        }
-
-        function hideUploadProgress() {
-            uploadProgress.style.display = 'none';
-            progressFill.style.width = '0%';
-        }
-
-        // ========== GENERATE MESSAGE HASH ==========
-        function generateMessageHash(msg) {
-            const str = msg.sender + msg.timestamp + (msg.text || '') + (msg.imageUrl || '') + (msg.videoUrl || '') + (msg.audioUrl || '');
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return hash.toString(36);
-        }
-
-        // ========== HANDLE FILE SELECT ==========
-        async function handleFileSelect(event, type) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (type === 'video' && file.size > 50 * 1024 * 1024) {
-                showToast('Video size exceeds 50MB limit');
-                event.target.value = '';
-                return;
-            }
-
-            let maxSize = 20 * 1024 * 1024;
-            if (type === 'video') maxSize = 50 * 1024 * 1024;
-            if (type === 'audio') maxSize = 10 * 1024 * 1024;
-
-            if (file.size > maxSize) {
-                showToast('File size exceeds limit: ' + (maxSize / (1024 * 1024)) + 'MB');
-                event.target.value = '';
-                return;
-            }
-
-            try {
-                showUploadProgress('Uploading ' + type + '...');
-                const result = await uploadToCloudinary(file, (percent) => {
-                    updateUploadProgress(percent);
-                });
-                hideUploadProgress();
-
-                window._pendingFile = {
-                    type: type,
-                    url: result.url,
-                    publicId: result.publicId,
-                    resourceType: result.resourceType,
-                    name: file.name
-                };
-
-                await sendMessage();
-
-            } catch (error) {
-                hideUploadProgress();
-                showToast('Error uploading: ' + error.message);
-                console.error('Upload error:', error);
-            }
-            event.target.value = '';
-        }
-
-        // ========== VOICE RECORDING ==========
-        async function startVoiceRecording() {
-            if (isRecording) {
-                stopVoiceRecording();
-                return;
-            }
-
-            // Check if we already have permission
-            if (!hasMicPermission) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    hasMicPermission = true;
-                    stream.getTracks().forEach(t => t.stop());
-                } catch (err) {
-                    showMicPermission();
-                    return;
-                }
-            }
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showToast('Recording not supported');
-                return;
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
-
-                    try {
-                        showUploadProgress('Uploading voice...');
-                        const result = await uploadToCloudinary(audioFile, (percent) => {
-                            updateUploadProgress(percent);
-                        });
-                        hideUploadProgress();
-
-                        window._pendingFile = {
-                            type: 'audio',
-                            url: result.url,
-                            publicId: result.publicId,
-                            resourceType: result.resourceType
-                        };
-                        await sendMessage();
-                    } catch (error) {
-                        hideUploadProgress();
-                        showToast('Error uploading voice: ' + error.message);
-                    }
-
-                    stream.getTracks().forEach(t => t.stop());
-                    micIcon.className = 'fa-solid fa-microphone';
-                };
-                mediaRecorder.start();
-                isRecording = true;
-                micIcon.className = 'fa-solid fa-microphone-slash';
-                showToast('Recording... tap again to stop');
-            } catch (err) {
-                console.error('Mic error:', err);
-                showMicPermission();
-            }
-        }
-
-        function stopVoiceRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-                micIcon.className = 'fa-solid fa-microphone';
-            }
-        }
-
-        // ========== DETECT CODE & LINKS ==========
-        function detectCodeAndLinks(text) {
-            if (!text) return { html: text, isCode: false, links: [] };
-
-            const codePatterns = [
-                /function\s*\(/, /var\s+\w+/, /let\s+\w+/, /const\s+\w+/, /=>/,
-                /class\s+\w+/, /import\s+/, /export\s+/, /<[^>]+>/, /{/, /}/,
-                /;/, /\/\//, /\/\*/, /\*\//
-            ];
-            let codeScore = 0;
-            for (const pattern of codePatterns) {
-                if (pattern.test(text)) codeScore++;
-            }
-
-            if (codeScore >= 2 || (text.includes('\n') && text.length > 100)) {
-                return {
-                    html: `<div class="code-block" onclick="openCodePopup(${JSON.stringify(text)})">
-                            <i class="fa-regular fa-copy copy-code" onclick="event.stopPropagation(); copyCode(${JSON.stringify(text)})"></i>
-                            <pre style="margin:0;white-space:pre-wrap;font-family:inherit;">${escapeHTML(text)}</pre>
-                           </div>`,
-                    isCode: true,
-                    links: []
-                };
-            }
-
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const links = text.match(urlRegex) || [];
-            let html = text;
-            links.forEach(link => {
-                html = html.replace(link, `<a href="${link}" target="_blank" rel="noopener">${link}</a>`);
-            });
-
-            if (links.length > 0) {
-                html += `<div class="link-preview">
-                            <a href="${links[0]}" target="_blank" rel="noopener">${links[0]}</a>
-                            <div class="link-desc">Click to visit</div>
-                         </div>`;
-            }
-
-            return { html, isCode: false, links };
-        }
-
-        // ========== CODE POPUP ==========
-        function openCodePopup(text) {
-            const win = window.open('', '_blank', 'width=600,height=400');
-            if (win) {
-                win.document.write(`
-                    <html><head><title>Code</title>
-                    <style>body{margin:0;padding:20px;background:#1e1e1e;color:#d4d4d4;font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-all;}
-                    .copy-btn{position:fixed;top:10px;right:20px;background:#0084ff;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;}
-</style></head>
-<body>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>alert('Copied!'))">Copy</button>
-    <pre id="code" style="margin:40px 0 0 0;font-family:inherit;">${escapeHTML(text)}</pre>
-</body></html>
-`);
-                win.document.close();
-            } else {
-                alert('Please allow popups to view code');
-            }
-        }
-
-        function copyCode(text) {
-            navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => showToast('Copy failed'));
-        }
-
-        // ========== READ MORE ==========
-        function truncateText(text, maxLen) {
-            maxLen = maxLen || 150;
-            if (!text || text.length <= maxLen) return text;
-            return text.substring(0, maxLen) + '...';
-        }
-
-        // ========== LISTEN USER STATUS ==========
         function listenUserStatus(uid, callback) {
             if (unsubscribeUserStatus) { unsubscribeUserStatus();
                 unsubscribeUserStatus = null; }
@@ -1864,18 +1416,16 @@
                     const data = doc.data();
                     const isOnline = data.status === 'online';
                     const lastSeen = data.lastSeen || new Date().toISOString();
-                    if (userCache.has(uid)) {
-                        const cached = userCache.get(uid);
+                    if (userCache.has(uid)) { const cached = userCache.get(uid);
                         cached.status = data.status;
                         cached.lastSeen = lastSeen;
-                        userCache.set(uid, cached);
-                    }
+                        userCache.set(uid, cached); }
                     callback(isOnline, lastSeen);
                 }
             });
         }
 
-        // ========== LISTEN TYPING ==========
+        // ========== TYPING ==========
         function listenTyping(chatId) {
             if (unsubscribeTyping) { unsubscribeTyping();
                 unsubscribeTyping = null; }
@@ -1894,48 +1444,39 @@
                         messagesBody.appendChild(div);
                         messagesBody.scrollTop = messagesBody.scrollHeight;
                     }
-                } else {
-                    if (typingIndicator) typingIndicator.remove();
-                }
+                } else { if (typingIndicator) typingIndicator.remove(); }
             });
         }
 
-        // ========== SET TYPING STATUS ==========
         async function setTypingStatus(chatId, isTypingNow) {
             if (!currentUser || !chatId) return;
             try {
                 const chatRef = db.collection('chats').doc(chatId);
-                if (isTypingNow) {
-                    await chatRef.update({ typingUsers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
-                } else {
-                    await chatRef.update({ typingUsers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
-                }
-            } catch (error) { console.error('Error setting typing status:', error); }
+                if (isTypingNow) { await chatRef.update({ typingUsers: firebase.firestore.FieldValue.arrayUnion(currentUser
+                            .uid) }); } else { await chatRef.update({ typingUsers: firebase.firestore.FieldValue
+                            .arrayRemove(currentUser.uid) }); }
+            } catch (e) { console.error(e); }
         }
 
-        // ========== LOAD CHATS ==========
+        // ========== LOAD CHATS (LOCAL FIRST) ==========
         function loadChats(userId) {
             if (unsubscribeChats) { unsubscribeChats();
                 unsubscribeChats = null; }
 
-            // Always show cached chats first
             if (localCache.chats.length > 0) {
                 renderChats(localCache.chats);
             }
 
             const query = db.collection('chats').where('participants', 'array-contains', userId);
-
             unsubscribeChats = query.onSnapshot(async (snapshot) => {
                 const chats = [];
                 const promises = [];
-
                 for (const doc of snapshot.docs) {
                     const data = doc.data();
                     if (data.isMessageRequest === true) continue;
                     const participants = data.participants || [];
                     const otherId = participants.find(id => id !== userId);
                     if (!otherId) continue;
-
                     promises.push((async () => {
                         const userData = await getUserData(otherId);
                         if (!userData) return;
@@ -1948,10 +1489,8 @@
                         });
                     })());
                 }
-
                 await Promise.all(promises);
                 chats.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
-
                 localCache.chats = chats;
                 saveCache();
                 renderChats(chats);
@@ -1971,19 +1510,16 @@
                     `<div class="empty-state"><i class="fa-regular fa-comment-dots"></i><h3>No conversations yet</h3><p>Your confirmed chats will appear here</p></div>`;
                 return;
             }
-
             for (const chat of chats) {
                 const item = document.createElement('div');
                 item.className = 'chat-item';
                 item.dataset.otherId = chat.otherId;
                 item.dataset.chatId = chat.id;
-
                 const name = chat.userData.fullName || chat.userData.firstName || 'User';
                 const photo = chat.userData.photoURL ||
                     'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
                 const time = new Date(chat.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const isOnline = chat.userData.status === 'online';
-
                 item.innerHTML = `
                     <div class="chat-left">
                         <div class="chat-avatar-container">
@@ -2000,60 +1536,27 @@
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 `;
-
-                item.addEventListener('click', () => {
-                    openChatRoom(chat.id, chat.otherId, chat.userData);
-                });
-
+                item.addEventListener('click', () => { openChatRoom(chat.id, chat.otherId, chat.userData); });
                 chatList.appendChild(item);
             }
         }
 
+        function truncateText(text, maxLen) { if (!text) return ''; if (text.length <= maxLen) return text; return text
+                .substring(0, maxLen) + '...'; }
+
         // ========== DELETE CHAT ==========
         async function deleteChatItem(chatId, otherId) {
-            if (!chatId || !confirm('Delete this chat permanently? All messages and media will be deleted.')) return;
-
+            if (!chatId || !confirm('Delete this chat permanently?')) return;
             try {
-                const chatDoc = await db.collection('chats').doc(chatId).get();
-                if (chatDoc.exists) {
-                    const data = chatDoc.data();
-                    const messages = data.messages || [];
-
-                    for (const msg of messages) {
-                        if (msg.publicId) {
-                            await deleteFromCloudinary(msg.publicId, msg.resourceType || 'image');
-                        }
-                        if (msg.imageUrl && msg.publicId) {
-                            await deleteFromCloudinary(msg.publicId, 'image');
-                        }
-                        if (msg.videoUrl && msg.publicId) {
-                            await deleteFromCloudinary(msg.publicId, 'video');
-                        }
-                        if (msg.audioUrl && msg.publicId) {
-                            await deleteFromCloudinary(msg.publicId, 'video');
-                        }
-                    }
-                }
-
                 await db.collection('chats').doc(chatId).delete();
-
                 localCache.chats = localCache.chats.filter(c => c.id !== chatId);
                 delete localCache.messages[chatId];
                 delete localCache.messageHashes[chatId];
-                delete localCache.chatLastUpdated[chatId];
                 saveCache();
-
-                if (currentChatId === chatId) {
-                    closeChat();
-                }
-
+                if (currentChatId === chatId) closeChat();
                 renderChats(localCache.chats);
-                showToast('Chat deleted successfully');
-
-            } catch (error) {
-                console.error('Error deleting chat:', error);
-                showToast('Error deleting chat: ' + error.message);
-            }
+                showToast('Chat deleted');
+            } catch (e) { showToast('Error: ' + e.message); }
         }
 
         // ========== OPEN CHAT ROOM ==========
@@ -2061,29 +1564,20 @@
             currentChatId = chatId;
             currentRecipientId = recipientId;
             currentRecipientData = userData;
-
             const name = userData.fullName || userData.firstName || 'User';
             const photo = userData.photoURL ||
                 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-
             roomName.textContent = name;
             roomAvatar.src = photo;
-
-            listenUserStatus(recipientId, (isOnline, lastSeen) => {
-                roomOnlineIndicator.className = 'online-indicator' + (isOnline ? ' online' : '');
-                roomStatus.textContent = isOnline ? 'Online' : 'Last seen ' + new Date(lastSeen).toLocaleString();
-            });
-
+            listenUserStatus(recipientId, updateRoomStatus);
             listenTyping(chatId);
             chatRoom.style.display = 'flex';
             loadMessages(chatId);
             markAsSeen(chatId);
-
             document.getElementById('my-avatar').src = currentUser?.photoURL ||
                 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60';
         }
 
-        // ========== MARK AS SEEN ==========
         async function markAsSeen(chatId) {
             if (!currentUser) return;
             try {
@@ -2100,22 +1594,17 @@
                     }
                     return msg;
                 });
-                if (updated) {
-                    await chatRef.update({ messages: updatedMessages });
-                }
-            } catch (error) { console.error('Error marking messages as seen:', error); }
+                if (updated) await chatRef.update({ messages: updatedMessages });
+            } catch (e) { console.error(e); }
         }
 
-        // ========== LOAD MESSAGES (OPTIMIZED) ==========
+        // ========== LOAD MESSAGES (LOCAL FIRST) ==========
         function loadMessages(chatId) {
             if (unsubscribeMessages) { unsubscribeMessages();
                 unsubscribeMessages = null; }
-
-            // Load from cache first - all messages are shown
             if (localCache.messages[chatId]) {
                 renderMessages(localCache.messages[chatId]);
             }
-
             const chatRef = db.collection('chats').doc(chatId);
             unsubscribeMessages = chatRef.onSnapshot((doc) => {
                 if (!doc.exists) {
@@ -2125,29 +1614,16 @@
                     }
                     return;
                 }
-
                 const data = doc.data();
                 const newMessages = data.messages || [];
                 const cachedMessages = localCache.messages[chatId] || [];
-
-                // Check if messages have changed using hash comparison
                 const newHashes = newMessages.map(msg => generateMessageHash(msg));
                 const oldHashes = cachedMessages.map(msg => generateMessageHash(msg));
-
                 let hasChanged = false;
-                if (newHashes.length !== oldHashes.length) {
-                    hasChanged = true;
-                } else {
-                    for (let i = 0; i < newHashes.length; i++) {
-                        if (newHashes[i] !== oldHashes[i]) {
-                            hasChanged = true;
-                            break;
-                        }
-                    }
-                }
-
+                if (newHashes.length !== oldHashes.length) hasChanged = true;
+                else { for (let i = 0; i < newHashes.length; i++) { if (newHashes[i] !== oldHashes[i]) { hasChanged =
+                            true; break; } } }
                 if (hasChanged) {
-                    // Only update if there are actual changes
                     localCache.messages[chatId] = newMessages;
                     localCache.messageHashes[chatId] = newHashes;
                     saveCache();
@@ -2163,6 +1639,16 @@
             });
         }
 
+        function generateMessageHash(msg) {
+            const str = msg.sender + msg.timestamp + (msg.text || '') + (msg.imageUrl || '') + (msg.videoUrl || '') + (msg
+                .audioUrl || '');
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) { const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; }
+            return hash.toString(36);
+        }
+
         function renderMessages(messages) {
             messagesBody.innerHTML = '';
             if (!messages || messages.length === 0) {
@@ -2170,14 +1656,11 @@
                     '<div style="text-align:center;color:#65676b;padding:40px 0;">No messages yet</div>';
                 return;
             }
-
             const recipientPhoto = roomAvatar.src;
             let lastDate = '';
-
             for (let i = 0; i < messages.length; i++) {
                 const msg = messages[i];
                 const isOutgoing = msg.sender === currentUser.uid;
-
                 const msgDate = new Date(msg.timestamp || Date.now()).toDateString();
                 if (msgDate !== lastDate) {
                     lastDate = msgDate;
@@ -2186,98 +1669,68 @@
                     divider.textContent = msgDate;
                     messagesBody.appendChild(divider);
                 }
-
                 const row = document.createElement('div');
                 row.className = 'message-row ' + (isOutgoing ? 'outgoing' : 'incoming');
                 row.dataset.index = i;
-
                 let avatarHTML = '';
-                if (!isOutgoing) {
-                    avatarHTML = '<img class="message-avatar" src="' + recipientPhoto + '" alt="Avatar" loading="lazy">';
-                }
-
+                if (!isOutgoing) avatarHTML = '<img class="message-avatar" src="' + recipientPhoto + '" alt="Avatar" loading="lazy">';
                 let contentHTML = '';
-
                 if (msg.replyTo && msg.replyTo.text) {
                     contentHTML +=
                         '<div class="reply-indicator"><i class="fa-solid fa-reply"></i><span>' + escapeHTML(msg.replyTo
                             .senderName || 'User') + ': ' + escapeHTML(msg.replyTo.text) + '</span></div>';
                 }
-
                 if (msg.text) {
                     const detected = detectCodeAndLinks(msg.text);
-                    if (detected.isCode) {
-                        contentHTML += detected.html;
-                    } else {
-                        contentHTML += '<div class="bubble">' + detected.html + '</div>';
-                    }
+                    if (detected.isCode) contentHTML += detected.html;
+                    else contentHTML += '<div class="bubble">' + detected.html + '</div>';
                 }
-
                 if (msg.imageUrl) {
                     contentHTML +=
-                        '<div class="bubble" style="padding:4px; background: ' + (isOutgoing ? '#0084ff' : '#f0f2f5') +
-                        ';">' +
-                        '<img src="' + msg.imageUrl + '" alt="Image" onclick="openImagePreview(\'' + msg.imageUrl +
-                        '\')" style="cursor:pointer;" loading="lazy">' +
-                        '</div>';
+                        `<div class="bubble" style="padding:4px; background: ${isOutgoing ? '#0084ff' : '#f0f2f5'};">
+                            <img src="${msg.imageUrl}" alt="Image" onclick="openImagePreview('${msg.imageUrl}')" style="cursor:pointer;" loading="lazy">
+                        </div>`;
                 }
-
                 if (msg.videoUrl) {
                     contentHTML +=
-                        '<div class="bubble" style="padding:4px; background: ' + (isOutgoing ? '#0084ff' : '#f0f2f5') +
-                        ';">' +
-                        '<video controls src="' + msg.videoUrl +
-                        '" style="max-width:250px;max-height:300px;border-radius:8px;cursor:pointer;" onclick="openVideoFullscreen(this)" preload="metadata"></video>' +
-                        '</div>';
+                        `<div class="bubble" style="padding:4px; background: ${isOutgoing ? '#0084ff' : '#f0f2f5'};">
+                            <video controls src="${msg.videoUrl}" style="max-width:250px;max-height:300px;border-radius:8px;cursor:pointer;" onclick="openVideoFullscreen(this)" preload="metadata"></video>
+                        </div>`;
                 }
-
                 if (msg.audioUrl) {
                     contentHTML +=
-                        '<div class="bubble" style="padding:4px; background: ' + (isOutgoing ? '#0084ff' : '#f0f2f5') +
-                        ';">' +
-                        '<audio controls src="' + msg.audioUrl +
-                        '" style="width:200px;max-width:100%;" preload="metadata"></audio>' +
-                        '</div>';
+                        `<div class="bubble" style="padding:4px; background: ${isOutgoing ? '#0084ff' : '#f0f2f5'};">
+                            <audio controls src="${msg.audioUrl}" style="width:200px;max-width:100%;" preload="metadata"></audio>
+                        </div>`;
                 }
-
                 let seenHTML = '';
-                if (isOutgoing && msg.seen) {
-                    seenHTML = '<div class="message-seen">✅ Seen</div>';
-                } else if (isOutgoing && i === messages.length - 1) {
-                    seenHTML = '<div class="message-seen">✓ Delivered</div>';
-                }
-
+                if (isOutgoing && msg.seen) seenHTML = '<div class="message-seen">✅ Seen</div>';
+                else if (isOutgoing && i === messages.length - 1) seenHTML = '<div class="message-seen">✓ Delivered</div>';
                 row.innerHTML = avatarHTML +
                     '<div style="display:flex;flex-direction:column; max-width:100%;">' +
                     contentHTML + seenHTML +
                     '</div>';
-
-                // Long press for context menu (edit/delete)
+                // Context menu
                 let pressTimer = null;
                 row.addEventListener('mousedown', function(e) {
                     if (e.button === 2) return;
                     pressTimer = setTimeout(function() {
                         const canEdit = isOutgoing;
-
                         selectedMessageIndex = i;
                         selectedMessageData = msg;
                         selectedMessageData._isOutgoing = isOutgoing;
-
                         contextMenu.style.display = 'block';
                         contextMenu.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
                         contextMenu.style.top = Math.min(e.clientY, window.innerHeight - 100) + 'px';
                         contextMenu.dataset.index = i;
                         contextMenu.dataset.msgId = msg.id || i;
                         contextMenu.dataset.isOutgoing = isOutgoing;
-
                         const editItem = contextMenu.querySelector('.menu-item:first-child');
                         editItem.style.display = canEdit ? 'flex' : 'none';
                     }, 500);
                 });
                 row.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
                 row.addEventListener('mouseleave', function() { clearTimeout(pressTimer); });
-
-                // Touch support for mobile
                 row.addEventListener('touchstart', function(e) {
                     const touch = e.touches[0];
                     pressTimer = setTimeout(function() {
@@ -2285,43 +1738,81 @@
                         selectedMessageIndex = i;
                         selectedMessageData = msg;
                         selectedMessageData._isOutgoing = isOutgoing;
-
                         contextMenu.style.display = 'block';
                         contextMenu.style.left = Math.min(touch.clientX, window.innerWidth - 200) + 'px';
                         contextMenu.style.top = Math.min(touch.clientY, window.innerHeight - 100) + 'px';
                         contextMenu.dataset.index = i;
                         contextMenu.dataset.msgId = msg.id || i;
                         contextMenu.dataset.isOutgoing = isOutgoing;
-
                         const editItem = contextMenu.querySelector('.menu-item:first-child');
                         editItem.style.display = canEdit ? 'flex' : 'none';
                     }, 500);
                 });
                 row.addEventListener('touchend', function() { clearTimeout(pressTimer); });
                 row.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
-
-                // Reply on click for incoming messages
                 if (!isOutgoing) {
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', function(e) {
                         if (contextMenu.style.display === 'block') return;
-                        if (msg.text) {
-                            chatInput.value = '@' + roomName.textContent + ' ' + msg.text;
-                            chatInput.focus();
-                        }
+                        if (msg.text) { chatInput.value = '@' + roomName.textContent + ' ' + msg.text;
+                            chatInput.focus(); }
                     });
                 }
-
                 messagesBody.appendChild(row);
             }
-
             messagesBody.scrollTop = messagesBody.scrollHeight;
         }
 
+        function detectCodeAndLinks(text) {
+            if (!text) return { html: text, isCode: false, links: [] };
+            const codePatterns = [/function\s*\(/, /var\s+\w+/, /let\s+\w+/, /const\s+\w+/, /=>/, /class\s+\w+/, /import\s+/,
+                /export\s+/, /<[^>]+>/, /{/, /}/, /;/, /\/\//, /\/\*/, /\*\//
+            ];
+            let codeScore = 0;
+            for (const pattern of codePatterns) { if (pattern.test(text)) codeScore++; }
+            if (codeScore >= 2 || (text.includes('\n') && text.length > 100)) {
+                return {
+                    html: `<div class="code-block" onclick="openCodePopup(${JSON.stringify(text)})">
+                            <i class="fa-regular fa-copy copy-code" onclick="event.stopPropagation(); copyCode(${JSON.stringify(text)})"></i>
+                            <pre style="margin:0;white-space:pre-wrap;font-family:inherit;">${escapeHTML(text)}</pre>
+                           </div>`,
+                    isCode: true,
+                    links: []
+                };
+            }
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const links = text.match(urlRegex) || [];
+            let html = text;
+            links.forEach(link => { html = html.replace(link, `<a href="${link}" target="_blank" rel="noopener">${link}</a>`); });
+            if (links.length > 0) {
+                html += `<div class="link-preview"><a href="${links[0]}" target="_blank" rel="noopener">${links[0]}</a><div class="link-desc">Click to visit</div></div>`;
+            }
+            return { html, isCode: false, links };
+        }
+
+        function openCodePopup(text) {
+            const win = window.open('', '_blank', 'width=600,height=400');
+            if (win) {
+                win.document.write(`
+                    <html><head><title>Code</title>
+                    <style>body{margin:0;padding:20px;background:#1e1e1e;color:#d4d4d4;font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-all;}
+                    .copy-btn{position:fixed;top:10px;right:20px;background:#0084ff;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;}
+</style></head>
+<body>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>alert('Copied!'))">Copy</button>
+    <pre id="code" style="margin:40px 0 0 0;font-family:inherit;">${escapeHTML(text)}</pre>
+</body></html>
+`);
+                win.document.close();
+            } else { alert('Please allow popups to view code'); }
+        }
+
+        function copyCode(text) { navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => showToast(
+                'Copy failed')); }
+
         // ========== VIDEO FULLSCREEN ==========
         function openVideoFullscreen(videoElement) {
-            const videoSrc = videoElement.src;
-            fullscreenVideo.src = videoSrc;
+            fullscreenVideo.src = videoElement.src;
             videoFullscreenOverlay.classList.add('show');
             fullscreenVideo.play();
         }
@@ -2330,242 +1821,6 @@
             videoFullscreenOverlay.classList.remove('show');
             fullscreenVideo.pause();
             fullscreenVideo.src = '';
-        }
-
-        // ========== MESSAGE CONTEXT MENU ==========
-        function editMessage() {
-            const index = parseInt(contextMenu.dataset.index);
-            const msg = selectedMessageData;
-            contextMenu.style.display = 'none';
-
-            if (!msg || !msg.text) {
-                showToast('Only text messages can be edited');
-                return;
-            }
-
-            if (!msg._isOutgoing) {
-                showToast('You can only edit your own messages');
-                return;
-            }
-
-            const newText = prompt('Edit message:', msg.text);
-            if (newText === null || newText.trim() === '') return;
-
-            editMessageInFirestore(index, newText.trim());
-        }
-
-        async function editMessageInFirestore(index, newText) {
-            if (!currentChatId) return;
-
-            try {
-                const chatRef = db.collection('chats').doc(currentChatId);
-                const doc = await chatRef.get();
-                if (!doc.exists) return;
-
-                const data = doc.data();
-                const messages = data.messages || [];
-
-                if (index >= messages.length) return;
-
-                messages[index].text = newText;
-                messages[index].edited = true;
-                messages[index].editedAt = new Date().toISOString();
-
-                await chatRef.update({ messages: messages });
-
-                localCache.messages[currentChatId] = messages;
-                saveCache();
-                showToast('Message edited for everyone');
-
-            } catch (error) {
-                console.error('Error editing message:', error);
-                showToast('Error editing message: ' + error.message);
-            }
-        }
-
-        function deleteMessage() {
-            const index = parseInt(contextMenu.dataset.index);
-            const isOutgoing = contextMenu.dataset.isOutgoing === 'true';
-            contextMenu.style.display = 'none';
-
-            if (!confirm('Delete this message?')) return;
-
-            if (isOutgoing) {
-                deleteMessageForEveryone(index);
-            } else {
-                deleteMessageForSelf(index);
-            }
-        }
-
-        async function deleteMessageForEveryone(index) {
-            if (!currentChatId) return;
-
-            try {
-                const chatRef = db.collection('chats').doc(currentChatId);
-                const doc = await chatRef.get();
-                if (!doc.exists) return;
-
-                const data = doc.data();
-                const messages = data.messages || [];
-
-                if (index >= messages.length) return;
-
-                const msg = messages[index];
-                if (msg.publicId) {
-                    await deleteFromCloudinary(msg.publicId, msg.resourceType || 'image');
-                }
-                if (msg.imageUrl && msg.publicId) {
-                    await deleteFromCloudinary(msg.publicId, 'image');
-                }
-                if (msg.videoUrl && msg.publicId) {
-                    await deleteFromCloudinary(msg.publicId, 'video');
-                }
-                if (msg.audioUrl && msg.publicId) {
-                    await deleteFromCloudinary(msg.publicId, 'video');
-                }
-
-                messages.splice(index, 1);
-
-                const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
-                await chatRef.update({
-                    messages: messages,
-                    lastMessage: lastMsg ? (lastMsg.text || '📎 File') : 'No messages yet',
-                    lastUpdated: new Date().toISOString()
-                });
-
-                localCache.messages[currentChatId] = messages;
-                saveCache();
-                showToast('Message deleted for everyone');
-
-            } catch (error) {
-                console.error('Error deleting message:', error);
-                showToast('Error deleting message: ' + error.message);
-            }
-        }
-
-        async function deleteMessageForSelf(index) {
-            if (!currentChatId) return;
-
-            try {
-                const chatRef = db.collection('chats').doc(currentChatId);
-                const doc = await chatRef.get();
-                if (!doc.exists) return;
-
-                const data = doc.data();
-                const messages = data.messages || [];
-
-                if (index >= messages.length) return;
-
-                messages[index].deletedFor = messages[index].deletedFor || [];
-                if (!messages[index].deletedFor.includes(currentUser.uid)) {
-                    messages[index].deletedFor.push(currentUser.uid);
-                }
-
-                await chatRef.update({ messages: messages });
-
-                const filteredMessages = messages.filter(msg => !msg.deletedFor || !msg.deletedFor.includes(currentUser.uid));
-                localCache.messages[currentChatId] = filteredMessages;
-                saveCache();
-                renderMessages(filteredMessages);
-                showToast('Message deleted for you');
-
-            } catch (error) {
-                console.error('Error deleting message:', error);
-                showToast('Error deleting message: ' + error.message);
-            }
-        }
-
-        document.addEventListener('click', function() {
-            contextMenu.style.display = 'none';
-        });
-
-        // ========== SEND MESSAGE ==========
-        async function sendMessage() {
-            const text = chatInput.value.trim();
-            const pendingFile = window._pendingFile || null;
-
-            if (!text && !pendingFile) {
-                showToast('Write a message or select a file');
-                return;
-            }
-            if (!currentChatId || !currentUser) {
-                showToast('Please login to send messages');
-                return;
-            }
-
-            sendBtn.disabled = true;
-
-            try {
-                const messageData = {
-                    sender: currentUser.uid,
-                    time: new Date().toLocaleString(),
-                    timestamp: new Date().toISOString()
-                };
-
-                if (text) messageData.text = text;
-
-                if (pendingFile) {
-                    if (pendingFile.type === 'image') {
-                        messageData.imageUrl = pendingFile.url;
-                        messageData.publicId = pendingFile.publicId;
-                        messageData.resourceType = pendingFile.resourceType || 'image';
-                    } else if (pendingFile.type === 'video') {
-                        messageData.videoUrl = pendingFile.url;
-                        messageData.publicId = pendingFile.publicId;
-                        messageData.resourceType = pendingFile.resourceType || 'video';
-                    } else if (pendingFile.type === 'audio') {
-                        messageData.audioUrl = pendingFile.url;
-                        messageData.publicId = pendingFile.publicId;
-                        messageData.resourceType = pendingFile.resourceType || 'video';
-                    }
-                    window._pendingFile = null;
-                }
-
-                if (text && text.startsWith('@')) {
-                    const parts = text.split(' ');
-                    const replyName = parts[0].substring(1);
-                    const replyText = parts.slice(1).join(' ');
-                    if (replyText) {
-                        messageData.replyTo = { senderName: replyName, text: replyText };
-                    }
-                }
-
-                const chatRef = db.collection('chats').doc(currentChatId);
-                const lastMsg = text || (pendingFile ? '📎 ' + pendingFile.type : '');
-
-                if (isOffline) {
-                    const currentMessages = localCache.messages[currentChatId] || [];
-                    currentMessages.push(messageData);
-                    localCache.messages[currentChatId] = currentMessages;
-                    saveCache();
-                    renderMessages(currentMessages);
-                    showToast('Message saved locally (offline)');
-                    sendBtn.disabled = false;
-                    chatInput.value = '';
-
-                    const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
-                    pending.push({ chatId: currentChatId, messageData: messageData, lastMsg: lastMsg });
-                    localStorage.setItem('messenger_pending_messages', JSON.stringify(pending));
-                    return;
-                }
-
-                await chatRef.update({
-                    messages: firebase.firestore.FieldValue.arrayUnion(messageData),
-                    lastMessage: lastMsg,
-                    lastUpdated: new Date().toISOString()
-                });
-
-                chatInput.value = '';
-                messagesBody.scrollTop = messagesBody.scrollHeight;
-                await setTypingStatus(currentChatId, false);
-
-            } catch (error) {
-                console.error('Error sending message:', error);
-                showToast('Error: ' + error.message);
-            } finally {
-                sendBtn.disabled = false;
-                chatInput.focus();
-            }
         }
 
         // ========== IMAGE PREVIEW ==========
@@ -2577,23 +1832,341 @@
             document.getElementById('image-preview-overlay').classList.add('show');
         }
 
-        function closeImagePreview() {
-            document.getElementById('image-preview-overlay').classList.remove('show');
-        }
+        function closeImagePreview() { document.getElementById('image-preview-overlay').classList.remove('show'); }
 
-        function downloadImage() {
-            const link = document.createElement('a');
+        function downloadImage() { const link = document.createElement('a');
             link.href = currentPreviewImage;
             link.download = 'image.jpg';
-            link.click();
+            link.click(); }
+
+        // ========== CONTEXT MENU ==========
+        function editMessage() {
+            const index = parseInt(contextMenu.dataset.index);
+            const msg = selectedMessageData;
+            contextMenu.style.display = 'none';
+            if (!msg || !msg.text) { showToast('Only text messages can be edited'); return; }
+            if (!msg._isOutgoing) { showToast('You can only edit your own messages'); return; }
+            const newText = prompt('Edit message:', msg.text);
+            if (newText === null || newText.trim() === '') return;
+            editMessageInFirestore(index, newText.trim());
         }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeImagePreview();
-                closeVideoFullscreen();
+        async function editMessageInFirestore(index, newText) {
+            if (!currentChatId) return;
+            try {
+                const chatRef = db.collection('chats').doc(currentChatId);
+                const doc = await chatRef.get();
+                if (!doc.exists) return;
+                const data = doc.data();
+                const messages = data.messages || [];
+                if (index >= messages.length) return;
+                messages[index].text = newText;
+                messages[index].edited = true;
+                messages[index].editedAt = new Date().toISOString();
+                await chatRef.update({ messages: messages });
+                localCache.messages[currentChatId] = messages;
+                saveCache();
+                showToast('Message edited');
+            } catch (e) { showToast('Error: ' + e.message); }
+        }
+
+        function deleteMessage() {
+            const index = parseInt(contextMenu.dataset.index);
+            const isOutgoing = contextMenu.dataset.isOutgoing === 'true';
+            contextMenu.style.display = 'none';
+            if (!confirm('Delete this message?')) return;
+            if (isOutgoing) deleteMessageForEveryone(index);
+            else deleteMessageForSelf(index);
+        }
+
+        async function deleteMessageForEveryone(index) {
+            if (!currentChatId) return;
+            try {
+                const chatRef = db.collection('chats').doc(currentChatId);
+                const doc = await chatRef.get();
+                if (!doc.exists) return;
+                const data = doc.data();
+                const messages = data.messages || [];
+                if (index >= messages.length) return;
+                messages.splice(index, 1);
+                const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+                await chatRef.update({ messages: messages, lastMessage: lastMsg ? (lastMsg.text || '📎 File') :
+                        'No messages yet', lastUpdated: new Date().toISOString() });
+                localCache.messages[currentChatId] = messages;
+                saveCache();
+                showToast('Message deleted');
+            } catch (e) { showToast('Error: ' + e.message); }
+        }
+
+        async function deleteMessageForSelf(index) {
+            if (!currentChatId) return;
+            try {
+                const chatRef = db.collection('chats').doc(currentChatId);
+                const doc = await chatRef.get();
+                if (!doc.exists) return;
+                const data = doc.data();
+                const messages = data.messages || [];
+                if (index >= messages.length) return;
+                messages[index].deletedFor = messages[index].deletedFor || [];
+                if (!messages[index].deletedFor.includes(currentUser.uid)) messages[index].deletedFor.push(currentUser
+                    .uid);
+                await chatRef.update({ messages: messages });
+                const filteredMessages = messages.filter(msg => !msg.deletedFor || !msg.deletedFor.includes(currentUser
+                    .uid));
+                localCache.messages[currentChatId] = filteredMessages;
+                saveCache();
+                renderMessages(filteredMessages);
+                showToast('Message deleted for you');
+            } catch (e) { showToast('Error: ' + e.message); }
+        }
+
+        document.addEventListener('click', function() { contextMenu.style.display = 'none'; });
+
+        // ========== SEND MESSAGE ==========
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            const pendingFile = window._pendingFile || null;
+            if (!text && !pendingFile) { showToast('Write a message or select a file'); return; }
+            if (!currentChatId || !currentUser) { showToast('Please login'); return; }
+            sendBtn.disabled = true;
+            try {
+                const messageData = { sender: currentUser.uid, time: new Date().toLocaleString(), timestamp: new Date()
+                        .toISOString() };
+                if (text) messageData.text = text;
+                if (pendingFile) {
+                    if (pendingFile.type === 'image') { messageData.imageUrl = pendingFile.url;
+                        messageData.publicId = pendingFile.publicId;
+                        messageData.resourceType = pendingFile.resourceType || 'image'; }
+                    if (pendingFile.type === 'video') { messageData.videoUrl = pendingFile.url;
+                        messageData.publicId = pendingFile.publicId;
+                        messageData.resourceType = pendingFile.resourceType || 'video'; }
+                    if (pendingFile.type === 'audio') { messageData.audioUrl = pendingFile.url;
+                        messageData.publicId = pendingFile.publicId;
+                        messageData.resourceType = pendingFile.resourceType || 'video'; }
+                    window._pendingFile = null;
+                }
+                if (text && text.startsWith('@')) {
+                    const parts = text.split(' ');
+                    const replyName = parts[0].substring(1);
+                    const replyText = parts.slice(1).join(' ');
+                    if (replyText) messageData.replyTo = { senderName: replyName, text: replyText };
+                }
+                const chatRef = db.collection('chats').doc(currentChatId);
+                const lastMsg = text || (pendingFile ? '📎 ' + pendingFile.type : '');
+                if (isOffline) {
+                    const currentMessages = localCache.messages[currentChatId] || [];
+                    currentMessages.push(messageData);
+                    localCache.messages[currentChatId] = currentMessages;
+                    saveCache();
+                    renderMessages(currentMessages);
+                    showToast('Saved locally (offline)');
+                    sendBtn.disabled = false;
+                    chatInput.value = '';
+                    const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
+                    pending.push({ chatId: currentChatId, messageData: messageData, lastMsg: lastMsg });
+                    localStorage.setItem('messenger_pending_messages', JSON.stringify(pending));
+                    return;
+                }
+                await chatRef.update({ messages: firebase.firestore.FieldValue.arrayUnion(messageData),
+                    lastMessage: lastMsg, lastUpdated: new Date().toISOString() });
+                chatInput.value = '';
+                messagesBody.scrollTop = messagesBody.scrollHeight;
+                await setTypingStatus(currentChatId, false);
+            } catch (e) { showToast('Error: ' + e.message); } finally { sendBtn.disabled = false;
+                chatInput.focus(); }
+        }
+
+        // ========== FILE UPLOAD ==========
+        async function handleFileSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (type === 'video' && file.size > 50 * 1024 * 1024) { showToast('Video exceeds 50MB');
+                event.target.value = ''; return; }
+            let maxSize = type === 'video' ? 50 * 1024 * 1024 : type === 'audio' ? 10 * 1024 * 1024 : 20 * 1024 * 1024;
+            if (file.size > maxSize) { showToast('File too large');
+                event.target.value = ''; return; }
+            try {
+                showUploadProgress('Uploading ' + type + '...');
+                const result = await uploadToCloudinary(file, (percent) => { updateUploadProgress(percent); });
+                hideUploadProgress();
+                window._pendingFile = { type, url: result.url, publicId: result.publicId, resourceType: result
+                        .resourceType, name: file.name };
+                await sendMessage();
+            } catch (e) { hideUploadProgress();
+                showToast('Upload error: ' + e.message); }
+            event.target.value = '';
+        }
+
+        function uploadToCloudinary(file, onProgress) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+                formData.append('api_key', CLOUDINARY_CONFIG.apiKey);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/auto/upload`, true);
+                xhr.upload.onprogress = function(e) { if (e.lengthComputable && onProgress) onProgress((e.loaded / e
+                        .total) * 100); };
+                xhr.onload = function() {
+                    if (xhr.status === 200) { try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(
+                            new Error('Invalid response')); } } else reject(new Error('Upload failed: ' + xhr
+                        .status));
+                };
+                xhr.onerror = function() { reject(new Error('Network error')); };
+                xhr.send(formData);
+            });
+        }
+
+        function showUploadProgress(text) { uploadProgress.style.display = 'block';
+            uploadText.textContent = text || 'Uploading...';
+            progressFill.style.width = '0%'; }
+
+        function updateUploadProgress(percent) { progressFill.style.width = Math.min(percent, 100) + '%'; }
+
+        function hideUploadProgress() { uploadProgress.style.display = 'none';
+            progressFill.style.width = '0%'; }
+
+        // ========== VOICE RECORDING - NO PERMISSION REQUIRED (FALLBACK) ==========
+        // This uses a file input fallback for environments without mic access
+        function useFallbackVoice() {
+            closeMicPermission();
+            // Trigger file input for audio
+            audioInput.click();
+            showToast('Select an audio file (max 1 min, 10MB)');
+        }
+
+        async function startVoiceRecording() {
+            // Check if we're in a web environment with getUserMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showToast('Microphone not supported, use file upload');
+                audioInput.click();
+                return;
             }
-        });
+
+            // Try to get mic permission
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Permission granted - use MediaRecorder
+                hasMicPermission = true;
+                closeMicPermission();
+                startMediaRecorder(stream);
+            } catch (err) {
+                console.warn('Mic permission denied or error:', err);
+                // Show permission overlay with fallback option
+                micPermissionOverlay.classList.add('show');
+                // Also directly trigger file input as fallback (works in APK, browsers, etc)
+                // The user can click "Use File Upload Instead"
+            }
+        }
+
+        function startMediaRecorder(stream) {
+            if (isRecording) { stopVoiceRecording(); return; }
+
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            recordingSeconds = 0;
+            isRecording = true;
+            micIcon.className = 'fa-solid fa-microphone-slash';
+
+            // Show recording indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'voice-recording-indicator show';
+            indicator.id = 'voice-indicator';
+            indicator.innerHTML = `
+                <i class="fa-solid fa-circle" style="color:#e74c3c;"></i>
+                <span>Recording</span>
+                <span class="voice-timer" id="voice-timer">0:00</span>
+                <button class="voice-cancel-btn" onclick="cancelVoiceRecording()"><i class="fa-solid fa-times"></i></button>
+            `;
+            const inputWrapper = document.querySelector('.input-wrapper');
+            inputWrapper.appendChild(indicator);
+
+            // Start timer
+            recordingTimer = setInterval(() => {
+                recordingSeconds++;
+                const mins = Math.floor(recordingSeconds / 60);
+                const secs = recordingSeconds % 60;
+                document.getElementById('voice-timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                if (recordingSeconds >= 60) {
+                    showToast('Max 1 minute reached');
+                    stopVoiceRecording();
+                }
+            }, 1000);
+
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.onstop = async () => {
+                clearInterval(recordingTimer);
+                isRecording = false;
+                micIcon.className = 'fa-solid fa-microphone';
+                const indicatorEl = document.getElementById('voice-indicator');
+                if (indicatorEl) indicatorEl.remove();
+
+                if (audioChunks.length === 0) { showToast('No audio recorded'); return; }
+
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                // Check size
+                if (audioBlob.size > 10 * 1024 * 1024) { showToast('Audio too large (max 10MB)'); return; }
+                const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
+                try {
+                    showUploadProgress('Uploading voice...');
+                    const result = await uploadToCloudinary(audioFile, (percent) => { updateUploadProgress(percent); });
+                    hideUploadProgress();
+                    window._pendingFile = { type: 'audio', url: result.url, publicId: result.publicId,
+                        resourceType: result.resourceType };
+                    await sendMessage();
+                } catch (e) { hideUploadProgress();
+                    showToast('Voice upload error: ' + e.message); }
+                stream.getTracks().forEach(t => t.stop());
+            };
+            mediaRecorder.start();
+            showToast('Recording... tap mic again to stop (max 1 min)');
+        }
+
+        function stopVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                micIcon.className = 'fa-solid fa-microphone';
+                const indicatorEl = document.getElementById('voice-indicator');
+                if (indicatorEl) indicatorEl.remove();
+                clearInterval(recordingTimer);
+                showToast('Recording stopped');
+            } else {
+                // If not recording, start
+                startVoiceRecording();
+            }
+        }
+
+        function cancelVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                micIcon.className = 'fa-solid fa-microphone';
+                const indicatorEl = document.getElementById('voice-indicator');
+                if (indicatorEl) indicatorEl.remove();
+                clearInterval(recordingTimer);
+                audioChunks = [];
+                showToast('Recording cancelled');
+            }
+        }
+
+        function showMicPermission() { micPermissionOverlay.classList.add('show'); }
+
+        function closeMicPermission() { micPermissionOverlay.classList.remove('show'); }
+
+        async function requestMicPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                hasMicPermission = true;
+                closeMicPermission();
+                showToast('Microphone access granted!');
+                startMediaRecorder(stream);
+            } catch (e) {
+                showToast('Microphone access denied. Use file upload instead.');
+                closeMicPermission();
+                audioInput.click();
+            }
+        }
 
         // ========== CLOSE CHAT ==========
         function closeChat() {
@@ -2614,75 +2187,134 @@
             window._pendingFile = null;
             contextMenu.style.display = 'none';
             closeVideoFullscreen();
+            // Cleanup voice
+            if (mediaRecorder && isRecording) { mediaRecorder.stop();
+                isRecording = false;
+                micIcon.className = 'fa-solid fa-microphone'; }
+            clearInterval(recordingTimer);
+            const indicatorEl = document.getElementById('voice-indicator');
+            if (indicatorEl) indicatorEl.remove();
         }
 
-        // ========== GO BACK ==========
-        function goBack() {
-            if (window.parent && window.parent.location) {
-                window.parent.history.back();
-            } else {
-                history.back();
-            }
-        }
+        function goBack() { history.back(); }
 
         // ========== TYPING HANDLER ==========
         chatInput.addEventListener('input', async function() {
             if (!currentChatId || !currentUser) return;
             const text = chatInput.value.trim();
             const shouldType = text.length > 0;
-            if (shouldType && !isTyping) {
-                isTyping = true;
-                await setTypingStatus(currentChatId, true);
-            } else if (!shouldType && isTyping) {
-                isTyping = false;
-                await setTypingStatus(currentChatId, false);
-            }
+            if (shouldType && !isTyping) { isTyping = true;
+                await setTypingStatus(currentChatId, true); } else if (!shouldType && isTyping) { isTyping = false;
+                await setTypingStatus(currentChatId, false); }
             clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(async function() {
-                if (isTyping) {
-                    isTyping = false;
-                    await setTypingStatus(currentChatId, false);
-                }
-            }, 3000);
+            typingTimeout = setTimeout(async function() { if (isTyping) { isTyping = false;
+                    await setTypingStatus(currentChatId, false); } }, 3000);
         });
 
-        chatInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+        chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+                sendMessage(); } });
+
+        // ========== NOTIFICATION ==========
+        function showNotification(senderId, senderName, message, photoURL) {
+            if (notifData && notifData.senderId === senderId) {
+                clearTimeout(notifTimer);
+                notifBody.textContent = message;
+                notifPopup.style.display = 'block';
+                notifTimer = setTimeout(closeNotif, 3000);
+                return;
             }
-        });
+            closeNotif();
+            notifAvatar.src = photoURL ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            notifName.textContent = senderName || 'User';
+            notifBody.textContent = message || 'New message';
+            notifData = { senderId, senderName, message, photoURL };
+            notifPopup.style.display = 'block';
+            playNotifSound();
+            clearTimeout(notifTimer);
+            notifTimer = setTimeout(closeNotif, 3000);
+        }
 
-        // ========== AUTH STATE ==========
+        function closeNotif() { notifPopup.style.display = 'none';
+            clearTimeout(notifTimer);
+            notifData = null; }
+
+        function openNotifChat() {
+            if (notifData && notifData.senderId) {
+                closeNotif();
+                const cached = localCache.chats.find(c => c.otherId === notifData.senderId);
+                if (cached) openChatRoom(cached.id, cached.otherId, cached.userData);
+                else showToast('Chat not found');
+            }
+        }
+
+        function playNotifSound() {
+            try { const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 800;
+                osc.type = 'sine';
+                gain.gain.value = 0.15;
+                osc.start();
+                setTimeout(() => { osc.frequency.value = 1000;
+                    setTimeout(() => { osc.stop();
+                        ctx.close(); }, 150); }, 150); } catch (e) { console.log('Sound error:', e); }
+        }
+
+        // ========== OFFLINE HANDLING ==========
+        function updateOfflineStatus() {
+            isOffline = !navigator.onLine;
+            if (isOffline) { offlineIndicator.classList.add('show');
+                syncIndicator.classList.remove('show'); } else { offlineIndicator.classList.remove('show');
+                checkPendingSync(); }
+        }
+
+        async function checkPendingSync() {
+            const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
+            if (pending.length > 0) {
+                syncIndicator.classList.add('show');
+                for (const msg of pending) {
+                    try { await syncPendingMessage(msg); } catch (e) { console.error('Sync error:', e); }
+                }
+                localStorage.removeItem('messenger_pending_messages');
+                syncIndicator.classList.remove('show');
+                showToast('Messages synced!');
+            }
+        }
+
+        async function syncPendingMessage(msgData) {
+            try { const chatRef = db.collection('chats').doc(msgData.chatId); await chatRef.update({ messages: firebase
+                        .firestore.FieldValue.arrayUnion(msgData.messageData), lastMessage: msgData.lastMsg,
+                    lastUpdated: new Date().toISOString() }); } catch (e) { console.error('Sync error:', e); throw e; }
+        }
+
+        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('offline', updateOfflineStatus);
+        updateOfflineStatus();
+
+        // ========== AUTH ==========
         auth.onAuthStateChanged(async function(user) {
             if (user) {
                 currentUser = user;
-                await db.collection('users').doc(user.uid).set({
-                    status: 'online',
-                    lastSeen: new Date().toISOString()
-                }, { merge: true });
-
+                await db.collection('users').doc(user.uid).set({ status: 'online', lastSeen: new Date().toISOString() }, {
+                    merge: true });
                 window.addEventListener('beforeunload', function() {
                     db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
                 });
-
                 const userData = await getUserData(user.uid);
-                if (userData && userData.photoURL) {
-                    document.getElementById('my-avatar').src = userData.photoURL;
-                }
-
+                if (userData && userData.photoURL) document.getElementById('my-avatar').src = userData.photoURL;
                 loadChats(user.uid);
-
                 const notifQuery = db.collection('chats').where('participants', 'array-contains', user.uid);
                 notifQuery.onSnapshot(async function(snapshot) {
                     for (const doc of snapshot.docs) {
                         const data = doc.data();
                         const messages = data.messages || [];
                         if (messages.length === 0) continue;
-
                         const lastMsg = messages[messages.length - 1];
-                        if (lastMsg.sender !== user.uid && !lastMsg.seen &&
-                            (!lastMsg.deletedFor || !lastMsg.deletedFor.includes(user.uid))) {
+                        if (lastMsg.sender !== user.uid && !lastMsg.seen && (!lastMsg.deletedFor || !lastMsg
+                                .deletedFor.includes(user.uid))) {
                             const senderData = await getUserData(lastMsg.sender);
                             if (senderData) {
                                 const name = senderData.fullName || senderData.firstName || 'User';
@@ -2699,35 +2331,19 @@
                         }
                     }
                 });
-
             } else {
                 currentUser = null;
                 chatList.innerHTML =
-                    '<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Please login</h3><p>You need to be logged in to see your messages</p></div>';
+                    '<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h3>Please login</h3><p>You need to be logged in</p></div>';
                 showToast('Please login');
-                setTimeout(function() {
-                    if (window.parent && window.parent.location) {
-                        window.parent.location.href = 'index.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 2000);
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
             }
         });
 
-        console.log('🚀 Messenger with Enhanced Offline & Mic Support!');
-        console.log('✅ Messages cached in localStorage - no duplicate loads');
-        console.log('✅ Only new messages trigger re-render');
-        console.log('✅ Offline viewing of all messages');
-        console.log('✅ Offline message sending with auto-sync');
-        console.log('✅ Edit: Only own messages (syncs to everyone)');
-        console.log('✅ Delete own: Deletes for everyone');
-        console.log('✅ Delete incoming: Deletes only for you');
-        console.log('✅ Mic permission with custom UI prompt');
-        console.log('✅ Video fullscreen playback');
-        console.log('✅ Cloudinary uploads');
-        console.log('✅ Notifications with sound');
-        console.log('✅ Online/offline status indicator');
+        console.log('🚀 Messenger with voice (no permission required, fallback to file upload)');
+        console.log('✅ Voice recording: tries getUserMedia, falls back to file input');
+        console.log('✅ Max 1 minute recording limit');
+        console.log('✅ Works in browsers, web apps, and APK wrappers');
     </script>
 </body>
 </html>
