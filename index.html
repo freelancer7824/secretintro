@@ -365,6 +365,10 @@
             bottom: 0;
             right: 0;
             border: 2px solid #fff;
+            transition: background 0.2s;
+        }
+        .online-dot.offline {
+            background: #b0b3b8;
         }
         .post-input {
             flex: 1;
@@ -1350,12 +1354,14 @@
             display: flex;
         }
 
+        /* ----- ONLINE STATUS INDICATOR IN POST ----- */
         .online-status {
             display: inline-block;
             width: 10px;
             height: 10px;
             border-radius: 50%;
             margin-left: 6px;
+            transition: background 0.3s;
         }
         .online-status.active {
             background: #31a24c;
@@ -1593,7 +1599,7 @@
         <div class="post-box">
             <div class="profile-container" onclick="openProfileIframe()">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Profile" class="profile-pic" id="header-profile-pic">
-                <div class="online-dot"></div>
+                <div class="online-dot" id="header-status-dot"></div>
             </div>
             <input type="text" class="post-input" id="trigger-post" placeholder="What's on your mind?" onclick="openIframe('create-post.html','Create Post')">
             <i class="fa-solid fa-images photo-icon" id="trigger-photo" title="Upload Photo" onclick="openIframe('upload-photo.html','Upload Photo')"></i>
@@ -1659,8 +1665,9 @@
         const navToggleBtn = document.getElementById('nav-toggle-btn');
         const navMenuTab = document.getElementById('nav-menu-tab');
         const navOverlayClose = document.getElementById('nav-overlay-close');
+        const headerStatusDot = document.getElementById('header-status-dot');
 
-        // ========== ONLINE / OFFLINE STATE ==========
+        // ========== SET USER STATUS ==========
         function setUserStatus(uid, status) {
             if (!uid) return;
             db.collection('users').doc(uid).update({
@@ -1669,18 +1676,19 @@
             }).catch(err => console.warn('Status update error:', err));
         }
 
-        // Listen to visibility change (tab close / background)
+        // Listen to visibility change
         document.addEventListener('visibilitychange', () => {
             const user = auth.currentUser;
             if (!user) return;
             if (document.hidden) {
                 setUserStatus(user.uid, 'offline');
+                if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
             } else {
                 setUserStatus(user.uid, 'online');
+                if (headerStatusDot) headerStatusDot.className = 'online-dot';
             }
         });
 
-        // Before page unload (browser close, refresh)
         window.addEventListener('beforeunload', () => {
             const user = auth.currentUser;
             if (user) setUserStatus(user.uid, 'offline');
@@ -1714,7 +1722,6 @@
                         updatedAt: new Date().toISOString()
                     };
                     await docRef.set(userData);
-                    console.log('✅ User document created');
                 } else {
                     await docRef.update({ status: 'online', updatedAt: new Date().toISOString() });
                 }
@@ -2361,6 +2368,24 @@
                     feedContainer.insertBefore(postEl, scrollLoader);
                 });
                 attachFeedListeners();
+                // Attach real-time status updates for each post's user
+                shuffledPosts.forEach(post => {
+                    if (post.userId) {
+                        db.collection('users').doc(post.userId).onSnapshot((doc) => {
+                            if (doc.exists) {
+                                const data = doc.data();
+                                const postDiv = document.querySelector(`.feed-post[data-userid="${post.userId}"]`);
+                                if (postDiv) {
+                                    const statusEl = postDiv.querySelector('.online-status');
+                                    if (statusEl) {
+                                        statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
+                                            'inactive');
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
                 hasMore = shuffledPosts.length >= POSTS_PER_PAGE;
                 if (!hasMore) endOfFeed.style.display = 'block';
                 isLoading = false;
@@ -2466,12 +2491,20 @@
             const userId_check = auth.currentUser?.uid;
             const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
 
+            // Get user status from Firestore if available, default to 'inactive'
+            let statusClass = 'inactive';
+            if (currentUser && post.userId === currentUser.uid) {
+                statusClass = 'active';
+            } else {
+                // We'll update via real-time listener
+            }
+
             div.innerHTML = `
                 <div class="post-header">
                     <div class="post-user-info">
                         <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
                             <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
-                            <span class="online-status ${(currentUser && post.userId === currentUser.uid) ? 'active' : 'inactive'}"></span>
+                            <span class="online-status ${statusClass}" data-userid="${userId}"></span>
                         </div>
                         <div class="post-meta">
                             <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
@@ -2541,12 +2574,12 @@
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 await createUserDocument(user);
-                // Set online status
                 setUserStatus(user.uid, 'online');
 
                 loginOverlay.classList.remove('show');
                 const headerPic = document.getElementById('header-profile-pic');
                 if (headerPic && user.photoURL) headerPic.src = user.photoURL;
+                if (headerStatusDot) headerStatusDot.className = 'online-dot';
                 showToast('Welcome ' + (user.displayName || user.email?.split('@')[0] || 'User'));
                 postsLoaded = 0;
                 lastDoc = null;
@@ -2567,6 +2600,10 @@
                             const headerPic = document.getElementById('header-profile-pic');
                             if (headerPic) headerPic.src = data.photoURL;
                             user.updateProfile({ photoURL: data.photoURL }).catch(() => {});
+                        }
+                        // Update status dot in header
+                        if (headerStatusDot) {
+                            headerStatusDot.className = 'online-dot' + (data.status === 'online' ? '' : ' offline');
                         }
                         // Update status in feed posts
                         document.querySelectorAll('#feed-container .feed-post').forEach(postEl => {
@@ -2590,12 +2627,16 @@
                     }
                 });
 
-                // Also listen to visibility changes for online/offline
-                if (document.hidden) {
-                    setUserStatus(user.uid, 'offline');
-                } else {
-                    setUserStatus(user.uid, 'online');
-                }
+                // Visibility change for current user
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        setUserStatus(user.uid, 'offline');
+                        if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
+                    } else {
+                        setUserStatus(user.uid, 'online');
+                        if (headerStatusDot) headerStatusDot.className = 'online-dot';
+                    }
+                });
 
             } else {
                 loginOverlay.classList.add('show');
@@ -2604,6 +2645,7 @@
                 feedLoading.style.display = 'block';
                 feedLoading.innerHTML = 'Please login to see posts.';
                 if (observer) observer.disconnect();
+                if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
             }
         });
 
@@ -2642,6 +2684,7 @@
             auth.signOut().then(() => {
                 showToast('Logged out');
                 toggleNavOverlay(false);
+                if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
             });
         });
 
