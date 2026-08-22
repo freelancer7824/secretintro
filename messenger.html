@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
     <style>
+        /* ---------- reset & base ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -24,18 +25,19 @@
             overflow: hidden;
         }
         body {
-            background-color: #ffffff;
+            background: #fff;
             color: #050505;
             height: 100vh;
             overflow: hidden;
             position: relative;
         }
+        /* ---------- navigation ---------- */
         .top-nav {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 12px 16px;
-            background: #ffffff;
+            background: #fff;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -72,6 +74,7 @@
             color: #050505;
             cursor: pointer;
         }
+        /* ---------- stories ---------- */
         .stories-container {
             display: flex;
             gap: 14px;
@@ -141,6 +144,7 @@
             height: 6px;
             background: #f0f2f5;
         }
+        /* ---------- chat list ---------- */
         .chat-list-container {
             flex: 1;
             overflow-y: auto;
@@ -270,6 +274,7 @@
             font-size: 14px;
             color: #65676b;
         }
+        /* ---------- FABs ---------- */
         .fab-ai {
             position: fixed;
             bottom: 75px;
@@ -327,6 +332,7 @@
             cursor: pointer;
             z-index: 999;
         }
+        /* ---------- chat room ---------- */
         #chat-room {
             display: none;
             position: fixed;
@@ -629,6 +635,7 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        /* ---------- overlays ---------- */
         .image-preview-overlay {
             display: none;
             position: fixed;
@@ -956,73 +963,67 @@
         .sync-indicator.show {
             display: block;
         }
-        .mic-permission-overlay {
+        /* ---------- voice UI ---------- */
+        .voice-recording-indicator {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 99999;
-            justify-content: center;
             align-items: center;
-            flex-direction: column;
-            padding: 30px;
-            color: #fff;
-            text-align: center;
+            gap: 8px;
+            background: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #e74c3c;
+            animation: pulse 1s infinite;
         }
-        .mic-permission-overlay.show {
+        .voice-recording-indicator.show {
             display: flex;
         }
-        .mic-permission-overlay .mic-icon {
-            font-size: 64px;
-            color: #0084ff;
-            margin-bottom: 20px;
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
-        .mic-permission-overlay h3 {
-            font-size: 22px;
-            margin-bottom: 10px;
+        .voice-timer {
+            font-weight: 600;
+            min-width: 40px;
         }
-        .mic-permission-overlay p {
-            font-size: 16px;
-            opacity: 0.8;
-            max-width: 400px;
-            margin-bottom: 20px;
-        }
-        .mic-permission-overlay .allow-btn {
-            background: #0084ff;
-            color: #fff;
+        .voice-cancel-btn {
+            background: none;
             border: none;
-            padding: 12px 40px;
-            border-radius: 30px;
+            color: #65676b;
+            cursor: pointer;
             font-size: 18px;
-            cursor: pointer;
-            transition: 0.3s;
+            padding: 0 4px;
         }
-        .mic-permission-overlay .allow-btn:hover {
-            background: #0066cc;
+        .voice-cancel-btn:hover {
+            color: #e74c3c;
         }
-        .mic-permission-overlay .deny-btn {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 10px 30px;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.3s;
+        .time-divider {
+            text-align: center;
+            font-size: 12px;
+            color: #65676b;
+            padding: 12px 0 8px 0;
+            font-weight: 500;
         }
-        .mic-permission-overlay .deny-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .online-status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
         }
-        #inbox-page {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+        .online-status-dot.online {
+            background: #31a24c;
         }
+        .online-status-dot.offline {
+            background: #b0b3b8;
+        }
+
+        /* ---------- responsive ---------- */
         @media (max-width: 500px) {
             .chat-item {
                 padding: 8px 12px;
@@ -1135,90 +1136,29 @@
                 padding: 6px 10px;
             }
         }
-        .time-divider {
-            text-align: center;
-            font-size: 12px;
-            color: #65676b;
-            padding: 12px 0 8px 0;
-            font-weight: 500;
-        }
-        .online-status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 4px;
-        }
-        .online-status-dot.online {
-            background: #31a24c;
-        }
-        .online-status-dot.offline {
-            background: #b0b3b8;
-        }
-
-        /* Voice recording UI */
-        .voice-recording-indicator {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            background: #f0f2f5;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #e74c3c;
-            animation: pulse 1s infinite;
-        }
-        .voice-recording-indicator.show {
-            display: flex;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-        .voice-timer {
-            font-weight: 600;
-            min-width: 40px;
-        }
-        .voice-cancel-btn {
-            background: none;
-            border: none;
-            color: #65676b;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0 4px;
-        }
-        .voice-cancel-btn:hover {
-            color: #e74c3c;
-        }
     </style>
 </head>
 <body>
 
+    <!-- ========== TOAST & INDICATORS ========== -->
     <div id="toast" class="toast-msg"></div>
     <div class="offline-indicator" id="offline-indicator"><i class="fa-solid fa-wifi"></i> You're offline - messages will sync when back online</div>
     <div class="sync-indicator" id="sync-indicator"><i class="fa-solid fa-sync fa-spin"></i> Syncing messages...</div>
-    <!-- MIC PERMISSION OVERLAY - works in any environment -->
-    <div class="mic-permission-overlay" id="mic-permission-overlay">
-        <div class="mic-icon"><i class="fa-solid fa-microphone"></i></div>
-        <h3>Microphone Access</h3>
-        <p>To record voice messages, we need microphone access. This works in browsers, web apps, and APK wrappers.</p>
-        <button class="allow-btn" onclick="requestMicPermission()"><i class="fa-solid fa-check"></i> Allow Microphone</button>
-        <button class="deny-btn" onclick="closeMicPermission(); useFallbackVoice()">Use File Upload Instead</button>
-    </div>
+
+    <!-- ========== UPLOAD PROGRESS ========== -->
     <div class="upload-progress" id="upload-progress">
         <span id="upload-text">Uploading...</span>
         <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
+
+    <!-- ========== NOTIFICATION ========== -->
     <div class="notification-popup" id="notification-popup" onclick="openNotifChat()">
         <span class="notif-close" onclick="event.stopPropagation(); closeNotif()">&times;</span>
         <div class="notif-header"><img id="notif-avatar" src="" alt="Avatar"><span class="notif-name" id="notif-name">User</span></div>
         <div class="notif-body" id="notif-body">New message</div>
     </div>
+
+    <!-- ========== IMAGE / VIDEO OVERLAYS ========== -->
     <div class="image-preview-overlay" id="image-preview-overlay" onclick="if(event.target===this) closeImagePreview()">
         <span class="close-preview" onclick="closeImagePreview()">&times;</span>
         <img id="preview-image" src="" alt="Preview">
@@ -1228,11 +1168,14 @@
         <span class="close-video" onclick="closeVideoFullscreen()">&times;</span>
         <video id="fullscreen-video" controls autoplay></video>
     </div>
+
+    <!-- ========== CONTEXT MENU ========== -->
     <div class="message-context-menu" id="message-context-menu">
         <div class="menu-item" onclick="editMessage()"><i class="fa-solid fa-pen"></i> Edit</div>
         <div class="menu-item danger" onclick="deleteMessage()"><i class="fa-solid fa-trash"></i> Delete</div>
     </div>
 
+    <!-- ========== INBOX PAGE ========== -->
     <div id="inbox-page">
         <div class="top-nav">
             <div class="nav-left"><i class="fa-solid fa-arrow-left" onclick="goBack()"></i><div class="nav-title">Messages</div></div>
@@ -1256,6 +1199,7 @@
         <button class="fab-add" onclick="alert('Compose new message')"><i class="fa-solid fa-plus"></i></button>
     </div>
 
+    <!-- ========== CHAT ROOM ========== -->
     <div id="chat-room">
         <div class="chat-room-header">
             <div class="chat-room-header-left">
@@ -1290,7 +1234,9 @@
     </div>
 
     <script>
-        // ========== FIREBASE CONFIG ==========
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
             authDomain: "money-generate-dbab3.firebaseapp.com",
@@ -1303,18 +1249,20 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
-        db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn('persistence error', err));
-
-        // ========== CLOUDINARY ==========
+        // ============================================================
+        // CLOUDINARY
+        // ============================================================
         const CLOUDINARY_CONFIG = { cloudName: 'dhvtgzy5x', uploadPreset: 'Rosenews', apiKey: '1234567890' };
 
-        // ========== DOM REFS ==========
+        // ============================================================
+        // DOM REFS
+        // ============================================================
         const chatList = document.getElementById('chat-list');
         const toast = document.getElementById('toast');
         const chatRoom = document.getElementById('chat-room');
         const roomName = document.getElementById('room-name');
-        const roomStatus = document.getElementById('room-status');
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
         const roomAvatar = document.getElementById('room-avatar');
@@ -1337,7 +1285,6 @@
         const fullscreenVideo = document.getElementById('fullscreen-video');
         const offlineIndicator = document.getElementById('offline-indicator');
         const syncIndicator = document.getElementById('sync-indicator');
-        const micPermissionOverlay = document.getElementById('mic-permission-overlay');
         const micIcon = document.getElementById('mic-icon');
 
         let currentUser = null;
@@ -1359,10 +1306,8 @@
         let selectedMessageIndex = null;
         let selectedMessageData = null;
         let isOffline = false;
-        let hasMicPermission = false;
         let recordingTimer = null;
         let recordingSeconds = 0;
-        let isVoiceFallback = false;
 
         const userCache = new Map();
         const localCache = {
@@ -1400,7 +1345,9 @@
             } catch (e) { console.error(e); return null; }
         }
 
-        // ========== ONLINE STATUS ==========
+        // ============================================================
+        // ONLINE STATUS
+        // ============================================================
         function updateRoomStatus(isOnline, lastSeen) {
             roomOnlineIndicator.className = 'online-indicator' + (isOnline ? ' online' : '');
             statusDot.className = 'online-status-dot ' + (isOnline ? 'online' : 'offline');
@@ -1425,7 +1372,9 @@
             });
         }
 
-        // ========== TYPING ==========
+        // ============================================================
+        // TYPING
+        // ============================================================
         function listenTyping(chatId) {
             if (unsubscribeTyping) { unsubscribeTyping();
                 unsubscribeTyping = null; }
@@ -1458,15 +1407,13 @@
             } catch (e) { console.error(e); }
         }
 
-        // ========== LOAD CHATS (LOCAL FIRST) ==========
+        // ============================================================
+        // LOAD CHATS
+        // ============================================================
         function loadChats(userId) {
             if (unsubscribeChats) { unsubscribeChats();
                 unsubscribeChats = null; }
-
-            if (localCache.chats.length > 0) {
-                renderChats(localCache.chats);
-            }
-
+            if (localCache.chats.length > 0) renderChats(localCache.chats);
             const query = db.collection('chats').where('participants', 'array-contains', userId);
             unsubscribeChats = query.onSnapshot(async (snapshot) => {
                 const chats = [];
@@ -1544,7 +1491,6 @@
         function truncateText(text, maxLen) { if (!text) return ''; if (text.length <= maxLen) return text; return text
                 .substring(0, maxLen) + '...'; }
 
-        // ========== DELETE CHAT ==========
         async function deleteChatItem(chatId, otherId) {
             if (!chatId || !confirm('Delete this chat permanently?')) return;
             try {
@@ -1559,7 +1505,9 @@
             } catch (e) { showToast('Error: ' + e.message); }
         }
 
-        // ========== OPEN CHAT ROOM ==========
+        // ============================================================
+        // OPEN CHAT ROOM
+        // ============================================================
         function openChatRoom(chatId, recipientId, userData) {
             currentChatId = chatId;
             currentRecipientId = recipientId;
@@ -1598,13 +1546,13 @@
             } catch (e) { console.error(e); }
         }
 
-        // ========== LOAD MESSAGES (LOCAL FIRST) ==========
+        // ============================================================
+        // LOAD MESSAGES
+        // ============================================================
         function loadMessages(chatId) {
             if (unsubscribeMessages) { unsubscribeMessages();
                 unsubscribeMessages = null; }
-            if (localCache.messages[chatId]) {
-                renderMessages(localCache.messages[chatId]);
-            }
+            if (localCache.messages[chatId]) renderMessages(localCache.messages[chatId]);
             const chatRef = db.collection('chats').doc(chatId);
             unsubscribeMessages = chatRef.onSnapshot((doc) => {
                 if (!doc.exists) {
@@ -1710,7 +1658,7 @@
                     '<div style="display:flex;flex-direction:column; max-width:100%;">' +
                     contentHTML + seenHTML +
                     '</div>';
-                // Context menu
+                // context menu
                 let pressTimer = null;
                 row.addEventListener('mousedown', function(e) {
                     if (e.button === 2) return;
@@ -1763,6 +1711,9 @@
             messagesBody.scrollTop = messagesBody.scrollHeight;
         }
 
+        // ============================================================
+        // HELPERS: code / links
+        // ============================================================
         function detectCodeAndLinks(text) {
             if (!text) return { html: text, isCode: false, links: [] };
             const codePatterns = [/function\s*\(/, /var\s+\w+/, /let\s+\w+/, /const\s+\w+/, /=>/, /class\s+\w+/, /import\s+/,
@@ -1810,7 +1761,6 @@
         function copyCode(text) { navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => showToast(
                 'Copy failed')); }
 
-        // ========== VIDEO FULLSCREEN ==========
         function openVideoFullscreen(videoElement) {
             fullscreenVideo.src = videoElement.src;
             videoFullscreenOverlay.classList.add('show');
@@ -1823,7 +1773,6 @@
             fullscreenVideo.src = '';
         }
 
-        // ========== IMAGE PREVIEW ==========
         let currentPreviewImage = '';
 
         function openImagePreview(url) {
@@ -1839,7 +1788,9 @@
             link.download = 'image.jpg';
             link.click(); }
 
-        // ========== CONTEXT MENU ==========
+        // ============================================================
+        // CONTEXT MENU
+        // ============================================================
         function editMessage() {
             const index = parseInt(contextMenu.dataset.index);
             const msg = selectedMessageData;
@@ -1922,7 +1873,9 @@
 
         document.addEventListener('click', function() { contextMenu.style.display = 'none'; });
 
-        // ========== SEND MESSAGE ==========
+        // ============================================================
+        // SEND MESSAGE
+        // ============================================================
         async function sendMessage() {
             const text = chatInput.value.trim();
             const pendingFile = window._pendingFile || null;
@@ -1976,12 +1929,12 @@
                 chatInput.focus(); }
         }
 
-        // ========== FILE UPLOAD ==========
+        // ============================================================
+        // FILE UPLOAD
+        // ============================================================
         async function handleFileSelect(event, type) {
             const file = event.target.files[0];
             if (!file) return;
-            if (type === 'video' && file.size > 50 * 1024 * 1024) { showToast('Video exceeds 50MB');
-                event.target.value = ''; return; }
             let maxSize = type === 'video' ? 50 * 1024 * 1024 : type === 'audio' ? 10 * 1024 * 1024 : 20 * 1024 * 1024;
             if (file.size > maxSize) { showToast('File too large');
                 event.target.value = ''; return; }
@@ -2026,41 +1979,38 @@
         function hideUploadProgress() { uploadProgress.style.display = 'none';
             progressFill.style.width = '0%'; }
 
-        // ========== VOICE RECORDING - NO PERMISSION REQUIRED (FALLBACK) ==========
-        // This uses a file input fallback for environments without mic access
-        function useFallbackVoice() {
-            closeMicPermission();
-            // Trigger file input for audio
-            audioInput.click();
-            showToast('Select an audio file (max 1 min, 10MB)');
-        }
-
+        // ============================================================
+        // VOICE RECORDING - NATIVE PERMISSION + FALLBACK
+        // ============================================================
         async function startVoiceRecording() {
-            // Check if we're in a web environment with getUserMedia
+            // If already recording, stop it
+            if (isRecording) {
+                stopVoiceRecording();
+                return;
+            }
+
+            // Check if getUserMedia is available
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showToast('Microphone not supported, use file upload');
                 audioInput.click();
                 return;
             }
 
-            // Try to get mic permission
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // Permission granted - use MediaRecorder
-                hasMicPermission = true;
-                closeMicPermission();
+                // Request native microphone permission (this triggers the browser/phone permission dialog)
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                // Permission granted → start recording
                 startMediaRecorder(stream);
             } catch (err) {
                 console.warn('Mic permission denied or error:', err);
-                // Show permission overlay with fallback option
-                micPermissionOverlay.classList.add('show');
-                // Also directly trigger file input as fallback (works in APK, browsers, etc)
-                // The user can click "Use File Upload Instead"
+                // If permission denied, fallback to file input (works in APK too)
+                showToast('Microphone access denied. Use file upload instead.');
+                audioInput.click(); // fallback: open file picker for audio
             }
         }
 
         function startMediaRecorder(stream) {
-            if (isRecording) { stopVoiceRecording(); return; }
+            if (isRecording) return;
 
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
@@ -2068,7 +2018,7 @@
             isRecording = true;
             micIcon.className = 'fa-solid fa-microphone-slash';
 
-            // Show recording indicator
+            // Show recording UI indicator
             const indicator = document.createElement('div');
             indicator.className = 'voice-recording-indicator show';
             indicator.id = 'voice-indicator';
@@ -2081,7 +2031,7 @@
             const inputWrapper = document.querySelector('.input-wrapper');
             inputWrapper.appendChild(indicator);
 
-            // Start timer
+            // Timer (max 60s)
             recordingTimer = setInterval(() => {
                 recordingSeconds++;
                 const mins = Math.floor(recordingSeconds / 60);
@@ -2104,7 +2054,6 @@
                 if (audioChunks.length === 0) { showToast('No audio recorded'); return; }
 
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                // Check size
                 if (audioBlob.size > 10 * 1024 * 1024) { showToast('Audio too large (max 10MB)'); return; }
                 const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
                 try {
@@ -2131,9 +2080,6 @@
                 if (indicatorEl) indicatorEl.remove();
                 clearInterval(recordingTimer);
                 showToast('Recording stopped');
-            } else {
-                // If not recording, start
-                startVoiceRecording();
             }
         }
 
@@ -2150,25 +2096,9 @@
             }
         }
 
-        function showMicPermission() { micPermissionOverlay.classList.add('show'); }
-
-        function closeMicPermission() { micPermissionOverlay.classList.remove('show'); }
-
-        async function requestMicPermission() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                hasMicPermission = true;
-                closeMicPermission();
-                showToast('Microphone access granted!');
-                startMediaRecorder(stream);
-            } catch (e) {
-                showToast('Microphone access denied. Use file upload instead.');
-                closeMicPermission();
-                audioInput.click();
-            }
-        }
-
-        // ========== CLOSE CHAT ==========
+        // ============================================================
+        // CLOSE CHAT
+        // ============================================================
         function closeChat() {
             chatRoom.style.display = 'none';
             if (unsubscribeMessages) { unsubscribeMessages();
@@ -2187,7 +2117,6 @@
             window._pendingFile = null;
             contextMenu.style.display = 'none';
             closeVideoFullscreen();
-            // Cleanup voice
             if (mediaRecorder && isRecording) { mediaRecorder.stop();
                 isRecording = false;
                 micIcon.className = 'fa-solid fa-microphone'; }
@@ -2198,7 +2127,9 @@
 
         function goBack() { history.back(); }
 
-        // ========== TYPING HANDLER ==========
+        // ============================================================
+        // TYPING HANDLER
+        // ============================================================
         chatInput.addEventListener('input', async function() {
             if (!currentChatId || !currentUser) return;
             const text = chatInput.value.trim();
@@ -2214,7 +2145,9 @@
         chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
                 sendMessage(); } });
 
-        // ========== NOTIFICATION ==========
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
         function showNotification(senderId, senderName, message, photoURL) {
             if (notifData && notifData.senderId === senderId) {
                 clearTimeout(notifTimer);
@@ -2263,7 +2196,9 @@
                         ctx.close(); }, 150); }, 150); } catch (e) { console.log('Sound error:', e); }
         }
 
-        // ========== OFFLINE HANDLING ==========
+        // ============================================================
+        // OFFLINE
+        // ============================================================
         function updateOfflineStatus() {
             isOffline = !navigator.onLine;
             if (isOffline) { offlineIndicator.classList.add('show');
@@ -2294,7 +2229,9 @@
         window.addEventListener('offline', updateOfflineStatus);
         updateOfflineStatus();
 
-        // ========== AUTH ==========
+        // ============================================================
+        // AUTH
+        // ============================================================
         auth.onAuthStateChanged(async function(user) {
             if (user) {
                 currentUser = user;
@@ -2306,6 +2243,7 @@
                 const userData = await getUserData(user.uid);
                 if (userData && userData.photoURL) document.getElementById('my-avatar').src = userData.photoURL;
                 loadChats(user.uid);
+                // notification listener
                 const notifQuery = db.collection('chats').where('participants', 'array-contains', user.uid);
                 notifQuery.onSnapshot(async function(snapshot) {
                     for (const doc of snapshot.docs) {
@@ -2340,9 +2278,8 @@
             }
         });
 
-        console.log('🚀 Messenger with voice (no permission required, fallback to file upload)');
-        console.log('✅ Voice recording: tries getUserMedia, falls back to file input');
-        console.log('✅ Max 1 minute recording limit');
+        console.log('✅ Messenger with native microphone permission (auto-request) + file fallback');
+        console.log('✅ Click mic → native permission dialog → allow → record voice (max 1 min)');
         console.log('✅ Works in browsers, web apps, and APK wrappers');
     </script>
 </body>
