@@ -977,6 +977,25 @@
             display: block;
         }
 
+        /* === SYNC INDICATOR === */
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: #f39c12;
+            color: #fff;
+            text-align: center;
+            padding: 6px 12px;
+            font-size: 13px;
+            z-index: 999;
+            font-weight: 500;
+        }
+        .sync-indicator.show {
+            display: block;
+        }
+
         /* === RESPONSIVE === */
         #inbox-page {
             display: flex;
@@ -1107,6 +1126,11 @@
     <!-- OFFLINE INDICATOR -->
     <div class="offline-indicator" id="offline-indicator">
         <i class="fa-solid fa-wifi"></i> You're offline - messages will sync when back online
+    </div>
+
+    <!-- SYNC INDICATOR -->
+    <div class="sync-indicator" id="sync-indicator">
+        <i class="fa-solid fa-sync fa-spin"></i> Syncing messages...
     </div>
 
     <!-- UPLOAD PROGRESS -->
@@ -1281,6 +1305,7 @@
         const videoFullscreenOverlay = document.getElementById('video-fullscreen-overlay');
         const fullscreenVideo = document.getElementById('fullscreen-video');
         const offlineIndicator = document.getElementById('offline-indicator');
+        const syncIndicator = document.getElementById('sync-indicator');
 
         let currentUser = null;
         let currentChatId = null;
@@ -1301,18 +1326,21 @@
         let selectedMessageIndex = null;
         let selectedMessageData = null;
         let isOffline = false;
+        let messageVersion = 0;
 
         const userCache = new Map();
         const localCache = {
             chats: JSON.parse(localStorage.getItem('messenger_chats') || '[]'),
             messages: JSON.parse(localStorage.getItem('messenger_messages') || '{}'),
-            mediaCache: JSON.parse(localStorage.getItem('messenger_media_cache') || '{}')
+            mediaCache: JSON.parse(localStorage.getItem('messenger_media_cache') || '{}'),
+            messageHashes: JSON.parse(localStorage.getItem('messenger_message_hashes') || '{}')
         };
 
         function saveCache() {
             localStorage.setItem('messenger_chats', JSON.stringify(localCache.chats));
             localStorage.setItem('messenger_messages', JSON.stringify(localCache.messages));
             localStorage.setItem('messenger_media_cache', JSON.stringify(localCache.mediaCache));
+            localStorage.setItem('messenger_message_hashes', JSON.stringify(localCache.messageHashes));
         }
 
         // ========== TOAST ==========
@@ -1349,8 +1377,43 @@
             isOffline = !navigator.onLine;
             if (isOffline) {
                 offlineIndicator.classList.add('show');
+                syncIndicator.classList.remove('show');
             } else {
                 offlineIndicator.classList.remove('show');
+                // Check if we need to sync
+                checkPendingSync();
+            }
+        }
+
+        async function checkPendingSync() {
+            // Check if there are pending messages to sync
+            const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
+            if (pending.length > 0) {
+                syncIndicator.classList.add('show');
+                for (const msg of pending) {
+                    try {
+                        await syncPendingMessage(msg);
+                    } catch (e) {
+                        console.error('Sync error:', e);
+                    }
+                }
+                localStorage.removeItem('messenger_pending_messages');
+                syncIndicator.classList.remove('show');
+                showToast('Messages synced!');
+            }
+        }
+
+        async function syncPendingMessage(msgData) {
+            try {
+                const chatRef = db.collection('chats').doc(msgData.chatId);
+                await chatRef.update({
+                    messages: firebase.firestore.FieldValue.arrayUnion(msgData.messageData),
+                    lastMessage: msgData.lastMsg,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (e) {
+                console.error('Sync error:', e);
+                throw e;
             }
         }
 
@@ -1487,6 +1550,18 @@
         function hideUploadProgress() {
             uploadProgress.style.display = 'none';
             progressFill.style.width = '0%';
+        }
+
+        // ========== GENERATE MESSAGE HASH ==========
+        function generateMessageHash(msg) {
+            const str = msg.sender + msg.timestamp + (msg.text || '') + (msg.imageUrl || '') + (msg.videoUrl || '') + (msg.audioUrl || '');
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString(36);
         }
 
         // ========== HANDLE FILE SELECT ==========
@@ -1846,6 +1921,7 @@
 
                 localCache.chats = localCache.chats.filter(c => c.id !== chatId);
                 delete localCache.messages[chatId];
+                delete localCache.messageHashes[chatId];
                 saveCache();
 
                 if (currentChatId === chatId) {
@@ -1911,12 +1987,12 @@
             } catch (error) { console.error('Error marking messages as seen:', error); }
         }
 
-        // ========== LOAD MESSAGES ==========
+        // ========== LOAD MESSAGES (OPTIMIZED) ==========
         function loadMessages(chatId) {
             if (unsubscribeMessages) { unsubscribeMessages();
                 unsubscribeMessages = null; }
 
-            // Load from cache first
+            // Load from cache first - all messages are shown
             if (localCache.messages[chatId]) {
                 renderMessages(localCache.messages[chatId]);
             }
@@ -1924,16 +2000,41 @@
             const chatRef = db.collection('chats').doc(chatId);
             unsubscribeMessages = chatRef.onSnapshot((doc) => {
                 if (!doc.exists) {
-                    messagesBody.innerHTML =
-                        '<div style="text-align:center;color:#65676b;padding:40px 0;">No messages yet</div>';
+                    if (!localCache.messages[chatId]) {
+                        messagesBody.innerHTML =
+                            '<div style="text-align:center;color:#65676b;padding:40px 0;">No messages yet</div>';
+                    }
                     return;
                 }
+
                 const data = doc.data();
-                const messages = data.messages || [];
-                localCache.messages[chatId] = messages;
-                saveCache();
-                renderMessages(messages);
-                if (currentChatId === chatId) markAsSeen(chatId);
+                const newMessages = data.messages || [];
+                const cachedMessages = localCache.messages[chatId] || [];
+
+                // Check if messages have changed using hash comparison
+                const newHashes = newMessages.map(msg => generateMessageHash(msg));
+                const oldHashes = cachedMessages.map(msg => generateMessageHash(msg));
+
+                let hasChanged = false;
+                if (newHashes.length !== oldHashes.length) {
+                    hasChanged = true;
+                } else {
+                    for (let i = 0; i < newHashes.length; i++) {
+                        if (newHashes[i] !== oldHashes[i]) {
+                            hasChanged = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasChanged) {
+                    // Only update if there are actual changes
+                    localCache.messages[chatId] = newMessages;
+                    localCache.messageHashes[chatId] = newHashes;
+                    saveCache();
+                    renderMessages(newMessages);
+                    if (currentChatId === chatId) markAsSeen(chatId);
+                }
             }, (error) => {
                 console.error('Error loading messages:', error);
                 if (!localCache.messages[chatId]) {
@@ -2037,13 +2138,24 @@
                 row.addEventListener('mousedown', function(e) {
                     if (e.button === 2) return;
                     pressTimer = setTimeout(function() {
+                        // Check if user can edit/delete
+                        const canEdit = isOutgoing;
+                        const canDelete = true; // Anyone can delete their own messages
+
                         selectedMessageIndex = i;
                         selectedMessageData = msg;
+                        selectedMessageData._isOutgoing = isOutgoing;
+
                         contextMenu.style.display = 'block';
                         contextMenu.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
                         contextMenu.style.top = Math.min(e.clientY, window.innerHeight - 100) + 'px';
                         contextMenu.dataset.index = i;
                         contextMenu.dataset.msgId = msg.id || i;
+                        contextMenu.dataset.isOutgoing = isOutgoing;
+
+                        // Show/hide edit option based on ownership
+                        const editItem = contextMenu.querySelector('.menu-item:first-child');
+                        editItem.style.display = canEdit ? 'flex' : 'none';
                     }, 500);
                 });
                 row.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
@@ -2053,13 +2165,20 @@
                 row.addEventListener('touchstart', function(e) {
                     const touch = e.touches[0];
                     pressTimer = setTimeout(function() {
+                        const canEdit = isOutgoing;
                         selectedMessageIndex = i;
                         selectedMessageData = msg;
+                        selectedMessageData._isOutgoing = isOutgoing;
+
                         contextMenu.style.display = 'block';
                         contextMenu.style.left = Math.min(touch.clientX, window.innerWidth - 200) + 'px';
                         contextMenu.style.top = Math.min(touch.clientY, window.innerHeight - 100) + 'px';
                         contextMenu.dataset.index = i;
                         contextMenu.dataset.msgId = msg.id || i;
+                        contextMenu.dataset.isOutgoing = isOutgoing;
+
+                        const editItem = contextMenu.querySelector('.menu-item:first-child');
+                        editItem.style.display = canEdit ? 'flex' : 'none';
                     }, 500);
                 });
                 row.addEventListener('touchend', function() { clearTimeout(pressTimer); });
@@ -2108,6 +2227,12 @@
                 return;
             }
 
+            // Only outgoing messages can be edited
+            if (!msg._isOutgoing) {
+                showToast('You can only edit your own messages');
+                return;
+            }
+
             const newText = prompt('Edit message:', msg.text);
             if (newText === null || newText.trim() === '') return;
 
@@ -2127,6 +2252,7 @@
 
                 if (index >= messages.length) return;
 
+                // Update the message for everyone (since it's outgoing)
                 messages[index].text = newText;
                 messages[index].edited = true;
                 messages[index].editedAt = new Date().toISOString();
@@ -2135,7 +2261,7 @@
 
                 localCache.messages[currentChatId] = messages;
                 saveCache();
-                showToast('Message edited');
+                showToast('Message edited for everyone');
 
             } catch (error) {
                 console.error('Error editing message:', error);
@@ -2145,13 +2271,21 @@
 
         function deleteMessage() {
             const index = parseInt(contextMenu.dataset.index);
+            const isOutgoing = contextMenu.dataset.isOutgoing === 'true';
             contextMenu.style.display = 'none';
 
             if (!confirm('Delete this message?')) return;
-            deleteMessageFromFirestore(index);
+
+            if (isOutgoing) {
+                // Delete for everyone
+                deleteMessageForEveryone(index);
+            } else {
+                // Delete only for yourself (incoming message)
+                deleteMessageForSelf(index);
+            }
         }
 
-        async function deleteMessageFromFirestore(index) {
+        async function deleteMessageForEveryone(index) {
             if (!currentChatId) return;
 
             try {
@@ -2165,6 +2299,7 @@
                 if (index >= messages.length) return;
 
                 const msg = messages[index];
+                // Delete media from Cloudinary
                 if (msg.publicId) {
                     await deleteFromCloudinary(msg.publicId, msg.resourceType || 'image');
                 }
@@ -2189,7 +2324,41 @@
 
                 localCache.messages[currentChatId] = messages;
                 saveCache();
-                showToast('Message deleted');
+                showToast('Message deleted for everyone');
+
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                showToast('Error deleting message: ' + error.message);
+            }
+        }
+
+        async function deleteMessageForSelf(index) {
+            if (!currentChatId) return;
+
+            try {
+                const chatRef = db.collection('chats').doc(currentChatId);
+                const doc = await chatRef.get();
+                if (!doc.exists) return;
+
+                const data = doc.data();
+                const messages = data.messages || [];
+
+                if (index >= messages.length) return;
+
+                // Mark as deleted for self (keep for others)
+                messages[index].deletedFor = messages[index].deletedFor || [];
+                if (!messages[index].deletedFor.includes(currentUser.uid)) {
+                    messages[index].deletedFor.push(currentUser.uid);
+                }
+
+                await chatRef.update({ messages: messages });
+
+                // Update local cache - filter out messages deleted for self
+                const filteredMessages = messages.filter(msg => !msg.deletedFor || !msg.deletedFor.includes(currentUser.uid));
+                localCache.messages[currentChatId] = filteredMessages;
+                saveCache();
+                renderMessages(filteredMessages);
+                showToast('Message deleted for you');
 
             } catch (error) {
                 console.error('Error deleting message:', error);
@@ -2265,6 +2434,11 @@
                     showToast('Message saved locally (offline)');
                     sendBtn.disabled = false;
                     chatInput.value = '';
+
+                    // Store pending message for sync
+                    const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
+                    pending.push({ chatId: currentChatId, messageData: messageData, lastMsg: lastMsg });
+                    localStorage.setItem('messenger_pending_messages', JSON.stringify(pending));
                     return;
                 }
 
@@ -2398,8 +2572,12 @@
                         const data = doc.data();
                         const messages = data.messages || [];
                         if (messages.length === 0) continue;
+
+                        // Check only the last message for notification
                         const lastMsg = messages[messages.length - 1];
-                        if (lastMsg.sender !== user.uid && !lastMsg.seen) {
+                        // Check if message is not from current user and not seen and not deleted for self
+                        if (lastMsg.sender !== user.uid && !lastMsg.seen &&
+                            (!lastMsg.deletedFor || !lastMsg.deletedFor.includes(user.uid))) {
                             const senderData = await getUserData(lastMsg.sender);
                             if (senderData) {
                                 const name = senderData.fullName || senderData.firstName || 'User';
@@ -2432,19 +2610,18 @@
             }
         });
 
-        console.log('🚀 Messenger with Full Offline Support!');
-        console.log('✅ Messages cached in localStorage');
+        console.log('🚀 Messenger with Optimized Offline Support!');
+        console.log('✅ Messages cached in localStorage - no duplicate loads');
+        console.log('✅ Only new messages trigger re-render');
         console.log('✅ Offline viewing of all messages');
-        console.log('✅ Offline message sending (syncs when online)');
+        console.log('✅ Offline message sending with auto-sync');
+        console.log('✅ Edit: Only own messages (syncs to everyone)');
+        console.log('✅ Delete own: Deletes for everyone');
+        console.log('✅ Delete incoming: Deletes only for you');
         console.log('✅ Video fullscreen playback');
-        console.log('✅ Long press for edit/delete');
         console.log('✅ Cloudinary uploads');
         console.log('✅ Notifications with sound');
-        console.log('✅ Code detection & copy');
-        console.log('✅ Link preview');
-        console.log('✅ Image preview & download');
         console.log('✅ Online/offline status indicator');
-        console.log('✅ Responsive design for all screens');
     </script>
 </body>
 </html>
