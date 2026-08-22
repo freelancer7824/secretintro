@@ -996,6 +996,69 @@
             display: block;
         }
 
+        /* === MIC PERMISSION OVERLAY === */
+        .mic-permission-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 30px;
+            color: #fff;
+            text-align: center;
+        }
+        .mic-permission-overlay.show {
+            display: flex;
+        }
+        .mic-permission-overlay .mic-icon {
+            font-size: 64px;
+            color: #0084ff;
+            margin-bottom: 20px;
+        }
+        .mic-permission-overlay h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        .mic-permission-overlay p {
+            font-size: 16px;
+            opacity: 0.8;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        .mic-permission-overlay .allow-btn {
+            background: #0084ff;
+            color: #fff;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .mic-permission-overlay .allow-btn:hover {
+            background: #0066cc;
+        }
+        .mic-permission-overlay .deny-btn {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .mic-permission-overlay .deny-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
         /* === RESPONSIVE === */
         #inbox-page {
             display: flex;
@@ -1133,6 +1196,15 @@
         <i class="fa-solid fa-sync fa-spin"></i> Syncing messages...
     </div>
 
+    <!-- MIC PERMISSION OVERLAY -->
+    <div class="mic-permission-overlay" id="mic-permission-overlay">
+        <div class="mic-icon"><i class="fa-solid fa-microphone"></i></div>
+        <h3>Microphone Access Required</h3>
+        <p>To send voice messages, please allow microphone access. Your voice will be recorded and sent as a voice message.</p>
+        <button class="allow-btn" onclick="requestMicPermission()"><i class="fa-solid fa-check"></i> Allow Microphone</button>
+        <button class="deny-btn" onclick="closeMicPermission()">Not Now</button>
+    </div>
+
     <!-- UPLOAD PROGRESS -->
     <div class="upload-progress" id="upload-progress">
         <span id="upload-text">Uploading...</span>
@@ -1240,7 +1312,7 @@
                     <i class="fa-regular fa-face-smile" onclick="alert('Emoji picker coming soon!')"></i>
                     <i class="fa-solid fa-image" onclick="document.getElementById('image-input').click()"></i>
                     <i class="fa-solid fa-video" onclick="document.getElementById('video-input').click()"></i>
-                    <i class="fa-solid fa-microphone" onclick="startVoiceRecording()"></i>
+                    <i class="fa-solid fa-microphone" id="mic-icon" onclick="startVoiceRecording()"></i>
                     <input type="file" id="image-input" accept="image/*" class="file-input-hidden" onchange="handleFileSelect(event, 'image')">
                     <input type="file" id="video-input" accept="video/*" class="file-input-hidden" onchange="handleFileSelect(event, 'video')">
                     <input type="file" id="audio-input" accept="audio/*" class="file-input-hidden" onchange="handleFileSelect(event, 'audio')">
@@ -1306,6 +1378,8 @@
         const fullscreenVideo = document.getElementById('fullscreen-video');
         const offlineIndicator = document.getElementById('offline-indicator');
         const syncIndicator = document.getElementById('sync-indicator');
+        const micPermissionOverlay = document.getElementById('mic-permission-overlay');
+        const micIcon = document.getElementById('mic-icon');
 
         let currentUser = null;
         let currentChatId = null;
@@ -1326,14 +1400,16 @@
         let selectedMessageIndex = null;
         let selectedMessageData = null;
         let isOffline = false;
-        let messageVersion = 0;
+        let hasMicPermission = false;
+        let isFirstLoad = true;
 
         const userCache = new Map();
         const localCache = {
             chats: JSON.parse(localStorage.getItem('messenger_chats') || '[]'),
             messages: JSON.parse(localStorage.getItem('messenger_messages') || '{}'),
             mediaCache: JSON.parse(localStorage.getItem('messenger_media_cache') || '{}'),
-            messageHashes: JSON.parse(localStorage.getItem('messenger_message_hashes') || '{}')
+            messageHashes: JSON.parse(localStorage.getItem('messenger_message_hashes') || '{}'),
+            chatLastUpdated: JSON.parse(localStorage.getItem('messenger_chat_last_updated') || '{}')
         };
 
         function saveCache() {
@@ -1341,6 +1417,7 @@
             localStorage.setItem('messenger_messages', JSON.stringify(localCache.messages));
             localStorage.setItem('messenger_media_cache', JSON.stringify(localCache.mediaCache));
             localStorage.setItem('messenger_message_hashes', JSON.stringify(localCache.messageHashes));
+            localStorage.setItem('messenger_chat_last_updated', JSON.stringify(localCache.chatLastUpdated));
         }
 
         // ========== TOAST ==========
@@ -1380,13 +1457,11 @@
                 syncIndicator.classList.remove('show');
             } else {
                 offlineIndicator.classList.remove('show');
-                // Check if we need to sync
                 checkPendingSync();
             }
         }
 
         async function checkPendingSync() {
-            // Check if there are pending messages to sync
             const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
             if (pending.length > 0) {
                 syncIndicator.classList.add('show');
@@ -1478,6 +1553,30 @@
                 } else {
                     showToast('Chat not found');
                 }
+            }
+        }
+
+        // ========== MIC PERMISSION ==========
+        function showMicPermission() {
+            micPermissionOverlay.classList.add('show');
+        }
+
+        function closeMicPermission() {
+            micPermissionOverlay.classList.remove('show');
+        }
+
+        async function requestMicPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                hasMicPermission = true;
+                stream.getTracks().forEach(t => t.stop());
+                closeMicPermission();
+                showToast('Microphone access granted!');
+                startVoiceRecording();
+            } catch (err) {
+                console.error('Mic permission error:', err);
+                showToast('Microphone access denied. Please allow from browser settings.');
+                closeMicPermission();
             }
         }
 
@@ -1611,56 +1710,75 @@
         }
 
         // ========== VOICE RECORDING ==========
-        function startVoiceRecording() {
+        async function startVoiceRecording() {
             if (isRecording) {
                 stopVoiceRecording();
                 return;
             }
+
+            // Check if we already have permission
+            if (!hasMicPermission) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    hasMicPermission = true;
+                    stream.getTracks().forEach(t => t.stop());
+                } catch (err) {
+                    showMicPermission();
+                    return;
+                }
+            }
+
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showToast('Recording not supported');
                 return;
             }
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(async (stream) => {
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                    mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
 
-                        try {
-                            showUploadProgress('Uploading voice...');
-                            const result = await uploadToCloudinary(audioFile, (percent) => {
-                                updateUploadProgress(percent);
-                            });
-                            hideUploadProgress();
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
 
-                            window._pendingFile = {
-                                type: 'audio',
-                                url: result.url,
-                                publicId: result.publicId,
-                                resourceType: result.resourceType
-                            };
-                            await sendMessage();
-                        } catch (error) {
-                            hideUploadProgress();
-                            showToast('Error uploading voice: ' + error.message);
-                        }
+                    try {
+                        showUploadProgress('Uploading voice...');
+                        const result = await uploadToCloudinary(audioFile, (percent) => {
+                            updateUploadProgress(percent);
+                        });
+                        hideUploadProgress();
 
-                        stream.getTracks().forEach(t => t.stop());
-                    };
-                    mediaRecorder.start();
-                    isRecording = true;
-                    showToast('Recording... tap again to stop');
-                })
-                .catch(err => showToast('Microphone access denied'));
+                        window._pendingFile = {
+                            type: 'audio',
+                            url: result.url,
+                            publicId: result.publicId,
+                            resourceType: result.resourceType
+                        };
+                        await sendMessage();
+                    } catch (error) {
+                        hideUploadProgress();
+                        showToast('Error uploading voice: ' + error.message);
+                    }
+
+                    stream.getTracks().forEach(t => t.stop());
+                    micIcon.className = 'fa-solid fa-microphone';
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                micIcon.className = 'fa-solid fa-microphone-slash';
+                showToast('Recording... tap again to stop');
+            } catch (err) {
+                console.error('Mic error:', err);
+                showMicPermission();
+            }
         }
 
         function stopVoiceRecording() {
             if (mediaRecorder && isRecording) {
                 mediaRecorder.stop();
                 isRecording = false;
+                micIcon.className = 'fa-solid fa-microphone';
             }
         }
 
@@ -1922,6 +2040,7 @@
                 localCache.chats = localCache.chats.filter(c => c.id !== chatId);
                 delete localCache.messages[chatId];
                 delete localCache.messageHashes[chatId];
+                delete localCache.chatLastUpdated[chatId];
                 saveCache();
 
                 if (currentChatId === chatId) {
@@ -2138,9 +2257,7 @@
                 row.addEventListener('mousedown', function(e) {
                     if (e.button === 2) return;
                     pressTimer = setTimeout(function() {
-                        // Check if user can edit/delete
                         const canEdit = isOutgoing;
-                        const canDelete = true; // Anyone can delete their own messages
 
                         selectedMessageIndex = i;
                         selectedMessageData = msg;
@@ -2153,7 +2270,6 @@
                         contextMenu.dataset.msgId = msg.id || i;
                         contextMenu.dataset.isOutgoing = isOutgoing;
 
-                        // Show/hide edit option based on ownership
                         const editItem = contextMenu.querySelector('.menu-item:first-child');
                         editItem.style.display = canEdit ? 'flex' : 'none';
                     }, 500);
@@ -2227,7 +2343,6 @@
                 return;
             }
 
-            // Only outgoing messages can be edited
             if (!msg._isOutgoing) {
                 showToast('You can only edit your own messages');
                 return;
@@ -2252,7 +2367,6 @@
 
                 if (index >= messages.length) return;
 
-                // Update the message for everyone (since it's outgoing)
                 messages[index].text = newText;
                 messages[index].edited = true;
                 messages[index].editedAt = new Date().toISOString();
@@ -2277,10 +2391,8 @@
             if (!confirm('Delete this message?')) return;
 
             if (isOutgoing) {
-                // Delete for everyone
                 deleteMessageForEveryone(index);
             } else {
-                // Delete only for yourself (incoming message)
                 deleteMessageForSelf(index);
             }
         }
@@ -2299,7 +2411,6 @@
                 if (index >= messages.length) return;
 
                 const msg = messages[index];
-                // Delete media from Cloudinary
                 if (msg.publicId) {
                     await deleteFromCloudinary(msg.publicId, msg.resourceType || 'image');
                 }
@@ -2345,7 +2456,6 @@
 
                 if (index >= messages.length) return;
 
-                // Mark as deleted for self (keep for others)
                 messages[index].deletedFor = messages[index].deletedFor || [];
                 if (!messages[index].deletedFor.includes(currentUser.uid)) {
                     messages[index].deletedFor.push(currentUser.uid);
@@ -2353,7 +2463,6 @@
 
                 await chatRef.update({ messages: messages });
 
-                // Update local cache - filter out messages deleted for self
                 const filteredMessages = messages.filter(msg => !msg.deletedFor || !msg.deletedFor.includes(currentUser.uid));
                 localCache.messages[currentChatId] = filteredMessages;
                 saveCache();
@@ -2424,7 +2533,6 @@
                 const chatRef = db.collection('chats').doc(currentChatId);
                 const lastMsg = text || (pendingFile ? '📎 ' + pendingFile.type : '');
 
-                // Optimistic update for offline
                 if (isOffline) {
                     const currentMessages = localCache.messages[currentChatId] || [];
                     currentMessages.push(messageData);
@@ -2435,7 +2543,6 @@
                     sendBtn.disabled = false;
                     chatInput.value = '';
 
-                    // Store pending message for sync
                     const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
                     pending.push({ chatId: currentChatId, messageData: messageData, lastMsg: lastMsg });
                     localStorage.setItem('messenger_pending_messages', JSON.stringify(pending));
@@ -2573,9 +2680,7 @@
                         const messages = data.messages || [];
                         if (messages.length === 0) continue;
 
-                        // Check only the last message for notification
                         const lastMsg = messages[messages.length - 1];
-                        // Check if message is not from current user and not seen and not deleted for self
                         if (lastMsg.sender !== user.uid && !lastMsg.seen &&
                             (!lastMsg.deletedFor || !lastMsg.deletedFor.includes(user.uid))) {
                             const senderData = await getUserData(lastMsg.sender);
@@ -2610,7 +2715,7 @@
             }
         });
 
-        console.log('🚀 Messenger with Optimized Offline Support!');
+        console.log('🚀 Messenger with Enhanced Offline & Mic Support!');
         console.log('✅ Messages cached in localStorage - no duplicate loads');
         console.log('✅ Only new messages trigger re-render');
         console.log('✅ Offline viewing of all messages');
@@ -2618,6 +2723,7 @@
         console.log('✅ Edit: Only own messages (syncs to everyone)');
         console.log('✅ Delete own: Deletes for everyone');
         console.log('✅ Delete incoming: Deletes only for you');
+        console.log('✅ Mic permission with custom UI prompt');
         console.log('✅ Video fullscreen playback');
         console.log('✅ Cloudinary uploads');
         console.log('✅ Notifications with sound');
