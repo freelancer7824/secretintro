@@ -14,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
     <style>
+        /* ... (keep all existing styles the same) ... */
         * {
             margin: 0;
             padding: 0;
@@ -204,7 +205,6 @@
         .header .logout-btn:hover {
             background: #d8dadf;
         }
-        /* Badge for icons */
         .badge-icon {
             position: absolute;
             top: -4px;
@@ -637,6 +637,13 @@
             max-height: 100%;
             object-fit: contain;
         }
+        .story-main-image-area video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            background: #000;
+        }
         .story-nav-arrow {
             position: absolute;
             top: 50%;
@@ -696,6 +703,24 @@
         }
         .story-reactions i:hover {
             transform: scale(1.2);
+        }
+        .story-video-indicator {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 15;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+        .story-video-indicator.show {
+            display: block;
         }
         /* Feed post */
         .feed-post {
@@ -1745,7 +1770,8 @@
                 </div>
                 <div class="story-main-image-area">
                     <button class="story-nav-arrow story-prev" id="story-prev-btn"><i class="fa-solid fa-chevron-left"></i></button>
-                    <img id="viewer-story-img" src="" alt="Story Image">
+                    <img id="viewer-story-img" src="" alt="Story Image" style="display:none;">
+                    <div class="story-video-indicator" id="story-video-indicator"><i class="fa-solid fa-play" style="margin-right:6px;"></i> Video</div>
                     <button class="story-nav-arrow story-next" id="story-next-btn"><i class="fa-solid fa-chevron-right"></i></button>
                 </div>
                 <div class="story-footer">
@@ -2081,7 +2107,6 @@
 
         function openNotifChat() {
             closeNotif();
-            // Navigate to notifications or messenger
             if (pendingNotifData && pendingNotifData.type === 'message') {
                 openIframe('messenger.html', 'Messenger');
             } else {
@@ -2213,54 +2238,486 @@
             messengerBadgeNav.textContent = display;
         }
 
-        // ========== STORY VIEWER ==========
-        let currentStoryIndex = 0;
-        let storyDataCache = [];
-        const storyModal = document.getElementById('story-viewer-modal');
-        const viewerUserPic = document.getElementById('viewer-user-pic');
-        const viewerUsername = document.getElementById('viewer-username');
-        const viewerTime = document.getElementById('viewer-time');
-        const viewerStoryImg = document.getElementById('viewer-story-img');
-        const viewerBg = document.getElementById('viewer-bg');
-        const closeStoryViewer = document.getElementById('close-story-viewer');
-        const storyPrevBtn = document.getElementById('story-prev-btn');
-        const storyNextBtn = document.getElementById('story-next-btn');
-        const progressFill = document.getElementById('progress-fill');
+        // ========== STORY VIEWER - FIXED VERSION ==========
+        // ========== STORY VIEWER - FIXED VIDEO PLAYBACK ==========
+let currentStoryIndex = 0;
+let storyDataCache = [];
+let storyTimer = null;
+let isVideoPlaying = false;
+let currentVideoElement = null;
 
-        function openStoryViewer(index) {
-            if (storyDataCache.length === 0) return;
-            currentStoryIndex = index % storyDataCache.length;
-            updateStoryView();
-            storyModal.style.display = 'flex';
+const storyModal = document.getElementById('story-viewer-modal');
+const viewerUserPic = document.getElementById('viewer-user-pic');
+const viewerUsername = document.getElementById('viewer-username');
+const viewerTime = document.getElementById('viewer-time');
+const viewerStoryImg = document.getElementById('viewer-story-img');
+const viewerBg = document.getElementById('viewer-bg');
+const progressFill = document.getElementById('progress-fill');
+const videoIndicator = document.getElementById('story-video-indicator');
+
+// ========== OPEN STORY VIEWER ==========
+function openStoryViewer(index) {
+  if (storyDataCache.length === 0) {
+    showToast('No stories available');
+    return;
+  }
+  currentStoryIndex = index % storyDataCache.length;
+  isVideoPlaying = false;
+  
+  // Clean up old video
+  const mainArea = document.querySelector('.story-main-image-area');
+  const oldVideo = mainArea.querySelector('video');
+  if (oldVideo) {
+    oldVideo.pause();
+    oldVideo.currentTime = 0;
+    oldVideo.remove();
+    currentVideoElement = null;
+  }
+  
+  // Reset image
+  viewerStoryImg.style.display = 'none';
+  viewerStoryImg.src = '';
+  videoIndicator.classList.remove('show');
+  
+  storyModal.style.display = 'flex';
+  
+  setTimeout(() => {
+    showStory(currentStoryIndex);
+  }, 100);
+}
+
+// ========== SHOW STORY ==========
+function showStory(index) {
+  const story = storyDataCache[index];
+  if (!story) return;
+  
+  viewerUserPic.src = story.pic || 'default.jpg';
+  viewerUsername.textContent = story.name || 'User';
+  viewerTime.textContent = story.time || 'Just now';
+  
+  const storyUrl = story.img || story.imageUrl || story.pic || 'default.jpg';
+  const isVideo = story.mediaType === 'video' || storyUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i);
+  
+  const mainArea = document.querySelector('.story-main-image-area');
+  
+  // Remove old video
+  if (currentVideoElement) {
+    currentVideoElement.pause();
+    currentVideoElement.currentTime = 0;
+    currentVideoElement.remove();
+    currentVideoElement = null;
+  }
+  
+  viewerStoryImg.style.display = 'none';
+  videoIndicator.classList.remove('show');
+  
+  if (isVideo) {
+    // === VIDEO STORY ===
+    const video = document.createElement('video');
+    video.id = 'story-video-player';
+    video.style.cssText = 'width:100%; height:100%; object-fit:contain; display:block; background:#000;';
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('controls', '');
+    video.muted = false;
+    video.volume = 1.0;
+    video.preload = 'auto';
+    video.src = storyUrl;
+    video.poster = story.pic || 'default.jpg';
+    
+    mainArea.appendChild(video);
+    currentVideoElement = video;
+    
+    // Show indicator
+    videoIndicator.classList.add('show');
+    
+    // Video events
+    video.addEventListener('loadeddata', function() {
+      console.log('Video loaded, playing');
+      this.currentTime = 0;
+      this.play().catch(e => console.log('Play error:', e));
+    });
+    
+    video.addEventListener('play', function() {
+      isVideoPlaying = true;
+      videoIndicator.classList.remove('show');
+      if (storyTimer) {
+        clearTimeout(storyTimer);
+        storyTimer = null;
+      }
+    });
+    
+    video.addEventListener('ended', function() {
+      isVideoPlaying = false;
+      videoIndicator.classList.remove('show');
+      // Go to next story
+      setTimeout(() => {
+        nextStory();
+      }, 500);
+    });
+    
+    video.addEventListener('pause', function() {
+      isVideoPlaying = false;
+      if (!this.ended) {
+        videoIndicator.classList.add('show');
+      }
+    });
+    
+    viewerBg.style.backgroundImage = `url('${story.pic || storyUrl}')`;
+    
+    // Force play
+    setTimeout(() => {
+      if (video) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      }
+    }, 200);
+    
+  } else {
+    // === IMAGE STORY ===
+    viewerStoryImg.style.display = 'block';
+    viewerStoryImg.src = storyUrl;
+    viewerBg.style.backgroundImage = `url('${storyUrl}')`;
+    videoIndicator.classList.remove('show');
+    
+    // Auto advance after 5 seconds
+    if (storyTimer) clearTimeout(storyTimer);
+    storyTimer = setTimeout(() => {
+      nextStory();
+    }, 5000);
+  }
+}
+
+// ========== NEXT STORY ==========
+function nextStory() {
+  if (storyDataCache.length === 0) return;
+  
+  // Clean up video
+  if (currentVideoElement) {
+    currentVideoElement.pause();
+    currentVideoElement.currentTime = 0;
+    currentVideoElement.remove();
+    currentVideoElement = null;
+  }
+  isVideoPlaying = false;
+  
+  currentStoryIndex = (currentStoryIndex + 1) % storyDataCache.length;
+  showStory(currentStoryIndex);
+}
+
+// ========== PREV STORY ==========
+function prevStory() {
+  if (storyDataCache.length === 0) return;
+  
+  // Clean up video
+  if (currentVideoElement) {
+    currentVideoElement.pause();
+    currentVideoElement.currentTime = 0;
+    currentVideoElement.remove();
+    currentVideoElement = null;
+  }
+  isVideoPlaying = false;
+  
+  currentStoryIndex = (currentStoryIndex - 1 + storyDataCache.length) % storyDataCache.length;
+  showStory(currentStoryIndex);
+}
+
+// ========== CLOSE STORY VIEWER ==========
+function closeStoryViewer() {
+  storyModal.style.display = 'none';
+  if (currentVideoElement) {
+    currentVideoElement.pause();
+    currentVideoElement.currentTime = 0;
+    currentVideoElement.remove();
+    currentVideoElement = null;
+  }
+  isVideoPlaying = false;
+  videoIndicator.classList.remove('show');
+  if (storyTimer) {
+    clearTimeout(storyTimer);
+    storyTimer = null;
+  }
+}
+
+// ========== EVENT LISTENERS ==========
+document.getElementById('story-prev-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  prevStory();
+});
+
+document.getElementById('story-next-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  nextStory();
+});
+
+document.getElementById('close-story-viewer').addEventListener('click', closeStoryViewer);
+
+// Click outside to close
+storyModal.addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeStoryViewer();
+  }
+});
+
+// Keyboard support
+document.addEventListener('keydown', function(e) {
+  if (storyModal.style.display !== 'flex') return;
+  
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevStory();
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    nextStory();
+  } else if (e.key === 'Escape') {
+    closeStoryViewer();
+  } else if (e.key === ' ' || e.key === 'Space') {
+    e.preventDefault();
+    if (currentVideoElement) {
+      if (currentVideoElement.paused) {
+        currentVideoElement.play().catch(() => {});
+      } else {
+        currentVideoElement.pause();
+      }
+    }
+  }
+});
+
+// ========== EXPOSE FUNCTIONS ==========
+window.openStoryViewer = openStoryViewer;
+window.nextStory = nextStory;
+window.prevStory = prevStory;
+window.closeStoryViewer = closeStoryViewer;
+
+console.log('✅ Story viewer loaded - Videos will play from 0 seconds');
+
+        // ========== FIXED LOAD STORIES ==========
+       async function loadStories() {
+    try {
+        const user = auth.currentUser;
+        let stories = [];
+        
+        await cleanupOldStories();
+        
+        if (user) {
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userData = userDoc.exists ? userDoc.data() : {};
+            const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
+            const userPic = user.photoURL || userData.photoURL ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            
+            const userStoryDoc = await db.collection('stories').doc(user.uid).get();
+            if (userStoryDoc.exists) {
+                const storyData = userStoryDoc.data();
+                const storyDate = storyData.timestamp?.toDate?.() || new Date(storyData.createdAt);
+                const diffHours = (Date.now() - storyDate.getTime()) / (1000 * 60 * 60);
+                
+                if (diffHours < 24) {
+                    let mediaType = storyData.mediaType || 'image';
+                    const url = storyData.imageUrl || '';
+                    if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) {
+                        mediaType = 'video';
+                    }
+                    stories.push({
+                        name: userName,
+                        pic: userPic,
+                        img: storyData.imageUrl || userPic,
+                        thumbnail: storyData.thumbnail || storyData.imageUrl || userPic,
+                        imageUrl: storyData.imageUrl || userPic,
+                        time: 'Now',
+                        uid: user.uid,
+                        mediaType: mediaType,
+                        timestamp: storyDate
+                    });
+                }
+            }
+        }
+        
+        const storiesSnapshot = await db.collection('stories')
+            .orderBy('timestamp', 'desc')
+            .limit(20)
+            .get();
+        
+        const now = new Date();
+        storiesSnapshot.forEach(doc => {
+            const data = doc.data();
+            const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
+            const diffHours = (now - storyDate) / (1000 * 60 * 60);
+            
+            if (diffHours < 24 && data.uid !== user?.uid) {
+                let mediaType = data.mediaType || 'image';
+                const url = data.imageUrl || '';
+                if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) {
+                    mediaType = 'video';
+                }
+                stories.push({
+                    name: data.userName || 'User',
+                    pic: data.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                    img: data.imageUrl || data.userImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                    thumbnail: data.thumbnail || data.imageUrl || data.userImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+                    imageUrl: data.imageUrl || data.userImage || '',
+                    time: getTimeAgo(storyDate),
+                    uid: data.uid,
+                    mediaType: mediaType,
+                    timestamp: storyDate
+                });
+            }
+        });
+        
+        const uniqueStories = [];
+        const seenUids = new Set();
+        for (const story of stories) {
+            if (!seenUids.has(story.uid)) {
+                seenUids.add(story.uid);
+                uniqueStories.push(story);
+            }
+        }
+        
+        uniqueStories.sort((a, b) => {
+            if (a.uid === user?.uid) return -1;
+            if (b.uid === user?.uid) return 1;
+            return (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0);
+        });
+        
+        storyDataCache = uniqueStories.length > 0 ? uniqueStories : getDefaultStories();
+        renderStories();
+    } catch (error) {
+        console.error('Error loading stories:', error);
+        storyDataCache = getDefaultStories();
+        renderStories();
+    }
+}
+
+        // ========== HELPER FUNCTIONS ==========
+        function getTimeAgo(date) {
+            if (!date) return 'Just now';
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+            return Math.floor(diff / 86400000) + 'd';
         }
 
-        function updateStoryView() {
-            const story = storyDataCache[currentStoryIndex];
-            if (!story) return;
-            viewerUserPic.src = story.pic || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            viewerUsername.textContent = story.name || 'User';
-            viewerTime.textContent = story.time || '1h';
-            viewerStoryImg.src = story.img || story.pic || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80';
-            viewerBg.style.backgroundImage = `url('${story.img || story.pic}')`;
-            progressFill.style.animation = 'none';
-            progressFill.offsetHeight;
-            progressFill.style.animation = 'progressAnim 5s linear forwards';
+        function getDefaultStories() {
+            return [
+                { 
+                    name: 'Md Rhoman', 
+                    pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+                    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                    time: '1h',
+                    uid: 'default1',
+                    mediaType: 'image'
+                },
+                { 
+                    name: 'হাবিবুর সোহান', 
+                    pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+                    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+                    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+                    time: '3h',
+                    uid: 'default2',
+                    mediaType: 'image'
+                }
+            ];
         }
 
-        closeStoryViewer.addEventListener('click', () => { storyModal.style.display = 'none'; });
-        storyPrevBtn.addEventListener('click', () => {
-            if (storyDataCache.length === 0) return;
-            currentStoryIndex = (currentStoryIndex - 1 + storyDataCache.length) % storyDataCache.length;
-            updateStoryView();
-        });
-        storyNextBtn.addEventListener('click', () => {
-            if (storyDataCache.length === 0) return;
-            currentStoryIndex = (currentStoryIndex + 1) % storyDataCache.length;
-            updateStoryView();
-        });
-        window.addEventListener('click', (e) => { if (e.target === storyModal) storyModal.style.display = 'none'; });
+        // ========== FIXED RENDER STORIES ==========
+        // ========== FIXED RENDER STORIES WITH THUMBNAIL ==========
+// ========== RENDER STORIES WITH VIDEO PREVIEW ==========
+function renderStories() {
+    storiesContainer.innerHTML = '';
+    
+    // Add "Create Story" button
+    const createCard = document.createElement('div');
+    createCard.className = 'story-card create-story';
+    createCard.onclick = () => openIframe('create-story.html', 'Create Story');
+    createCard.innerHTML = `
+        <img src="${auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}" alt="Create Story">
+        <div class="create-story-content">
+            <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
+            <span>Create story</span>
+        </div>
+    `;
+    storiesContainer.appendChild(createCard);
+    
+    // Render each story
+    storyDataCache.forEach((story, index) => {
+        const card = document.createElement('div');
+        card.className = 'story-card';
+        card.onclick = () => openStoryViewer(index);
+        
+        const isVideo = story.mediaType === 'video' || (story.imageUrl && story.imageUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i));
+        const videoUrl = story.imageUrl || story.img || '';
+        const thumbnailUrl = story.thumbnail || story.pic || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
+        
+        if (isVideo && videoUrl) {
+            // === VIDEO STORY - Show video directly with autoplay muted ===
+            card.innerHTML = `
+                <video src="${videoUrl}" 
+                       muted 
+                       autoplay 
+                       loop 
+                       playsinline 
+                       style="width:100%; height:100%; object-fit:cover;"
+                       poster="${thumbnailUrl}">
+                </video>
+                <div style="position:absolute;bottom:8px;right:8px;color:#fff;font-size:10px;background:rgba(0,0,0,0.6);padding:2px 8px;border-radius:4px;z-index:2;pointer-events:none;">
+                    <i class="fa-solid fa-video" style="margin-right:3px;"></i>Video
+                </div>
+                <div class="story-name">${story.name || 'User'}</div>
+                <span class="story-badge">${story.time || 'Now'}</span>
+            `;
+        } else {
+            // === IMAGE STORY ===
+            card.innerHTML = `
+                <span class="story-badge">${story.time || 'Now'}</span>
+                <img src="${thumbnailUrl}" alt="Story" loading="lazy" 
+                     onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'">
+                <div class="story-name">${story.name || 'User'}</div>
+            `;
+        }
+        
+        storiesContainer.appendChild(card);
+    });
+}
 
-        // ========== POST DETAIL ==========
+        // ========== CLEANUP OLD STORIES ==========
+        async function cleanupOldStories() {
+            try {
+                const now = new Date();
+                const storiesSnapshot = await db.collection('stories').get();
+                const batch = db.batch();
+                let deleteCount = 0;
+                
+                storiesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
+                    const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                    
+                    if (diffHours >= 24) {
+                        batch.delete(doc.ref);
+                        deleteCount++;
+                    }
+                });
+                
+                if (deleteCount > 0) {
+                    await batch.commit();
+                    console.log(`🗑️ Cleaned up ${deleteCount} old stories`);
+                }
+            } catch (error) {
+                console.error('Error cleaning up stories:', error);
+            }
+        }
+
+        // ========== AUTO REFRESH STORIES ==========
+        setInterval(() => {
+            if (auth.currentUser) {
+                loadStories();
+            }
+        }, 30000);
+
+        // ========== POST DETAIL FUNCTIONS ==========
         let currentDetailPostId = null;
 
         function openPostDetail(postId) {
@@ -2682,80 +3139,6 @@
             return arr;
         }
 
-        // ========== LOAD STORIES ==========
-        async function loadStories() {
-            try {
-                const user = auth.currentUser;
-                let stories = [];
-
-                if (user) {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    const userData = userDoc.exists ? userDoc.data() : {};
-                    const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
-                    const userPic = user.photoURL || userData.photoURL ||
-                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-
-                    const userStoryDoc = await db.collection('stories').doc(user.uid).get();
-                    if (userStoryDoc.exists) {
-                        const storyData = userStoryDoc.data();
-                        stories.push({ name: userName, pic: userPic, img: storyData.imageUrl || userPic, time: 'Now',
-                            uid: user.uid });
-                    } else {
-                        stories.push({ name: userName, pic: userPic, img: userPic, time: 'Now', uid: user.uid });
-                    }
-                }
-
-                const storiesSnapshot = await db.collection('stories').orderBy('timestamp', 'desc').limit(10).get();
-                storiesSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.uid !== user?.uid) {
-                        stories.push({ name: data.userName || 'User', pic: data.userImage ||
-                                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-                            img: data.imageUrl || data.userImage ||
-                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-                            time: '1h', uid: data.uid });
-                    }
-                });
-
-                storyDataCache = stories.length > 0 ? stories : [
-                    { name: 'Md Rhoman', pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-                        img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-                        time: '1h' },
-                    { name: 'হাবিবুর সোহান', pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-                        img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-                        time: '3h' },
-                    { name: 'MD M', pic: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-                        img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80',
-                        time: '5h' }
-                ];
-
-                renderStories();
-            } catch (error) { console.error('Error loading stories:', error); }
-        }
-
-        function renderStories() {
-            storiesContainer.innerHTML = `
-                <div class="story-card create-story" onclick="openIframe('create-story.html','Create Story')">
-                    <img src="${auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}" alt="Create Story">
-                    <div class="create-story-content">
-                        <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
-                        <span>Create story</span>
-                    </div>
-                </div>
-            `;
-            storyDataCache.forEach((story, index) => {
-                const card = document.createElement('div');
-                card.className = 'story-card';
-                card.onclick = () => openStoryViewer(index);
-                card.innerHTML = `
-                    <span class="story-badge">${index === 0 ? 'Now' : '1'}</span>
-                    <img src="${story.pic || story.img}" alt="Story">
-                    <div class="story-name">${story.name || 'User'}</div>
-                `;
-                storiesContainer.appendChild(card);
-            });
-        }
-
         // ========== LOAD POSTS ==========
         async function loadPosts(loadMore = false) {
             if (isLoading || (!loadMore && postsLoaded > 0)) return;
@@ -2878,12 +3261,17 @@
             div.dataset.postId = post.id;
             div.dataset.userId = post.userId || '';
 
+            // Click on post body opens detail, but NOT on action buttons
             div.addEventListener('click', function(e) {
+                // Don't open detail if clicking on action buttons, read more, profile, etc.
                 if (e.target.closest('.action-btn') || e.target.closest('.read-more-btn') ||
                     e.target.closest('.comment-box-input') || e.target.closest('.post-options') ||
                     e.target.closest('.profile-container') || e.target.closest('.post-meta h4') ||
                     e.target.closest('.comment-item') || e.target.closest('.comment-count') ||
-                    e.target.closest('.post-image-content')) return;
+                    e.target.closest('.post-image-content') || e.target.closest('.like-btn') ||
+                    e.target.closest('.comment-toggle-btn')) {
+                    return;
+                }
                 openPostDetail(post.id);
             });
 
@@ -3102,16 +3490,7 @@
 
         // ========== CREATE ACCOUNT ==========
         createAccountBtn.addEventListener('click', () => {
-            const email = loginEmail.value.trim();
-            const pass = loginPassword.value.trim();
-            if (!email || !pass || pass.length < 6) { showToast('Email & password (min 6 chars) required'); return; }
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then((userCredential) => {
-                    showToast('Account created! Welcome.');
-                    createUserDocument(userCredential.user);
-                    setUserStatus(userCredential.user.uid, 'online');
-                })
-                .catch(err => { showToast('Error: ' + err.message); });
+            window.location.href = 'signup.html';
         });
 
         // ========== LOGOUT ==========
@@ -3227,6 +3606,7 @@
         console.log('🔔 Like & comment notifications with popups');
         console.log('💬 Unread message count on messenger icon');
         console.log('📱 Fully responsive design');
+        console.log('🎬 Video stories play from 0 seconds automatically');
     </script>
 
 </body>
