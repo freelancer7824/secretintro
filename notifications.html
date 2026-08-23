@@ -2,20 +2,283 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Notifications</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f0f2f5;
         }
+        .notif-item {
+            transition: background 0.15s ease;
+        }
+        .notif-item:hover {
+            background-color: #f0f2f5;
+        }
+        .notif-item.unread {
+            background-color: #e7f3ff;
+        }
+        .notif-item.unread:hover {
+            background-color: #dce8f5;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e41e3f;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 12px;
+            min-width: 18px;
+            text-align: center;
+            border: 2px solid #fff;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: none;
+            max-width: 90%;
+            text-align: center;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+            font-size: 16px;
+        }
+        .loading-spinner i {
+            margin-right: 10px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #65676b;
+        }
+        .empty-state i {
+            font-size: 48px;
+            color: #ccd0d5;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1e21;
+            margin-bottom: 6px;
+        }
+        .empty-state p {
+            font-size: 14px;
+            color: #65676b;
+        }
+        .notif-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .notif-icon-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #fff;
+        }
+        .notif-icon-badge.like {
+            background: #e41e3f;
+        }
+        .notif-icon-badge.comment {
+            background: #1877f2;
+        }
+        .notif-icon-badge.follow {
+            background: #31a24c;
+        }
+        .notif-icon-badge.share {
+            background: #f2994a;
+        }
+        .notif-icon-badge.friend_request {
+            background: #8a2be2;
+        }
+        .notif-icon-badge.post {
+            background: #ff6b6b;
+        }
+        .notif-icon-badge.story {
+            background: #f39c12;
+        }
+        .notif-time {
+            font-size: 11px;
+            color: #8a8d91;
+        }
+        .notif-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #050505;
+        }
+        .notif-text .username {
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .notif-text .username:hover {
+            text-decoration: underline;
+        }
+        .notif-text .highlight {
+            font-weight: 600;
+            color: #1877f2;
+        }
+        .notif-preview {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 2px;
+            padding: 6px 12px;
+            background: #f0f2f5;
+            border-radius: 12px;
+            display: inline-block;
+            max-width: 100%;
+            cursor: pointer;
+        }
+        .notif-preview:hover {
+            background: #e4e6eb;
+        }
+        .notif-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .notif-actions button {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .notif-actions .btn-primary {
+            background: #1877f2;
+            color: #fff;
+        }
+        .notif-actions .btn-primary:hover {
+            background: #166fe5;
+        }
+        .notif-actions .btn-secondary {
+            background: #e4e6eb;
+            color: #050505;
+        }
+        .notif-actions .btn-secondary:hover {
+            background: #d8dadf;
+        }
+        .notif-actions .btn-success {
+            background: #31a24c;
+            color: #fff;
+        }
+        .notif-actions .btn-success:hover {
+            background: #2b8e42;
+        }
+        .notif-actions .btn-danger {
+            background: #e41e3f;
+            color: #fff;
+        }
+        .notif-actions .btn-danger:hover {
+            background: #c41a34;
+        }
+        /* Detail View */
+        #detailView {
+            position: fixed;
+            inset: 0;
+            background: #fff;
+            z-index: 50;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+        #detailView.open {
+            transform: translateX(0);
+        }
+        .detail-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 49;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .detail-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Error state */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #65676b;
+        }
+        .error-state i {
+            font-size: 48px;
+            color: #e41e3f;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .error-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1e21;
+            margin-bottom: 6px;
+        }
+        .error-state p {
+            font-size: 14px;
+            color: #65676b;
+        }
+        .error-state .retry-btn {
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: #1877f2;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .error-state .retry-btn:hover {
+            background: #166fe5;
+        }
     </style>
 </head>
 <body class="bg-[#f0f2f5] text-black antialiased max-w-md mx-auto min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Toast Message -->
+    <div id="toast" class="toast-msg"></div>
 
     <!-- Header Title Bar -->
     <header class="bg-white sticky top-0 z-45 shadow-sm">
@@ -24,17 +287,18 @@
                 <button onclick="history.back()" class="text-xl font-bold text-gray-800"><i class="fa-solid fa-arrow-left"></i></button>
                 <h1 class="text-2xl font-bold tracking-tight text-black">Notifications</h1>
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 relative">
                 <button onclick="markAllAsRead()" class="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-lg transition" title="Mark all as read">
-                    <i class="fa-solid fa-check"></i>
+                    <i class="fa-solid fa-check-double"></i>
                 </button>
                 <button onclick="toggleSearch()" class="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-lg transition" title="Search">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
+                <span id="unread-badge" class="notification-badge" style="display:none;">0</span>
             </div>
         </div>
 
-        <!-- Search Bar Overlay (Hidden by default) -->
+        <!-- Search Bar Overlay -->
         <div id="search-header" class="hidden items-center px-4 py-2.5 bg-white space-x-3 border-b">
             <button onclick="toggleSearch()" class="text-gray-600 text-lg"><i class="fa-solid fa-arrow-left"></i></button>
             <input type="text" id="searchInput" onkeyup="filterNotifications()" placeholder="Search notifications..." class="flex-1 bg-gray-100 px-4 py-2 rounded-full text-sm outline-none focus:ring-2 focus:ring-blue-500">
@@ -43,170 +307,414 @@
 
     <!-- Notification Content Area -->
     <main class="flex-1 pb-6" id="notification-list">
-
-        <!-- TODAY SECTION -->
-        <div class="px-4 pt-3 pb-1 section-header-today">
-            <h2 class="text-lg font-bold text-gray-900">Today</h2>
+        <div class="loading-spinner" id="loading-spinner">
+            <i class="fa-solid fa-spinner fa-spin"></i> Loading notifications...
         </div>
-
-        <!-- Notification 1 -->
-        <div onclick="openDetail('Sadiyatul Esha posted a photo.', '11 hours ago', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces')" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
-            <div class="relative shrink-0 mr-3">
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
-                <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
-                    <i class="fa-solid fa-comment"></i>
-                </div>
-            </div>
-            <div class="flex-1 pr-6">
-                <p class="text-[15px] leading-snug text-gray-900">
-                    <span class="font-bold">Sadiyatul Esha</span> posted a photo.
-                </p>
-                <span class="text-xs text-gray-500 mt-0.5 block">11 hours ago</span>
-            </div>
-            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
-
-        <!-- Notification 2 -->
-        <div onclick="openDetail('Jëmi Khátűñ posted 1 photo: &quot;- 🥺🫀❤️&quot;.', '9 hours ago', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces')" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
-            <div class="relative shrink-0 mr-3">
-                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
-                <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
-                    <i class="fa-solid fa-comment"></i>
-                </div>
-            </div>
-            <div class="flex-1 pr-6">
-                <p class="text-[15px] leading-snug text-gray-900">
-                    <span class="font-bold">Jëmi Khátűñ</span> posted 1 photo: "- 🥺🫀❤️".
-                </p>
-                <span class="text-xs text-gray-500 mt-0.5 block">9 hours ago</span>
-            </div>
-            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
-
-        <!-- EARLIER SECTION -->
-        <div class="px-4 pt-5 pb-1 section-header-earlier">
-            <h2 class="text-lg font-bold text-gray-900">Earlier</h2>
-        </div>
-
-        <!-- Notification 3 -->
-        <div onclick="openDetail('সরকারি দপ্তরে আউটসোর্সিং চাকরি খবর: সরকারি কর্মচারীদের দীর্ঘ প্রতীক্ষার অবসান ঘটিয়ে প্রথম থেকে ২০তম গ্রেড পর্যন্ত মূল বেতন সর্বোচ্চ...', '18 Aug at 22:46', null)" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
-            <div class="relative shrink-0 mr-3">
-                <div class="w-14 h-14 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center text-center p-1 border">Govt</div>
-                <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
-                    <i class="fa-solid fa-people-group"></i>
-                </div>
-            </div>
-            <div class="flex-1 pr-6">
-                <p class="text-[15px] leading-snug text-gray-900">
-                    সরকারি দপ্তরে আউটসোর্সিং চাকরি খবর: "সরকারি কর্মচারীদের দীর্ঘ প্রতীক্ষার অবসান ঘটিয়ে প্রথম থেকে ২০তম গ্রেড পর্যন্ত মূল বেতন সর্বোচ্চ...
-                </p>
-                <span class="text-xs text-gray-500 mt-0.5 block">18 Aug at 22:46</span>
-            </div>
-            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
-
-        <!-- Notification 4 -->
-        <div class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative">
-            <div class="shrink-0 mr-3">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
-            </div>
-            <div class="flex-1 pr-6">
-                <p class="text-[15px] leading-snug text-gray-900" onclick="openDetail('MD Tohid Islam sent you a friend request.', '18 August at 21:48', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces')">
-                    <span class="font-bold">MD Tohid Islam</span> sent you a friend request.
-                </p>
-                <div class="flex items-center space-x-1.5 text-xs text-gray-500 mt-0.5">
-                    <span class="text-blue-500"><i class="fa-solid fa-user-plus"></i></span>
-                    <span>18 August at 21:48</span>
-                    <span>•</span>
-                    <span>14 mutual friends</span>
-                </div>
-                <div class="flex space-x-2 mt-3">
-                    <button onclick="handleAction(this, 'Confirmed')" class="flex-1 bg-[#1877f2] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
-                        Confirm
-                    </button>
-                    <button onclick="handleAction(this, 'Deleted')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 px-4 rounded-lg text-sm transition">
-                        Delete
-                    </button>
-                </div>
-            </div>
-            <button class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
-
-        <!-- Notification 5 -->
-        <div class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative">
-            <div class="relative shrink-0 mr-3">
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
-                <div class="absolute bottom-0 right-0 bg-amber-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
-                    <i class="fa-solid fa-flag"></i>
-                </div>
-            </div>
-            <div class="flex-1 pr-6">
-                <p class="text-[15px] leading-snug text-gray-900" onclick="openDetail('Sami\'s Odyssey invited you to follow Wander Of Bangladesh.', '17 Aug at 23:36', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces')">
-                    <span class="font-bold">Sami's Odyssey</span> invited you to follow <span class="font-bold">Wander Of Bangladesh</span>.
-                </p>
-                <span class="text-xs text-gray-500 mt-0.5 block">17 Aug at 23:36</span>
-                <div class="flex space-x-2 mt-3">
-                    <button onclick="handleAction(this, 'Accepted')" class="flex-1 bg-[#1877f2] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
-                        Accept
-                    </button>
-                    <button onclick="handleAction(this, 'Declined')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 px-4 rounded-lg text-sm transition">
-                        Decline
-                    </button>
-                </div>
-            </div>
-            <button class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
-
-        <!-- Notification 6 -->
-        <div onclick="openDetail('মোজােরের ভাই Vlogs commented on Saion Singh\'s post: &quot;মাশাআল্লাহ...&quot;', '17 Aug at 22:15', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces')" class="notif-item flex items-start px-4 py-3 hover:bg-gray-100 transition relative cursor-pointer">
-            <div class="shrink-0 mr-3">
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces" alt="Avatar" class="w-14 h-14 rounded-full object-cover">
-            </div>
-            <div class="flex-1 pr-6">
-                <p class="text-[15px] leading-snug text-gray-900">
-                    <span class="font-bold">মোজােরের ভাই Vlogs</span> commented on <span class="font-bold">Saion Singh's</span> post: "মাশাআল্লাহ..."
-                </p>
-                <span class="text-xs text-gray-500 mt-0.5 block">17 Aug at 22:15</span>
-            </div>
-            <button onclick="event.stopPropagation()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
-
+        <div id="notifications-container"></div>
+        <div id="error-container" style="display:none;"></div>
     </main>
 
-    <!-- FULL SCREEN DETAIL VIEW OVERLAY -->
-    <div id="detailView" class="fixed inset-0 bg-white z-50 flex flex-col transform translate-x-full transition-transform duration-300">
-        <div class="flex items-center px-4 py-3 border-b shadow-sm">
+    <!-- Detail View Backdrop -->
+    <div class="detail-backdrop" id="detailBackdrop" onclick="closeDetail()"></div>
+
+    <!-- FULL SCREEN DETAIL VIEW -->
+    <div id="detailView">
+        <div class="flex items-center px-4 py-3 border-b shadow-sm bg-white sticky top-0 z-10">
             <button onclick="closeDetail()" class="text-xl font-bold text-gray-800 mr-4"><i class="fa-solid fa-arrow-left"></i></button>
             <h2 class="text-xl font-bold text-black">Notification Details</h2>
         </div>
-        <div class="p-6 flex-1 flex flex-col items-center text-center">
+        <div class="p-6 flex-1 flex flex-col items-center text-center" id="detailContent">
             <div id="detailAvatarContainer" class="mb-4">
                 <img id="detailImg" src="" alt="" class="w-24 h-24 rounded-full object-cover shadow-md hidden">
             </div>
             <p id="detailText" class="text-lg text-gray-900 font-medium mb-4 leading-relaxed"></p>
             <span id="detailTime" class="text-sm text-gray-500"></span>
+            <div id="detailActions" class="mt-6 flex gap-3"></div>
         </div>
     </div>
 
-    <!-- TOAST MESSAGE NOTIFICATION -->
-    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50">
-        All notifications marked as read
-    </div>
-
-    <!-- JavaScript For Interactivity -->
     <script>
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== DOM REFS ==========
+        const notificationsContainer = document.getElementById('notifications-container');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorContainer = document.getElementById('error-container');
+        const unreadBadge = document.getElementById('unread-badge');
+        const toast = document.getElementById('toast');
+        const detailView = document.getElementById('detailView');
+        const detailBackdrop = document.getElementById('detailBackdrop');
+        const detailImg = document.getElementById('detailImg');
+        const detailText = document.getElementById('detailText');
+        const detailTime = document.getElementById('detailTime');
+        const detailActions = document.getElementById('detailActions');
+
+        let currentUser = null;
+        let toastTimer = null;
+        let notifications = [];
+        let unreadCount = 0;
+        let notificationListener = null;
+        let isInitialLoad = true;
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+
+        // ========== TOAST ==========
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // ========== GET USER DATA ==========
+        const userCache = new Map();
+
+        async function getUserData(uid) {
+            if (userCache.has(uid)) return userCache.get(uid);
+            try {
+                const doc = await db.collection('users').doc(uid).get();
+                if (doc.exists) {
+                    const data = { id: uid, ...doc.data() };
+                    userCache.set(uid, data);
+                    return data;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error fetching user:', error);
+                return null;
+            }
+        }
+
+        // ========== FORMAT TIME ==========
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Just now';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        // ========== ESCAPE HTML ==========
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ========== GET NOTIFICATION ICON ==========
+        function getNotificationIcon(type) {
+            const icons = {
+                'like': { icon: 'fa-solid fa-thumbs-up', bg: '#e41e3f' },
+                'comment': { icon: 'fa-solid fa-comment', bg: '#1877f2' },
+                'follow': { icon: 'fa-solid fa-user-plus', bg: '#31a24c' },
+                'share': { icon: 'fa-solid fa-share', bg: '#f2994a' },
+                'friend_request': { icon: 'fa-solid fa-user-group', bg: '#8a2be2' },
+                'post': { icon: 'fa-solid fa-file-lines', bg: '#ff6b6b' },
+                'story': { icon: 'fa-solid fa-circle-play', bg: '#f39c12' }
+            };
+            return icons[type] || { icon: 'fa-solid fa-bell', bg: '#1877f2' };
+        }
+
+        // ========== RENDER NOTIFICATIONS ==========
+        function renderNotifications() {
+            loadingSpinner.style.display = 'none';
+            errorContainer.style.display = 'none';
+            notificationsContainer.innerHTML = '';
+
+            if (notifications.length === 0) {
+                notificationsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-regular fa-bell-slash"></i>
+                        <h3>No notifications</h3>
+                        <p>When people interact with your posts, you'll see it here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by date
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            
+            let todayNotifs = [];
+            let earlierNotifs = [];
+
+            notifications.forEach(notif => {
+                const date = notif.timestamp?.toDate ? notif.timestamp.toDate() : new Date(notif.timestamp);
+                const dateStr = date.toDateString();
+                if (dateStr === today) {
+                    todayNotifs.push(notif);
+                } else {
+                    earlierNotifs.push(notif);
+                }
+            });
+
+            // Sort by timestamp descending
+            todayNotifs.sort((a, b) => {
+                const timeA = a.timestamp?.toDate?.() || new Date(a.timestamp);
+                const timeB = b.timestamp?.toDate?.() || new Date(b.timestamp);
+                return timeB - timeA;
+            });
+            earlierNotifs.sort((a, b) => {
+                const timeA = a.timestamp?.toDate?.() || new Date(a.timestamp);
+                const timeB = b.timestamp?.toDate?.() || new Date(b.timestamp);
+                return timeB - timeA;
+            });
+
+            let html = '';
+
+            if (todayNotifs.length > 0) {
+                html += `<div class="px-4 pt-3 pb-1"><h2 class="text-lg font-bold text-gray-900">Today</h2></div>`;
+                todayNotifs.forEach(notif => {
+                    html += createNotificationHTML(notif);
+                });
+            }
+
+            if (earlierNotifs.length > 0) {
+                html += `<div class="px-4 pt-5 pb-1"><h2 class="text-lg font-bold text-gray-900">Earlier</h2></div>`;
+                earlierNotifs.forEach(notif => {
+                    html += createNotificationHTML(notif);
+                });
+            }
+
+            notificationsContainer.innerHTML = html;
+
+            // Update unread badge
+            updateUnreadBadge();
+        }
+
+        // ========== CREATE NOTIFICATION HTML ==========
+        function createNotificationHTML(notif) {
+            const iconInfo = getNotificationIcon(notif.type);
+            const isUnread = !notif.read;
+            const timeStr = formatTime(notif.timestamp);
+            const userName = notif.senderName || 'User';
+            const userImage = notif.senderImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            const notifId = notif.id || '';
+
+            let actionButtons = '';
+            if (notif.type === 'friend_request' && notif.status !== 'accepted' && notif.status !== 'declined') {
+                actionButtons = `
+                    <div class="notif-actions">
+                        <button class="btn-primary" onclick="event.stopPropagation(); handleFriendRequest('${notifId}', 'accept')">Confirm</button>
+                        <button class="btn-secondary" onclick="event.stopPropagation(); handleFriendRequest('${notifId}', 'decline')">Delete</button>
+                    </div>
+                `;
+            }
+
+            let previewHTML = '';
+            if (notif.preview) {
+                previewHTML = `<div class="notif-preview" onclick="event.stopPropagation(); openDetail('${notifId}')">${escapeHTML(notif.preview)}</div>`;
+            }
+
+            let textHTML = '';
+            if (notif.type === 'like') {
+                textHTML = `<span class="username" onclick="event.stopPropagation(); openProfile('${notif.senderId}')">${escapeHTML(userName)}</span> liked your post.`;
+            } else if (notif.type === 'comment') {
+                textHTML = `<span class="username" onclick="event.stopPropagation(); openProfile('${notif.senderId}')">${escapeHTML(userName)}</span> commented on your post: <span class="highlight">"${escapeHTML(notif.preview || '')}"</span>`;
+            } else if (notif.type === 'follow') {
+                textHTML = `<span class="username" onclick="event.stopPropagation(); openProfile('${notif.senderId}')">${escapeHTML(userName)}</span> started following you.`;
+            } else if (notif.type === 'share') {
+                textHTML = `<span class="username" onclick="event.stopPropagation(); openProfile('${notif.senderId}')">${escapeHTML(userName)}</span> shared your post.`;
+            } else if (notif.type === 'friend_request') {
+                textHTML = `<span class="username" onclick="event.stopPropagation(); openProfile('${notif.senderId}')">${escapeHTML(userName)}</span> sent you a friend request.`;
+            } else {
+                textHTML = `<span class="username" onclick="event.stopPropagation(); openProfile('${notif.senderId}')">${escapeHTML(userName)}</span> ${escapeHTML(notif.text || 'interacted with your post')}.`;
+            }
+
+            return `
+                <div class="notif-item ${isUnread ? 'unread' : ''} flex items-start px-4 py-3 transition relative cursor-pointer" 
+                     data-id="${notifId}" onclick="openDetail('${notifId}')">
+                    <div class="relative shrink-0 mr-3">
+                        <img src="${escapeHTML(userImage)}" alt="Avatar" class="notif-avatar" loading="lazy">
+                        <div class="notif-icon-badge ${notif.type}" style="background: ${iconInfo.bg};">
+                            <i class="${iconInfo.icon}"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 pr-6 min-w-0">
+                        <p class="notif-text">${textHTML}</p>
+                        <div class="notif-time mt-0.5">${timeStr}</div>
+                        ${previewHTML}
+                        ${actionButtons}
+                    </div>
+                    <button onclick="event.stopPropagation(); removeNotification('${notifId}')" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        // ========== UPDATE UNREAD BADGE ==========
+        function updateUnreadBadge() {
+            unreadCount = notifications.filter(n => !n.read).length;
+            if (unreadCount > 0) {
+                unreadBadge.style.display = 'block';
+                unreadBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            } else {
+                unreadBadge.style.display = 'none';
+            }
+        }
+
+        // ========== MARK AS READ ==========
+        async function markAsRead(notifId) {
+            if (!currentUser) return;
+            try {
+                await db.collection('notifications').doc(notifId).update({
+                    read: true
+                });
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        // ========== MARK ALL AS READ ==========
+        async function markAllAsRead() {
+            if (!currentUser || notifications.length === 0) return;
+            try {
+                const batch = db.batch();
+                const unreadNotifs = notifications.filter(n => !n.read);
+                unreadNotifs.forEach(notif => {
+                    const ref = db.collection('notifications').doc(notif.id);
+                    batch.update(ref, { read: true });
+                });
+                await batch.commit();
+                showToast('All notifications marked as read');
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+                showToast('Error marking all as read');
+            }
+        }
+
+        // ========== REMOVE NOTIFICATION ==========
+        async function removeNotification(notifId) {
+            if (!confirm('Remove this notification?')) return;
+            try {
+                await db.collection('notifications').doc(notifId).delete();
+                showToast('Notification removed');
+            } catch (error) {
+                console.error('Error removing notification:', error);
+                showToast('Error removing notification');
+            }
+        }
+
+        // ========== HANDLE FRIEND REQUEST ==========
+        async function handleFriendRequest(notifId, action) {
+            try {
+                const doc = await db.collection('notifications').doc(notifId).get();
+                if (!doc.exists) return;
+                const data = doc.data();
+                const senderId = data.senderId;
+                const currentUserId = currentUser?.uid;
+
+                if (!currentUserId || !senderId) return;
+
+                if (action === 'accept') {
+                    await db.collection('users').doc(currentUserId).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(senderId)
+                    });
+                    await db.collection('users').doc(senderId).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(currentUserId)
+                    });
+                    await db.collection('notifications').doc(notifId).update({
+                        status: 'accepted',
+                        read: true
+                    });
+                    showToast('Friend request accepted!');
+                } else {
+                    await db.collection('notifications').doc(notifId).update({
+                        status: 'declined',
+                        read: true
+                    });
+                    showToast('Friend request declined');
+                }
+            } catch (error) {
+                console.error('Error handling friend request:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        // ========== OPEN DETAIL ==========
+        function openDetail(notifId) {
+            const notif = notifications.find(n => n.id === notifId);
+            if (!notif) return;
+
+            if (!notif.read) {
+                markAsRead(notifId);
+                notif.read = true;
+                updateUnreadBadge();
+                const el = document.querySelector(`.notif-item[data-id="${notifId}"]`);
+                if (el) el.classList.remove('unread');
+            }
+
+            const userName = notif.senderName || 'User';
+            const userImage = notif.senderImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            const timeStr = formatTime(notif.timestamp);
+            const iconInfo = getNotificationIcon(notif.type);
+
+            let text = '';
+            if (notif.type === 'like') {
+                text = `${userName} liked your post`;
+            } else if (notif.type === 'comment') {
+                text = `${userName} commented on your post: "${notif.preview || ''}"`;
+            } else if (notif.type === 'follow') {
+                text = `${userName} started following you`;
+            } else if (notif.type === 'share') {
+                text = `${userName} shared your post`;
+            } else if (notif.type === 'friend_request') {
+                text = `${userName} sent you a friend request`;
+            } else {
+                text = notif.text || `${userName} interacted with your post`;
+            }
+
+            detailImg.src = userImage;
+            detailImg.classList.remove('hidden');
+            detailText.textContent = text;
+            detailTime.textContent = timeStr;
+
+            detailActions.innerHTML = '';
+            if (notif.type === 'friend_request' && notif.status !== 'accepted' && notif.status !== 'declined') {
+                detailActions.innerHTML = `
+                    <button class="btn-primary" onclick="handleFriendRequest('${notifId}', 'accept'); closeDetail();">Confirm</button>
+                    <button class="btn-secondary" onclick="handleFriendRequest('${notifId}', 'decline'); closeDetail();">Delete</button>
+                `;
+            }
+
+            detailView.classList.add('open');
+            detailBackdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDetail() {
+            detailView.classList.remove('open');
+            detailBackdrop.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function openProfile(userId) {
+            window.location.href = `profile.html?user=${userId}`;
+        }
+
+        // ========== SEARCH ==========
         function toggleSearch() {
             const defaultHeader = document.getElementById('default-header');
             const searchHeader = document.getElementById('search-header');
@@ -227,11 +735,11 @@
         }
 
         function filterNotifications() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
-            let items = document.getElementsByClassName('notif-item');
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.notif-item');
 
-            Array.from(items).forEach(item => {
-                let text = item.innerText.toLowerCase();
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
                 if (text.includes(input)) {
                     item.style.display = 'flex';
                 } else {
@@ -240,38 +748,174 @@
             });
         }
 
-        function openDetail(text, time, imgSrc) {
-            document.getElementById('detailText').innerText = text;
-            document.getElementById('detailTime').innerText = time;
-            
-            const imgElem = document.getElementById('detailImg');
-            if (imgSrc) {
-                imgElem.src = imgSrc;
-                imgElem.classList.remove('hidden');
-            } else {
-                imgElem.classList.add('hidden');
+        // ========== SHOW ERROR ==========
+        function showError(message) {
+            loadingSpinner.style.display = 'none';
+            errorContainer.style.display = 'block';
+            errorContainer.innerHTML = `
+                <div class="error-state">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <h3>Something went wrong</h3>
+                    <p>${escapeHTML(message || 'Failed to load notifications. Please try again.')}</p>
+                    <button class="retry-btn" onclick="retryLoading()">
+                        <i class="fa-solid fa-rotate"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        function retryLoading() {
+            retryCount = 0;
+            errorContainer.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            if (currentUser) {
+                startNotificationListener(currentUser.uid);
+            }
+        }
+
+        // ========== START NOTIFICATION LISTENER ==========
+        function startNotificationListener(userId) {
+            if (notificationListener) {
+                notificationListener();
+                notificationListener = null;
             }
 
-            document.getElementById('detailView').classList.remove('translate-x-full');
+            console.log('👂 Starting notification listener for:', userId);
+
+            try {
+                // Simple query without orderBy to avoid index requirement
+                notificationListener = db.collection('notifications')
+                    .where('recipientId', '==', userId)
+                    .onSnapshot(async (snapshot) => {
+                        const newNotifs = [];
+                        const updatedIds = new Set();
+                        
+                        snapshot.docChanges().forEach((change) => {
+                            const data = change.doc.data();
+                            const notif = { id: change.doc.id, ...data };
+                            
+                            if (change.type === 'added') {
+                                newNotifs.push(notif);
+                            } else if (change.type === 'modified') {
+                                const index = notifications.findIndex(n => n.id === notif.id);
+                                if (index !== -1) {
+                                    notifications[index] = notif;
+                                    updatedIds.add(notif.id);
+                                } else {
+                                    newNotifs.push(notif);
+                                }
+                            } else if (change.type === 'removed') {
+                                notifications = notifications.filter(n => n.id !== notif.id);
+                            }
+                        });
+
+                        // Fetch sender data for new notifications
+                        if (newNotifs.length > 0) {
+                            for (const notif of newNotifs) {
+                                if (notif.senderId && !notif.senderName) {
+                                    const userData = await getUserData(notif.senderId);
+                                    if (userData) {
+                                        notif.senderName = userData.fullName || userData.firstName || 'User';
+                                        notif.senderImage = userData.photoURL || '';
+                                    }
+                                }
+                                notifications.push(notif);
+                            }
+                        }
+
+                        // Sort by timestamp
+                        notifications.sort((a, b) => {
+                            const timeA = a.timestamp?.toDate?.() || new Date(a.timestamp);
+                            const timeB = b.timestamp?.toDate?.() || new Date(b.timestamp);
+                            return timeB - timeA;
+                        });
+
+                        renderNotifications();
+                        isInitialLoad = false;
+
+                        // Show toast for new notifications
+                        if (!isInitialLoad) {
+                            const newUnread = notifications.filter(n => !n.read && n.recipientId === userId);
+                            if (newUnread.length > 0 && !document.hidden) {
+                                const latest = newUnread[0];
+                                showToast(`🔔 ${latest.senderName || 'Someone'} ${latest.type === 'like' ? 'liked' : latest.type === 'comment' ? 'commented on' : 'interacted with'} your post`);
+                            }
+                        }
+
+                    }, (error) => {
+                        console.error('Error listening to notifications:', error);
+                        if (isInitialLoad) {
+                            showError(error.message || 'Failed to load notifications');
+                        } else {
+                            showToast('⚠️ Connection error. Retrying...');
+                            // Auto-retry after 5 seconds
+                            setTimeout(() => {
+                                if (currentUser) {
+                                    startNotificationListener(currentUser.uid);
+                                }
+                            }, 5000);
+                        }
+                    });
+            } catch (error) {
+                console.error('Error setting up listener:', error);
+                showError(error.message || 'Failed to connect to notifications');
+            }
         }
 
-        function closeDetail() {
-            document.getElementById('detailView').classList.add('translate-x-full');
-        }
+        // ========== AUTH STATE ==========
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    await db.collection('users').doc(user.uid).set({
+                        status: 'online',
+                        lastSeen: new Date().toISOString()
+                    }, { merge: true });
+                } catch (e) {
+                    console.warn('Status update error:', e);
+                }
 
-        function handleAction(button, actionType) {
-            event.stopPropagation();
-            const parentDiv = button.parentElement;
-            parentDiv.innerHTML = `<span class="text-sm font-bold text-blue-600">Request ${actionType}</span>`;
-        }
+                startNotificationListener(user.uid);
 
-        function markAllAsRead() {
-            const toast = document.getElementById('toast');
-            toast.style.opacity = '1';
-            setTimeout(() => {
-                toast.style.opacity = '0';
-            }, 2000);
-        }
+            } else {
+                currentUser = null;
+                loadingSpinner.style.display = 'none';
+                notificationsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <h3>Please Login</h3>
+                        <p>You need to be logged in to see notifications.</p>
+                    </div>
+                `;
+                if (notificationListener) {
+                    notificationListener();
+                    notificationListener = null;
+                }
+            }
+        });
+
+        // Handle visibility change
+        document.addEventListener('visibilitychange', () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            if (document.hidden) {
+                db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true }).catch(() => {});
+            } else {
+                db.collection('users').doc(user.uid).set({ status: 'online' }, { merge: true }).catch(() => {});
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            const user = auth.currentUser;
+            if (user) {
+                db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true }).catch(() => {});
+            }
+        });
+
+        console.log('✅ Notifications page loaded with real-time updates');
+        console.log('🔔 Like, comment, follow, share, and friend request notifications');
+        console.log('📱 Click on any notification to view details');
+        console.log('🔄 Auto-retry on connection errors');
     </script>
 </body>
 </html>
