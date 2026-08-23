@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>SecretIntro · Online Status</title>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -185,6 +185,7 @@
             color: #050505;
             cursor: pointer;
             transition: 0.2s;
+            position: relative;
         }
         .header-icon:hover {
             background: #d8dadf;
@@ -202,6 +203,21 @@
         }
         .header .logout-btn:hover {
             background: #d8dadf;
+        }
+        /* Badge for icons */
+        .badge-icon {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e41e3f;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 12px;
+            min-width: 18px;
+            text-align: center;
+            border: 2px solid #fff;
         }
         /* ----- FULL SCREEN NAV OVERLAY ----- */
         #nav-overlay {
@@ -327,14 +343,16 @@
         }
         .badge-tab {
             position: absolute;
-            top: 4px;
-            right: 18px;
+            top: 2px;
+            right: 10px;
             background: #e41e3f;
             color: #fff;
-            font-size: 11px;
-            padding: 1px 5px;
-            border-radius: 10px;
-            font-weight: bold;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 12px;
+            min-width: 18px;
+            text-align: center;
         }
         /* Post box */
         .post-box {
@@ -355,6 +373,7 @@
         .profile-container {
             position: relative;
             cursor: pointer;
+            display: inline-block;
         }
         .online-dot {
             width: 10px;
@@ -686,6 +705,7 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             cursor: pointer;
             transition: 0.2s;
+            overflow: hidden;
         }
         .feed-post:hover {
             background: #fafafa;
@@ -701,6 +721,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            width: 100%;
         }
         .feed-post.banner-post .banner-content .post-caption {
             color: #fff;
@@ -823,12 +844,16 @@
             border-radius: 4px;
             transition: 0.2s;
             pointer-events: auto;
+            user-select: none;
         }
         .action-btn:hover {
             background: #f0f2f5;
         }
         .action-btn.liked {
             color: #1877f2;
+        }
+        .action-btn:active {
+            transform: scale(0.96);
         }
         .comments-section {
             padding: 10px 16px;
@@ -930,6 +955,8 @@
             z-index: 9999;
             display: none;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
         }
         /* Feed container */
         #feed-container {
@@ -1007,6 +1034,7 @@
             cursor: pointer;
             color: #050505;
             padding: 4px 8px;
+            flex-shrink: 0;
         }
         .post-detail-header .back-btn:hover {
             color: #1877f2;
@@ -1119,6 +1147,7 @@
             gap: 10px;
             overflow-x: hidden;
             flex-wrap: wrap;
+            width: 100%;
         }
         .post-detail-body .comment-avatar {
             width: 32px;
@@ -1132,6 +1161,7 @@
             flex-direction: column;
             flex: 1;
             min-width: 0;
+            max-width: calc(100% - 42px);
         }
         .post-detail-body .comment-bubble {
             background-color: #f0f2f5;
@@ -1207,6 +1237,7 @@
             height: 32px;
             border-radius: 50%;
             object-fit: cover;
+            flex-shrink: 0;
         }
         .post-detail-body .input-wrapper {
             flex-grow: 1;
@@ -1362,12 +1393,97 @@
             border-radius: 50%;
             margin-left: 6px;
             transition: background 0.3s;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border: 2px solid #fff;
         }
         .online-status.active {
             background: #31a24c;
         }
         .online-status.inactive {
             background: #b0b3b8;
+        }
+
+        /* Notification Popup */
+        .notif-popup {
+            position: fixed;
+            top: 70px;
+            right: 16px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            padding: 14px 18px;
+            z-index: 10000;
+            max-width: 380px;
+            width: calc(100% - 32px);
+            display: none;
+            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            border-left: 4px solid #1877f2;
+            transition: all 0.3s ease;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(120%) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+        .notif-popup .notif-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .notif-popup .notif-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .notif-popup .notif-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .notif-popup .notif-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #050505;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .notif-popup .notif-preview {
+            font-size: 13px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+        .notif-popup .notif-time {
+            font-size: 11px;
+            color: #8a8d91;
+            margin-top: 2px;
+        }
+        .notif-popup .notif-close {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            font-size: 16px;
+            color: #8a8d91;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            border-radius: 50%;
+        }
+        .notif-popup .notif-close:hover {
+            background: #f0f2f5;
         }
 
         /* ====== RESPONSIVE ====== */
@@ -1396,6 +1512,11 @@
             }
             .post-detail-body .post-stats {
                 font-size: 12px;
+            }
+            .notif-popup {
+                max-width: 320px;
+                right: 10px;
+                top: 60px;
             }
         }
         @media (max-width: 480px) {
@@ -1459,6 +1580,77 @@
                 font-size: 12px;
                 padding: 8px 10px 4px;
             }
+            .post-detail-body .feed-post.banner-post .banner-content .post-caption {
+                font-size: 16px;
+            }
+            .post-detail-body .comment-bubble-container {
+                max-width: calc(100% - 34px);
+            }
+            .notif-popup {
+                max-width: 280px;
+                right: 8px;
+                top: 56px;
+                padding: 10px 12px;
+            }
+            .notif-popup .notif-avatar {
+                width: 32px;
+                height: 32px;
+            }
+            .notif-popup .notif-name {
+                font-size: 13px;
+            }
+            .notif-popup .notif-preview {
+                font-size: 12px;
+            }
+        }
+        @media (max-width: 380px) {
+            .post-detail-body .comment-bubble-container {
+                max-width: calc(100% - 28px);
+            }
+            .post-detail-body .comment-avatar {
+                width: 24px;
+                height: 24px;
+            }
+            .post-detail-body .comment-bubble {
+                padding: 4px 8px;
+            }
+            .post-detail-body .comment-author {
+                font-size: 11px;
+            }
+            .post-detail-body .comment-text {
+                font-size: 12px;
+            }
+            .post-detail-body .feed-post.banner-post .banner-content {
+                padding: 20px 10px;
+                min-height: 80px;
+            }
+            .post-detail-body .feed-post.banner-post .banner-content .post-caption {
+                font-size: 14px;
+            }
+            .notif-popup {
+                max-width: 240px;
+                padding: 8px 10px;
+                right: 6px;
+                top: 50px;
+            }
+            .notif-popup .notif-avatar {
+                width: 28px;
+                height: 28px;
+            }
+            .notif-popup .notif-name {
+                font-size: 12px;
+            }
+            .notif-popup .notif-preview {
+                font-size: 11px;
+            }
+            .post-detail-body .comment-footer-actions {
+                font-size: 10px;
+                gap: 8px;
+            }
+            .post-detail-body .input-icons {
+                font-size: 14px;
+                gap: 2px;
+            }
         }
     </style>
 </head>
@@ -1466,6 +1658,19 @@
 
     <!-- TOAST -->
     <div id="toast" class="toast-msg"></div>
+
+    <!-- ========== NOTIFICATION POPUP ========== -->
+    <div class="notif-popup" id="notifPopup">
+        <button class="notif-close" onclick="event.stopPropagation(); closeNotif()">&times;</button>
+        <div class="notif-header" onclick="openNotifChat()">
+            <img class="notif-avatar" id="notifAvatar" src="" alt="Avatar">
+            <div class="notif-info">
+                <div class="notif-name" id="notifName">User</div>
+                <div class="notif-preview" id="notifPreview">New notification</div>
+                <div class="notif-time" id="notifTime">Just now</div>
+            </div>
+        </div>
+    </div>
 
     <!-- ========== LOGIN OVERLAY ========== -->
     <div id="login-overlay">
@@ -1497,14 +1702,14 @@
             </div>
             <div class="nav-overlay-item" onclick="openIframe('messenger.html','Messenger')">
                 <i class="fa-brands fa-facebook-messenger"></i> Messenger
-                <span class="badge">15+</span>
+                <span class="badge" id="messengerBadgeNav">0</span>
             </div>
             <div class="nav-overlay-item" onclick="openIframe('videos.html','Videos')">
                 <i class="fa-solid fa-clapperboard"></i> Videos
             </div>
             <div class="nav-overlay-item" onclick="openIframe('notifications.html','Notifications')">
                 <i class="fa-solid fa-bell"></i> Notifications
-                <span class="badge">3</span>
+                <span class="badge" id="notifBadgeNav">0</span>
             </div>
             <div class="nav-overlay-item" onclick="openIframe('settings.html','Settings')">
                 <i class="fa-solid fa-gear"></i> Settings
@@ -1578,9 +1783,17 @@
         <div class="header">
             <div class="logo" onclick="location.reload()">Secret Intro</div>
             <div class="header-icons">
-                <div class="header-icon" id="open-post-modal" title="Create Post"><i class="fa-solid fa-plus"></i></div>
+                <div style="display:none" class="header-icon" id="open-post-modal" title="Create Post"><i class="fa-solid fa-plus"></i></div>
                 <div class="header-icon" id="search-icon" title="Search"><i class="fa-solid fa-magnifying-glass"></i></div>
-                <div class="header-icon" id="nav-toggle-btn" title="Menu"><i class="fa-solid fa-bars"></i></div>
+                <div style="display:none" class="header-icon" id="notif-icon" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge-icon" id="notifBadgeHeader">0</span>
+                </div>
+                <div style="display:none" class="header-icon" id="messenger-icon" title="Messenger">
+                    <i class="fa-brands fa-facebook-messenger"></i>
+                    <span class="badge-icon" id="messengerBadgeHeader">0</span>
+                </div>
+                <div style="display:none;" class="header-icon" id="nav-toggle-btn" title="Menu"><i class="fa-solid fa-bars"></i></div>
                 <button class="logout-btn" id="logout-btn"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
@@ -1589,9 +1802,15 @@
         <div class="nav-tabs">
             <div onclick="window.location.href='home.html'" class="nav-tab active" title="Home"><i class="fa-solid fa-house"></i></div>
             <div class="nav-tab" id="tab-friends" title="Friends"><i class="fa-solid fa-user-group"></i></div>
-            <div class="nav-tab" id="tab-messenger" title="Messenger"><i class="fa-brands fa-facebook-messenger"></i><span class="badge-tab">15+</span></div>
+            <div class="nav-tab" id="tab-messenger" title="Messenger">
+                <i class="fa-brands fa-facebook-messenger"></i>
+                <span class="badge-tab" id="messengerBadgeTab">0</span>
+            </div>
             <div class="nav-tab" id="tab-videos" title="Videos"><i class="fa-solid fa-clapperboard"></i></div>
-            <div class="nav-tab" id="tab-notifications" title="Notifications"><i class="fa-solid fa-bell"></i></div>
+            <div class="nav-tab" id="tab-notifications" title="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                <span class="badge-tab" id="notifBadgeTab">0</span>
+            </div>
             <div class="nav-tab" id="nav-menu-tab" title="Menu"><i class="fa-solid fa-bars"></i></div>
         </div>
 
@@ -1666,6 +1885,27 @@
         const navMenuTab = document.getElementById('nav-menu-tab');
         const navOverlayClose = document.getElementById('nav-overlay-close');
         const headerStatusDot = document.getElementById('header-status-dot');
+        const notifPopup = document.getElementById('notifPopup');
+        const notifAvatar = document.getElementById('notifAvatar');
+        const notifName = document.getElementById('notifName');
+        const notifPreview = document.getElementById('notifPreview');
+        const notifTime = document.getElementById('notifTime');
+
+        // Badge elements
+        const notifBadgeHeader = document.getElementById('notifBadgeHeader');
+        const notifBadgeTab = document.getElementById('notifBadgeTab');
+        const notifBadgeNav = document.getElementById('notifBadgeNav');
+        const messengerBadgeHeader = document.getElementById('messengerBadgeHeader');
+        const messengerBadgeTab = document.getElementById('messengerBadgeTab');
+        const messengerBadgeNav = document.getElementById('messengerBadgeNav');
+
+        let currentUser = null;
+        let notifTimer = null;
+        let pendingNotifData = null;
+        let notifListenerUnsubscribe = null;
+        let unreadNotifCount = 0;
+        let unreadMessageCount = 0;
+        let shownNotifIds = new Set();
 
         // ========== SET USER STATUS ==========
         function setUserStatus(uid, status) {
@@ -1705,7 +1945,8 @@
                         uid: user.uid,
                         fullName: user.displayName || user.email?.split('@')[0] || 'User',
                         email: user.email || '',
-                        photoURL: user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+                        photoURL: user.photoURL ||
+                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
                         bio: 'Hey there! I\'m using Facebook Clone',
                         location: 'Rajshahi',
                         birthday: '21 March',
@@ -1788,6 +2029,188 @@
             toast.style.display = 'block';
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+        }
+
+        // ========== NOTIFICATION SYSTEM ==========
+        function playNotifSound() {
+            try {
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 880;
+                osc.type = 'sine';
+                gain.gain.value = 0.1;
+                osc.start();
+                setTimeout(() => {
+                    osc.frequency.value = 1100;
+                    setTimeout(() => { osc.stop();
+                        ctx.close(); }, 150);
+                }, 150);
+            } catch (e) { console.log('Sound error:', e); }
+        }
+
+        function showNotifPopup(senderName, preview, photoURL, timestamp, notifId) {
+            if (shownNotifIds.has(notifId)) return;
+            shownNotifIds.add(notifId);
+            if (shownNotifIds.size > 200) {
+                const arr = Array.from(shownNotifIds);
+                shownNotifIds = new Set(arr.slice(arr.length - 100));
+            }
+
+            notifAvatar.src = photoURL ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            notifName.textContent = senderName || 'User';
+            notifPreview.textContent = preview || 'New notification';
+            const time = timestamp ? new Date(timestamp) : new Date();
+            notifTime.textContent = formatTime(time);
+
+            notifPopup.style.display = 'block';
+            playNotifSound();
+
+            clearTimeout(notifTimer);
+            notifTimer = setTimeout(closeNotif, 5000);
+        }
+
+        function closeNotif() {
+            notifPopup.style.display = 'none';
+            clearTimeout(notifTimer);
+            pendingNotifData = null;
+        }
+
+        function openNotifChat() {
+            closeNotif();
+            // Navigate to notifications or messenger
+            if (pendingNotifData && pendingNotifData.type === 'message') {
+                openIframe('messenger.html', 'Messenger');
+            } else {
+                openIframe('notifications.html', 'Notifications');
+            }
+        }
+
+        function formatTime(date) {
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        // ========== START NOTIFICATION LISTENERS ==========
+        function startNotificationListeners(userId) {
+            if (notifListenerUnsubscribe) {
+                notifListenerUnsubscribe();
+                notifListenerUnsubscribe = null;
+            }
+
+            console.log('👂 Starting notification listeners for:', userId);
+
+            // Listen for new comments on user's posts
+            const postsQuery = db.collection('all-user-post')
+                .where('userId', '==', userId);
+
+            notifListenerUnsubscribe = postsQuery.onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === 'modified') {
+                        const data = change.doc.data();
+                        const postId = change.doc.id;
+                        const comments = data.comments || [];
+                        
+                        // Check for new comments
+                        if (comments.length > 0) {
+                            const lastComment = comments[comments.length - 1];
+                            // Check if comment is from someone else
+                            if (lastComment.userId && lastComment.userId !== userId) {
+                                const senderData = await getUserData(lastComment.userId);
+                                if (senderData) {
+                                    const name = senderData.fullName || senderData.firstName || 'Someone';
+                                    const photo = senderData.photoURL || '';
+                                    const preview = `💬 ${lastComment.text || 'commented on your post'}`;
+                                    const notifId = `${postId}_comment_${lastComment.id || Date.now()}`;
+                                    showNotifPopup(name, preview, photo, new Date().toISOString(), notifId);
+                                    updateNotifBadge(1);
+                                }
+                            }
+                        }
+                    }
+                });
+            }, (error) => {
+                console.error('Error listening to comments:', error);
+            });
+
+            // Listen for new likes on user's posts
+            const likesQuery = db.collection('all-user-post')
+                .where('userId', '==', userId);
+
+            likesQuery.onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === 'modified') {
+                        const data = change.doc.data();
+                        const postId = change.doc.id;
+                        const likedBy = data.likedBy || [];
+                        const previousLikedBy = change.doc.data().likedBy || [];
+                        
+                        // Check if there's a new like
+                        if (likedBy.length > previousLikedBy.length) {
+                            const newLiker = likedBy.find(id => !previousLikedBy.includes(id));
+                            if (newLiker && newLiker !== userId) {
+                                const senderData = await getUserData(newLiker);
+                                if (senderData) {
+                                    const name = senderData.fullName || senderData.firstName || 'Someone';
+                                    const photo = senderData.photoURL || '';
+                                    const preview = `❤️ liked your post`;
+                                    const notifId = `${postId}_like_${newLiker}_${Date.now()}`;
+                                    showNotifPopup(name, preview, photo, new Date().toISOString(), notifId);
+                                    updateNotifBadge(1);
+                                }
+                            }
+                        }
+                    }
+                });
+            }, (error) => {
+                console.error('Error listening to likes:', error);
+            });
+
+            // Listen for messages (unread count)
+            const messageQuery = db.collection('chats')
+                .where('participants', 'array-contains', userId);
+
+            messageQuery.onSnapshot((snapshot) => {
+                let count = 0;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const messages = data.messages || [];
+                    for (const msg of messages) {
+                        if (msg.sender !== userId && !msg.seen && !msg.deletedFor?.includes(userId)) {
+                            count++;
+                        }
+                    }
+                });
+                unreadMessageCount = count;
+                updateMessengerBadge(count);
+            }, (error) => {
+                console.error('Error listening to messages:', error);
+            });
+        }
+
+        // ========== UPDATE BADGES ==========
+        function updateNotifBadge(change) {
+            unreadNotifCount += change;
+            if (unreadNotifCount < 0) unreadNotifCount = 0;
+            const display = unreadNotifCount > 0 ? unreadNotifCount : '';
+            notifBadgeHeader.textContent = display;
+            notifBadgeTab.textContent = display;
+            notifBadgeNav.textContent = display;
+        }
+
+        function updateMessengerBadge(count) {
+            const display = count > 0 ? count : '';
+            messengerBadgeHeader.textContent = display;
+            messengerBadgeTab.textContent = display;
+            messengerBadgeNav.textContent = display;
         }
 
         // ========== STORY VIEWER ==========
@@ -1874,7 +2297,8 @@
                     text: c.text || '',
                     timestamp: c.timestamp || new Date().toISOString(),
                     replies: c.replies || [],
-                    liked: c.liked || false
+                    liked: c.liked || false,
+                    userId: c.userId || ''
                 }));
                 const postEl = createDetailPostElement(post);
                 detailBody.innerHTML = '';
@@ -1907,7 +2331,8 @@
 
             const user = auth.currentUser;
             let userName = post.userName || user?.displayName || user?.email?.split('@')[0] || 'Unknown User';
-            let userImage = post.userImage || user?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            let userImage = post.userImage || user?.photoURL ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
             let userId = post.userId || '';
 
             if (user && post.userId === user.uid) {
@@ -1924,6 +2349,8 @@
             const isBanner = post.isBanner || false;
             const bannerTheme = post.bannerTheme || 'white';
             const themeStyle = getThemeStyles(bannerTheme);
+            const userId_check = auth.currentUser?.uid;
+            const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
 
             let captionHTML = '';
             if (caption) {
@@ -2013,7 +2440,9 @@
                     </div>
                 </div>
                 <div class="post-actions">
-                    <div class="action-btn like-btn" onclick="event.stopPropagation(); handleLikePost('${post.id}', this)"><i class="fa-regular fa-thumbs-up"></i> Like</div>
+                    <div class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); handleLikePost('${post.id}', this)">
+                        ${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}
+                    </div>
                     <div class="action-btn comment-toggle-btn" onclick="event.stopPropagation();"><i class="fa-regular fa-comment"></i> Comment</div>
                     <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
                 </div>
@@ -2157,7 +2586,8 @@
             const user = auth.currentUser;
             if (!user) { showToast('Please login to comment'); return; }
             const userName = user.displayName || user.email?.split('@')[0] || 'User';
-            const userImage = user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            const userImage = user.photoURL ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
             const isReply = text.startsWith('@');
             let replyToUser = '';
             let commentText = text;
@@ -2179,7 +2609,8 @@
                     text: isReply ? commentText : text,
                     timestamp: new Date().toISOString(),
                     replies: [],
-                    liked: false
+                    liked: false,
+                    userId: user.uid
                 };
                 if (isReply) {
                     let found = false;
@@ -2193,7 +2624,8 @@
                                 userImage: userImage,
                                 text: commentText,
                                 timestamp: new Date().toISOString(),
-                                liked: false
+                                liked: false,
+                                userId: user.uid
                             });
                         }
                         return c;
@@ -2260,7 +2692,8 @@
                     const userDoc = await db.collection('users').doc(user.uid).get();
                     const userData = userDoc.exists ? userDoc.data() : {};
                     const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
-                    const userPic = user.photoURL || userData.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                    const userPic = user.photoURL || userData.photoURL ||
+                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
 
                     const userStoryDoc = await db.collection('stories').doc(user.uid).get();
                     if (userStoryDoc.exists) {
@@ -2381,6 +2814,11 @@
                                         statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
                                             'inactive');
                                     }
+                                    // Update name and photo
+                                    const nameEl = postDiv.querySelector('.post-meta h4');
+                                    const imgEl = postDiv.querySelector('.post-user-info img');
+                                    if (nameEl && data.fullName) nameEl.textContent = data.fullName;
+                                    if (imgEl && data.photoURL) imgEl.src = data.photoURL;
                                 }
                             }
                         });
@@ -2451,7 +2889,8 @@
 
             const currentUser = auth.currentUser;
             let userName = post.userName || 'Unknown User';
-            let userImage = post.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            let userImage = post.userImage ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
             let userId = post.userId || '';
             if (currentUser && post.userId === currentUser.uid) {
                 if (currentUser.displayName) userName = currentUser.displayName;
@@ -2491,12 +2930,9 @@
             const userId_check = auth.currentUser?.uid;
             const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
 
-            // Get user status from Firestore if available, default to 'inactive'
             let statusClass = 'inactive';
             if (currentUser && post.userId === currentUser.uid) {
                 statusClass = 'active';
-            } else {
-                // We'll update via real-time listener
             }
 
             div.innerHTML = `
@@ -2573,6 +3009,7 @@
         // ========== AUTH STATE ==========
         auth.onAuthStateChanged(async (user) => {
             if (user) {
+                currentUser = user;
                 await createUserDocument(user);
                 setUserStatus(user.uid, 'online');
 
@@ -2587,6 +3024,7 @@
                 loadPosts(false);
                 setupInfiniteScroll();
                 loadStories();
+                startNotificationListeners(user.uid);
 
                 // Listen to current user profile updates
                 db.collection('users').doc(user.uid).onSnapshot((doc) => {
@@ -2601,11 +3039,9 @@
                             if (headerPic) headerPic.src = data.photoURL;
                             user.updateProfile({ photoURL: data.photoURL }).catch(() => {});
                         }
-                        // Update status dot in header
                         if (headerStatusDot) {
                             headerStatusDot.className = 'online-dot' + (data.status === 'online' ? '' : ' offline');
                         }
-                        // Update status in feed posts
                         document.querySelectorAll('#feed-container .feed-post').forEach(postEl => {
                             const userIdAttr = postEl.dataset.userId;
                             if (userIdAttr === user.uid) {
@@ -2616,7 +3052,6 @@
                                 if (imgEl && data.photoURL) imgEl.src = data.photoURL;
                                 if (statusEl) statusEl.className = 'online-status active';
                             } else {
-                                // Update status for other users if their doc changes
                                 const statusEl = postEl.querySelector('.online-status');
                                 if (statusEl && data.status !== undefined) {
                                     statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
@@ -2627,7 +3062,6 @@
                     }
                 });
 
-                // Visibility change for current user
                 document.addEventListener('visibilitychange', () => {
                     if (document.hidden) {
                         setUserStatus(user.uid, 'offline');
@@ -2639,6 +3073,7 @@
                 });
 
             } else {
+                currentUser = null;
                 loginOverlay.classList.add('show');
                 const posts = feedContainer.querySelectorAll('.feed-post');
                 posts.forEach(el => el.remove());
@@ -2646,6 +3081,8 @@
                 feedLoading.innerHTML = 'Please login to see posts.';
                 if (observer) observer.disconnect();
                 if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
+                if (notifListenerUnsubscribe) { notifListenerUnsubscribe();
+                    notifListenerUnsubscribe = null; }
             }
         });
 
@@ -2685,6 +3122,8 @@
                 showToast('Logged out');
                 toggleNavOverlay(false);
                 if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
+                updateNotifBadge(-unreadNotifCount);
+                updateMessengerBadge(0);
             });
         });
 
@@ -2709,6 +3148,10 @@
         // Top icon clicks
         document.getElementById('search-icon').addEventListener('click', function(e) { e.stopPropagation();
             openIframe('search.html', 'Search'); });
+        document.getElementById('notif-icon').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('notifications.html', 'Notifications'); });
+        document.getElementById('messenger-icon').addEventListener('click', function(e) { e.stopPropagation();
+            openIframe('messenger.html', 'Messenger'); });
         document.getElementById('tab-friends').addEventListener('click', function(e) { e.stopPropagation();
             openIframe('friend-request.html', 'Friends'); });
         document.getElementById('tab-messenger').addEventListener('click', function(e) { e.stopPropagation();
@@ -2737,7 +3180,8 @@
                         await db.collection('all-user-post').add({
                             userName: userName,
                             userId: user.uid,
-                            userImage: user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                            userImage: user.photoURL ||
+                                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
                             caption: modalText.value.trim(),
                             fullText: modalText.value.trim(),
                             imageUrl: '',
@@ -2775,8 +3219,14 @@
         window.showToast = showToast;
         window.openStoryViewer = openStoryViewer;
         window.getUserData = getUserData;
+        window.closeNotif = closeNotif;
+        window.openNotifChat = openNotifChat;
 
-        console.log('🔥 Firebase connected · Online/Offline status enabled');
+        console.log('🔥 Facebook Clone with Dynamic Status & Notifications');
+        console.log('🟢 Online/offline status updates in real-time');
+        console.log('🔔 Like & comment notifications with popups');
+        console.log('💬 Unread message count on messenger icon');
+        console.log('📱 Fully responsive design');
     </script>
 
 </body>
