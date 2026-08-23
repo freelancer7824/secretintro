@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Friends</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #050505;
+        }
+
+        /* Header */
+        .fb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e4e6eb;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .fb-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fb-header-left i {
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+        }
+
+        .fb-header-left h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #050505;
+        }
+
+        .fb-header-right i {
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+            background: #f0f2f5;
+            padding: 8px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Search Bar */
+        .search-container {
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f0f2f5;
+            border-radius: 30px;
+            padding: 8px 16px;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .search-box:focus-within {
+            background: #e4e6eb;
+            box-shadow: 0 0 0 1px #1877f2;
+        }
+
+        .search-box i {
+            color: #65676b;
+            font-size: 16px;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            font-size: 15px;
+            padding: 6px 0;
+            color: #050505;
+        }
+
+        .search-box input::placeholder {
+            color: #65676b;
+        }
+
+        .search-clear {
+            color: #65676b;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .search-clear:hover {
+            background: #d8dadf;
+        }
+
+        /* Result Info */
+        .result-info {
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #65676b;
+            border-bottom: 1px solid #f0f2f5;
+            background: #ffffff;
+        }
+
+        .result-info strong {
+            color: #050505;
+        }
+
+        /* User Card (same as friends page) */
+        .user-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #ffffff;
+            transition: 0.2s;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .user-card:hover {
+            background: #f7f8fa;
+        }
+
+        .user-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-grow: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 76px;
+            height: 76px;
+            flex-shrink: 0;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 14px;
+            height: 14px;
+            background-color: #31a24c;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #050505;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mutual-friends-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mutual-avatars {
+            display: flex;
+        }
+
+        .mutual-avatars img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ffffff;
+            margin-left: -6px;
+        }
+
+        .mutual-avatars img:first-child {
+            margin-left: 0;
+        }
+
+        .mutual-text {
+            font-size: 13px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #1b74e4;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #166fe5;
+        }
+
+        .btn-primary:active {
+            background-color: #155db2;
+        }
+
+        .btn-secondary {
+            background-color: #e4e6eb;
+            color: #050505;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d8dadf;
+        }
+
+        .btn-secondary:active {
+            background-color: #c8cad0;
+        }
+
+        .btn-success {
+            background-color: #42b72a;
+            color: #ffffff;
+        }
+
+        .btn-success:hover {
+            background-color: #36a420;
+        }
+
+        .btn-danger {
+            background-color: #e41e3f;
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background-color: #c91a36;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            font-size: 14px;
+            font-weight: 600;
+            color: #65676b;
+            padding: 4px 12px;
+            background: #f0f2f5;
+            border-radius: 6px;
+        }
+
+        .status-badge.friend {
+            color: #42b72a;
+            background: #e8f5e9;
+        }
+
+        .status-badge.requested {
+            color: #f57c00;
+            background: #fff3e0;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #65676b;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #ccd0d5;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #050505;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+        }
+
+        .loading-spinner i {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        /* Load More */
+        .load-more-container {
+            text-align: center;
+            padding: 16px;
+        }
+
+        .load-more-btn {
+            background: #f0f2f5;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #050505;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .load-more-btn:hover {
+            background: #e4e6eb;
+        }
+
+        .load-more-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Toast */
+        .toast-msg {
+            background: #333;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        @media (max-width: 500px) {
+            .avatar-container {
+                width: 60px;
+                height: 60px;
+            }
+            .user-name {
+                font-size: 14px;
+            }
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .mutual-text {
+                font-size: 11px;
+            }
+            .user-card {
+                padding: 8px 12px;
+            }
+            .fb-header-left h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast-msg"></div>
+
+    <!-- Header -->
+    <div class="fb-header">
+        <div class="fb-header-left">
+            <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
+            <h1>Search</h1>
+        </div>
+        <div class="fb-header-right">
+            <i class="fa-solid fa-sliders" onclick="showToast('Filter coming soon')"></i>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search friends by name..." autocomplete="off">
+            <span class="search-clear" id="clearBtn" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+    </div>
+
+    <!-- Result Info -->
+    <div class="result-info" id="resultInfo">
+        Showing <strong id="showingCount">0</strong> results
+    </div>
+
+    <!-- Results List -->
+    <div id="resultsList">
+        <!-- Dynamically rendered -->
+    </div>
+
+    <!-- Load More -->
+    <div class="load-more-container" id="loadMoreContainer" style="display:none;">
+        <button class="load-more-btn" onclick="loadMore()">
+            <i class="fa-solid fa-chevron-down"></i> Load more
+        </button>
+    </div>
+
+    <script>
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========== DOM REFS ==========
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultsList = document.getElementById('resultsList');
+        const showingCount = document.getElementById('showingCount');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const resultInfo = document.getElementById('resultInfo');
+
+        let currentUserId = null;
+        let allUsers = [];               // full list of users (cached)
+        let filteredUsers = [];          // users matching search (full)
+        let displayedCount = 0;          // how many are currently shown
+        const PAGE_SIZE = 20;
+        let searchTerm = '';
+        let isLoadingMore = false;
+        let toastTimer;
+
+        // ========== TOAST ==========
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ========== GO BACK ==========
+        function goBack() {
+            if (window.parent && window.parent.closeIframe) {
+                window.parent.closeIframe();
+            } else {
+                history.back();
+            }
+        }
+
+        // ========== ESCAPE HTML ==========
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ========== CACHE HELPERS ==========
+        function getCache(key) {
+            try {
+                const data = localStorage.getItem('fb_search_' + key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed.timestamp && Date.now() - parsed.timestamp < 300000) {
+                        return parsed.data;
+                    }
+                }
+                return null;
+            } catch { return null; }
+        }
+
+        function setCache(key, data) {
+            try {
+                localStorage.setItem('fb_search_' + key, JSON.stringify({
+                    data: data,
+                    timestamp: Date.now()
+                }));
+            } catch {}
+        }
+
+        // ========== GET USER DATA WITH CACHE ==========
+        async function getUserData(uid) {
+            const cacheKey = 'user_' + uid;
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            try {
+                const doc = await db.collection('users').doc(uid).get();
+                if (doc.exists) {
+                    const data = { id: uid, ...doc.data() };
+                    setCache(cacheKey, data);
+                    return data;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error fetching user:', error);
+                return null;
+            }
+        }
+
+        // ========== GET ALL USERS EXCEPT CURRENT WITH CACHE ==========
+        async function getAllUsersExcept(currentUid) {
+            const cacheKey = 'all_users_except_' + currentUid;
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            try {
+                const snapshot = await db.collection('users').get();
+                const users = [];
+                snapshot.forEach(doc => {
+                    if (doc.id !== currentUid) {
+                        users.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                setCache(cacheKey, users);
+                return users;
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                return [];
+            }
+        }
+
+        // ========== GET MUTUAL FRIENDS COUNT WITH CACHE ==========
+        async function getMutualFriendsCount(currentUid, targetUid) {
+            const cacheKey = 'mutual_' + currentUid + '_' + targetUid;
+            const cached = getCache(cacheKey);
+            if (cached !== null) return cached;
+
+            try {
+                const currentDoc = await db.collection('users').doc(currentUid).get();
+                const targetDoc = await db.collection('users').doc(targetUid).get();
+                
+                if (!currentDoc.exists || !targetDoc.exists) return 0;
+                
+                const currentFriends = currentDoc.data().friends || [];
+                const targetFriends = targetDoc.data().friends || [];
+                
+                let mutual = 0;
+                if (currentFriends.length > 0 && typeof currentFriends[0] === 'string') {
+                    mutual = currentFriends.filter(id => targetFriends.includes(id)).length;
+                }
+                
+                setCache(cacheKey, mutual);
+                return mutual;
+            } catch (error) {
+                console.error('Error calculating mutual friends:', error);
+                return 0;
+            }
+        }
+
+        // ========== GET MUTUAL FRIEND AVATARS WITH CACHE ==========
+        async function getMutualFriendAvatars(currentUid, targetUid, limit = 2) {
+            const cacheKey = 'mutual_avatars_' + currentUid + '_' + targetUid;
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            try {
+                const currentDoc = await db.collection('users').doc(currentUid).get();
+                const targetDoc = await db.collection('users').doc(targetUid).get();
+                
+                if (!currentDoc.exists || !targetDoc.exists) return [];
+                
+                const currentFriends = currentDoc.data().friends || [];
+                const targetFriends = targetDoc.data().friends || [];
+                
+                const mutual = currentFriends.filter(id => targetFriends.includes(id));
+                const avatars = [];
+                
+                for (const uid of mutual.slice(0, limit)) {
+                    const userData = await getUserData(uid);
+                    if (userData) {
+                        avatars.push(userData.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80');
+                    }
+                }
+                
+                setCache(cacheKey, avatars);
+                return avatars;
+            } catch (error) {
+                console.error('Error getting mutual avatars:', error);
+                return [];
+            }
+        }
+
+        // ========== CHECK FRIEND STATUS ==========
+        async function getFriendStatus(currentUid, targetUid) {
+            try {
+                const doc = await db.collection('users').doc(currentUid).get();
+                if (!doc.exists) return 'none';
+                const data = doc.data();
+                const friends = data.friends || [];
+                const friendRequests = data.friendRequests || [];
+                const friendRequestsFrom = data.friendRequestsFrom || [];
+
+                if (friends.includes(targetUid)) return 'friend';
+                if (friendRequests.includes(targetUid)) return 'requested';
+                if (friendRequestsFrom.includes(targetUid)) return 'received';
+                return 'none';
+            } catch {
+                return 'none';
+            }
+        }
+
+        // ========== RENDER SEARCH RESULTS ==========
+        async function renderResults(usersToShow, isAppend = false) {
+            if (usersToShow.length === 0) {
+                if (!isAppend) {
+                    resultsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-regular fa-user"></i>
+                            <h3>No users found</h3>
+                            <p>Try a different name</p>
+                        </div>
+                    `;
+                    loadMoreContainer.style.display = 'none';
+                }
+                return;
+            }
+
+            // Load user data in parallel
+            const userPromises = usersToShow.map(user => getUserData(user.id));
+            const users = await Promise.all(userPromises);
+            
+            const mutualPromises = usersToShow.map(user => getMutualFriendsCount(currentUserId, user.id));
+            const mutualCounts = await Promise.all(mutualPromises);
+            
+            const avatarPromises = usersToShow.map(user => getMutualFriendAvatars(currentUserId, user.id));
+            const avatarResults = await Promise.all(avatarPromises);
+
+            // Get friend status for each
+            const statusPromises = usersToShow.map(user => getFriendStatus(currentUserId, user.id));
+            const statuses = await Promise.all(statusPromises);
+
+            let html = '';
+            for (let i = 0; i < usersToShow.length; i++) {
+                const user = users[i];
+                if (!user) continue;
+
+                const status = statuses[i];
+                let actionHtml = '';
+
+                if (status === 'friend') {
+                    actionHtml = `
+                        <span class="status-badge friend"><i class="fa-solid fa-check-circle"></i> Friends</span>
+                        <button class="btn btn-danger" onclick="unfriendUser('${user.id}')"><i class="fa-solid fa-user-minus"></i> Unfriend</button>
+                    `;
+                } else if (status === 'requested') {
+                    actionHtml = `
+                        <span class="status-badge requested"><i class="fa-solid fa-clock"></i> Requested</span>
+                        <button class="btn btn-secondary" onclick="cancelFriendRequest('${user.id}')">Cancel</button>
+                    `;
+                } else if (status === 'received') {
+                    actionHtml = `
+                        <button class="btn btn-primary" onclick="acceptFriendRequest('${user.id}')"><i class="fa-solid fa-check"></i> Confirm</button>
+                        <button class="btn btn-secondary" onclick="rejectFriendRequest('${user.id}')"><i class="fa-solid fa-xmark"></i> Delete</button>
+                    `;
+                } else {
+                    actionHtml = `
+                        <button class="btn btn-primary" onclick="sendFriendRequest('${user.id}')"><i class="fa-solid fa-user-plus"></i> Add friend</button>
+                    `;
+                }
+
+                html += `
+                    <div class="user-card" data-uid="${user.id}">
+                        <div class="user-left" onclick="openProfile('${user.id}')">
+                            <div class="avatar-container">
+                                <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="${escapeHTML(user.fullName || 'User')}">
+                                ${user.status === 'online' ? '<div class="online-dot"></div>' : ''}
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">${escapeHTML(user.fullName || user.email || 'User')}</div>
+                                <div class="mutual-friends-row">
+                                    <div class="mutual-avatars">
+                                        ${avatarResults[i].map(img => `<img src="${img}" alt="mutual">`).join('')}
+                                    </div>
+                                    <span class="mutual-text">${mutualCounts[i]} mutual friends</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            ${actionHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (isAppend) {
+                resultsList.innerHTML += html;
+            } else {
+                resultsList.innerHTML = html;
+            }
+
+            // Update showing count
+            showingCount.textContent = displayedCount;
+
+            // Show/hide load more
+            if (displayedCount < filteredUsers.length) {
+                loadMoreContainer.style.display = 'block';
+            } else {
+                loadMoreContainer.style.display = 'none';
+            }
+        }
+
+        // ========== PERFORM SEARCH ==========
+        async function performSearch(term) {
+            searchTerm = term.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                filteredUsers = [];
+                displayedCount = 0;
+                resultsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-regular fa-search"></i>
+                        <h3>Search for friends</h3>
+                        <p>Type a name to find people</p>
+                    </div>
+                `;
+                loadMoreContainer.style.display = 'none';
+                showingCount.textContent = '0';
+                return;
+            }
+
+            // Filter allUsers by name (fullName or email)
+            filteredUsers = allUsers.filter(user => {
+                const name = (user.fullName || '').toLowerCase();
+                const email = (user.email || '').toLowerCase();
+                return name.includes(searchTerm) || email.includes(searchTerm);
+            });
+
+            displayedCount = Math.min(PAGE_SIZE, filteredUsers.length);
+            const initialBatch = filteredUsers.slice(0, displayedCount);
+            
+            await renderResults(initialBatch, false);
+        }
+
+        // ========== LOAD MORE ==========
+        async function loadMore() {
+            if (isLoadingMore) return;
+            if (displayedCount >= filteredUsers.length) return;
+
+            isLoadingMore = true;
+            const btn = document.querySelector('.load-more-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+
+            const nextBatch = filteredUsers.slice(displayedCount, displayedCount + PAGE_SIZE);
+            displayedCount = Math.min(displayedCount + PAGE_SIZE, filteredUsers.length);
+
+            await renderResults(nextBatch, true);
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i> Load more';
+            isLoadingMore = false;
+        }
+
+        // ========== CLEAR SEARCH ==========
+        function clearSearch() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            performSearch('');
+            searchInput.focus();
+        }
+
+        // ========== FRIEND REQUEST ACTIONS ==========
+        async function sendFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            const btn = event?.target?.closest?.('.btn') || document.querySelector(`.user-card[data-uid="${uid}"] .btn-primary`);
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...'; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayUnion(uid)
+                });
+                await db.collection('users').doc(uid).update({
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+                localStorage.removeItem('fb_search_user_' + currentUser.uid);
+                localStorage.removeItem('fb_search_all_users_except_' + currentUser.uid);
+                showToast('✅ Friend request sent!');
+                // Re-render current view
+                await performSearch(searchTerm);
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                showToast('Error: ' + error.message);
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add friend'; }
+            }
+        }
+
+        async function acceptFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(uid),
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+                await db.collection('users').doc(uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+                localStorage.removeItem('fb_search_user_' + currentUser.uid);
+                localStorage.removeItem('fb_search_all_users_except_' + currentUser.uid);
+                showToast('✅ Friend request accepted!');
+                await performSearch(searchTerm);
+            } catch (error) {
+                console.error('Error accepting friend request:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        async function rejectFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+                await db.collection('users').doc(uid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+                localStorage.removeItem('fb_search_user_' + currentUser.uid);
+                showToast('Friend request rejected');
+                await performSearch(searchTerm);
+            } catch (error) {
+                console.error('Error rejecting friend request:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        async function unfriendUser(uid) {
+            if (!confirm('Are you sure you want to unfriend this person?')) return;
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+                await db.collection('users').doc(uid).update({
+                    friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+                localStorage.removeItem('fb_search_user_' + currentUser.uid);
+                localStorage.removeItem('fb_search_all_users_except_' + currentUser.uid);
+                showToast('Unfriended successfully');
+                await performSearch(searchTerm);
+            } catch (error) {
+                console.error('Error unfriending:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        async function cancelFriendRequest(uid) {
+            const currentUser = auth.currentUser;
+            if (!currentUser) { showToast('Please login first'); return; }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(uid)
+                });
+                await db.collection('users').doc(uid).update({
+                    friendRequestsFrom: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+                localStorage.removeItem('fb_search_user_' + currentUser.uid);
+                showToast('Request cancelled');
+                await performSearch(searchTerm);
+            } catch (error) {
+                console.error('Error cancelling request:', error);
+                showToast('Error: ' + error.message);
+            }
+        }
+
+        // ========== OPEN PROFILE ==========
+        function openProfile(uid) {
+            if (window.parent && window.parent.openProfileIframe) {
+                window.parent.openProfileIframe(uid);
+            } else {
+                window.location.href = `profile.html?user=${uid}`;
+            }
+        }
+
+        // ========== LOAD ALL USERS ==========
+        async function loadAllUsers(uid) {
+            currentUserId = uid;
+            allUsers = await getAllUsersExcept(uid);
+            // If there's a search term, re-run search
+            if (searchTerm) {
+                await performSearch(searchTerm);
+            } else {
+                // Show empty state
+                resultsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-regular fa-search"></i>
+                        <h3>Search for friends</h3>
+                        <p>Type a name to find people</p>
+                    </div>
+                `;
+                loadMoreContainer.style.display = 'none';
+                showingCount.textContent = '0';
+            }
+        }
+
+        // ========== SETUP SEARCH INPUT ==========
+        function setupSearchInput() {
+            let debounceTimer;
+            searchInput.addEventListener('input', function() {
+                const val = this.value;
+                if (val.trim()) {
+                    clearBtn.style.display = 'block';
+                } else {
+                    clearBtn.style.display = 'none';
+                }
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    performSearch(val);
+                }, 300);
+            });
+
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    clearTimeout(debounceTimer);
+                    performSearch(this.value);
+                }
+            });
+        }
+
+        // ========== AUTH STATE ==========
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                await db.collection('users').doc(user.uid).set({ status: 'online' }, { merge: true });
+                await loadAllUsers(user.uid);
+                setupSearchInput();
+
+                window.addEventListener('beforeunload', () => {
+                    db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
+                });
+
+                console.log('🔥 Search page loaded for:', user.uid);
+            } else {
+                showToast('Please login to search');
+                setTimeout(() => {
+                    if (window.parent && window.parent.location) {
+                        window.parent.location.href = 'index.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }, 1500);
+            }
+        });
+
+        console.log('🔥 Search Page with pagination (20 per load)');
+        console.log('✅ Real-time friend status');
+        console.log('✅ Cached user data for speed');
+    </script>
+
+</body>
+</html>
