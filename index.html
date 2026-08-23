@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Facebook · User Status</title>
+  <title>Facebook · Real-Time Status</title>
   
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -355,7 +355,7 @@
   <iframe 
     class="fullscreen-iframe" 
     id="mainIframe"
-    src="index.html" 
+    src="homepage.html" 
     title="Facebook Clone"
     allowfullscreen
     loading="eager"
@@ -390,6 +390,7 @@
     const notifTime = document.getElementById('notifTime');
     const notifCount = document.getElementById('notifCount');
 
+    // ========== STATE ==========
     let toastTimer = null;
     let statusUpdateInterval = null;
     let iframeLoaded = false;
@@ -398,13 +399,16 @@
     let isFirstLoad = true;
     let notifTimer = null;
     let pendingNotifData = null;
-    let notifQueue = [];
     let isNotifShowing = false;
     let lastNotifSender = null;
     let lastNotifTime = 0;
     let messageListenerUnsubscribe = null;
     let currentUser = null;
     let shownMessageIds = new Set();
+    let allUsersStatusListener = null;
+    let onlineUsers = new Set();
+    let isPageVisible = true;
+    let hasSetOffline = false;
 
     // ========== SLOW PROGRESS SIMULATION ==========
     function startSlowProgress() {
@@ -433,9 +437,9 @@
         loadingOverlay.classList.add('hidden');
         mainIframe.classList.add('loaded');
         isFirstLoad = false;
-        // Start listening for messages after load
         if (currentUser) {
           startMessageListener(currentUser.uid);
+          startAllUsersStatusListener();
         }
       }, 600);
     }
@@ -473,10 +477,8 @@
     }
 
     function showNotification(senderId, senderName, message, photoURL, timestamp, messageCount) {
-      // Don't show if it's the same sender and within 2 seconds
       const now = Date.now();
       if (lastNotifSender === senderId && now - lastNotifTime < 2000) {
-        // Update the existing notification with new message count
         if (notifPopup.style.display === 'block') {
           updateExistingNotification(senderName, message, messageCount);
         }
@@ -486,26 +488,22 @@
       lastNotifSender = senderId;
       lastNotifTime = now;
 
-      // Store for click action
       pendingNotifData = {
         senderId: senderId,
         senderName: senderName,
         photoURL: photoURL
       };
 
-      // Check if we already showed this exact message (prevent duplicates)
       const msgId = `${senderId}_${message}_${timestamp}`;
       if (shownMessageIds.has(msgId)) {
         return;
       }
       shownMessageIds.add(msgId);
-      // Keep the set from growing too large
       if (shownMessageIds.size > 200) {
         const entries = Array.from(shownMessageIds);
         shownMessageIds = new Set(entries.slice(entries.length - 100));
       }
 
-      // Update popup content
       notifAvatar.src = photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
       notifName.textContent = senderName || 'User';
       
@@ -513,11 +511,9 @@
       if (previewText.length > 60) previewText = previewText.substring(0, 60) + '...';
       notifPreview.textContent = previewText;
 
-      // Format time
       const msgTime = timestamp ? new Date(timestamp) : new Date();
       notifTime.textContent = formatTime(msgTime);
 
-      // Show message count if multiple messages
       if (messageCount && messageCount > 1) {
         notifCount.style.display = 'block';
         notifCount.textContent = `📨 ${messageCount} new messages`;
@@ -527,14 +523,10 @@
         notifPopup.classList.remove('multiple');
       }
 
-      // Play sound
       playNotifSound();
-
-      // Show popup with animation
       notifPopup.style.display = 'block';
       isNotifShowing = true;
 
-      // Auto-hide after 5 seconds
       clearTimeout(notifTimer);
       notifTimer = setTimeout(() => {
         closeNotif();
@@ -542,7 +534,6 @@
     }
 
     function updateExistingNotification(senderName, message, messageCount) {
-      // Update preview with latest message
       let previewText = message || 'New message';
       if (previewText.length > 60) previewText = previewText.substring(0, 60) + '...';
       notifPreview.textContent = previewText;
@@ -553,7 +544,6 @@
         notifPopup.classList.add('multiple');
       }
       
-      // Reset timer
       clearTimeout(notifTimer);
       notifTimer = setTimeout(() => {
         closeNotif();
@@ -570,12 +560,9 @@
     function openNotifChat() {
       if (pendingNotifData && pendingNotifData.senderId) {
         closeNotif();
-        // Navigate to chat with the sender
         const senderId = pendingNotifData.senderId;
-        // Try to open in iframe
         try {
           const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
-          // Look for chat list and click the matching chat
           const chatItems = iframeDoc.querySelectorAll('.chat-item');
           let found = false;
           for (const item of chatItems) {
@@ -586,12 +573,10 @@
             }
           }
           if (!found) {
-            // If not found, try to navigate to messages page
             mainIframe.src = `messages.html?user=${senderId}`;
           }
         } catch (e) {
           console.log('Could not open chat in iframe:', e);
-          // Fallback: navigate directly
           mainIframe.src = `messages.html?user=${senderId}`;
         }
       }
@@ -616,11 +601,10 @@
 
       console.log('👂 Starting message listener for user:', userId);
 
-      // Listen for chats where the user is a participant
       const chatQuery = db.collection('chats')
         .where('participants', 'array-contains', userId);
 
-      let lastProcessedMessages = new Map(); // chatId -> last message timestamp
+      let lastProcessedMessages = new Map();
 
       messageListenerUnsubscribe = chatQuery.onSnapshot(async (snapshot) => {
         for (const doc of snapshot.docs) {
@@ -628,36 +612,26 @@
           const messages = data.messages || [];
           if (messages.length === 0) continue;
 
-          // Get the last message
           const lastMsg = messages[messages.length - 1];
           
-          // Skip if message is from current user
           if (lastMsg.sender === userId) continue;
-
-          // Skip if already seen
           if (lastMsg.seen) continue;
-
-          // Skip if deleted for self
           if (lastMsg.deletedFor && lastMsg.deletedFor.includes(userId)) continue;
 
-          // Check if we already processed this message
           const chatId = doc.id;
           const msgKey = `${chatId}_${lastMsg.timestamp || lastMsg.time}`;
           if (lastProcessedMessages.has(chatId) && lastProcessedMessages.get(chatId) === msgKey) {
             continue;
           }
 
-          // Get sender info
           const senderData = await getUserData(lastMsg.sender);
           if (!senderData) continue;
 
-          // Get message preview text
           let previewText = lastMsg.text || '📎 File';
           if (lastMsg.imageUrl) previewText = '📷 Image';
           if (lastMsg.videoUrl) previewText = '🎥 Video';
           if (lastMsg.audioUrl) previewText = '🎤 Voice';
 
-          // Count unread messages from this sender
           let unreadCount = 0;
           for (const msg of messages) {
             if (msg.sender === lastMsg.sender && !msg.seen && !msg.deletedFor?.includes(userId)) {
@@ -665,7 +639,6 @@
             }
           }
 
-          // Show notification
           const senderName = senderData.fullName || senderData.firstName || 'User';
           const photoURL = senderData.photoURL || '';
           
@@ -678,11 +651,7 @@
             unreadCount
           );
 
-          // Mark as processed
           lastProcessedMessages.set(chatId, msgKey);
-
-          // Only show one notification at a time (but update existing)
-          // The showNotification function handles updating
         }
       }, (error) => {
         console.error('Error listening to messages:', error);
@@ -711,6 +680,7 @@
     // ========== UPDATE USER STATUS ==========
     async function setUserOnline(user) {
       if (!user) return;
+      hasSetOffline = false;
       try {
         await db.collection('users').doc(user.uid).set({
           status: 'online',
@@ -724,7 +694,8 @@
     }
 
     async function setUserOffline(user) {
-      if (!user) return;
+      if (!user || hasSetOffline) return;
+      hasSetOffline = true;
       try {
         await db.collection('users').doc(user.uid).set({
           status: 'offline',
@@ -734,7 +705,60 @@
         console.log('👤 User status set to offline:', user.uid);
       } catch (error) {
         console.error('Error setting user offline:', error);
+        hasSetOffline = false;
       }
+    }
+
+    // ========== LISTEN TO ALL USERS STATUS ==========
+    function startAllUsersStatusListener() {
+      if (allUsersStatusListener) {
+        allUsersStatusListener();
+        allUsersStatusListener = null;
+      }
+
+      console.log('👀 Starting all users status listener');
+
+      allUsersStatusListener = db.collection('users')
+        .onSnapshot((snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'modified' || change.type === 'added') {
+              const data = change.doc.data();
+              const uid = change.doc.id;
+              const status = data.status || 'offline';
+              
+              try {
+                const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+                if (!iframeDoc) return;
+                
+                // Update all status indicators in the iframe
+                if (uid === currentUser?.uid) {
+                  const headerDot = iframeDoc.querySelector('#header-status-dot');
+                  if (headerDot) {
+                    headerDot.className = 'online-dot' + (status === 'online' ? '' : ' offline');
+                  }
+                  const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
+                  statusEls.forEach(el => {
+                    el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
+                  });
+                } else {
+                  const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
+                  statusEls.forEach(el => {
+                    el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
+                  });
+                  
+                  const profileDots = iframeDoc.querySelectorAll(`.profile-container[data-userid="${uid}"] .online-dot`);
+                  profileDots.forEach(el => {
+                    el.className = 'online-dot' + (status === 'online' ? '' : ' offline');
+                  });
+                }
+              } catch (e) {
+                // Iframe not accessible yet
+              }
+            }
+          });
+        }, (error) => {
+          console.error('Error listening to all users status:', error);
+        });
     }
 
     // ========== CHECK IFRAME LOADED ==========
@@ -757,6 +781,56 @@
       }
     }
 
+    // ========== INJECT STATUS STYLES INTO IFRAME ==========
+    function injectStatusStyles() {
+      try {
+        const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+        if (!iframeDoc) return;
+        
+        let styleEl = iframeDoc.querySelector('#status-style-inject');
+        if (!styleEl) {
+          styleEl = iframeDoc.createElement('style');
+          styleEl.id = 'status-style-inject';
+          styleEl.textContent = `
+            .online-status {
+              display: inline-block;
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              margin-left: 6px;
+              transition: background 0.3s;
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              border: 2px solid #fff;
+            }
+            .online-status.active {
+              background: #31a24c;
+            }
+            .online-status.inactive {
+              background: #b0b3b8;
+            }
+            .online-dot {
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              border: 2px solid #fff;
+              transition: background 0.3s;
+            }
+            .online-dot.offline {
+              background: #b0b3b8;
+            }
+          `;
+          iframeDoc.head.appendChild(styleEl);
+        }
+      } catch (e) {
+        // Iframe not accessible yet
+      }
+    }
+
     // ========== MAIN AUTH HANDLER ==========
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -770,21 +844,44 @@
           setUserOnline(user);
         }, 30000);
 
-        document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) {
+        // Handle visibility change
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            setUserOffline(user);
+          } else {
             setUserOnline(user);
           }
-        });
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        window.addEventListener('beforeunload', () => {
+        // Handle page unload
+        const handleBeforeUnload = () => {
           setUserOffline(user);
-        });
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Handle page hide (for mobile)
+        const handlePageHide = () => {
+          setUserOffline(user);
+        };
+        window.addEventListener('pagehide', handlePageHide);
+
+        // Handle iframe load
+        const handleIframeLoad = () => {
+          setUserOnline(user);
+          if (!iframeLoaded) {
+            setTimeout(() => injectStatusStyles(), 300);
+          }
+        };
+        mainIframe.addEventListener('load', handleIframeLoad);
 
         startSlowProgress();
 
         const loadCheckInterval = setInterval(() => {
           if (checkIframeLoaded()) {
             clearInterval(loadCheckInterval);
+            setTimeout(() => injectStatusStyles(), 500);
+            startAllUsersStatusListener();
           }
         }, 800);
 
@@ -792,15 +889,34 @@
           if (!iframeLoaded) {
             iframeLoaded = true;
             completeProgress();
+            setTimeout(() => injectStatusStyles(), 500);
+            startAllUsersStatusListener();
             console.log('⚠️ Fallback: Forced load completion');
           }
         }, 15000);
+
+        // Cleanup function
+        window._cleanupStatus = () => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+          window.removeEventListener('pagehide', handlePageHide);
+          mainIframe.removeEventListener('load', handleIframeLoad);
+        };
 
       } else {
         currentUser = null;
         loadingOverlay.classList.add('hidden');
         mainIframe.classList.add('loaded');
         showToast('🔑 Please login to Facebook');
+
+        if (allUsersStatusListener) {
+          allUsersStatusListener();
+          allUsersStatusListener = null;
+        }
+        if (messageListenerUnsubscribe) {
+          messageListenerUnsubscribe();
+          messageListenerUnsubscribe = null;
+        }
 
         setTimeout(() => {
           mainIframe.src = 'homepage.html';
@@ -817,12 +933,17 @@
           loadingOverlay.classList.remove('hidden');
           startSlowProgress();
           setTimeout(() => {
-            checkIframeLoaded();
+            if (checkIframeLoaded()) {
+              setTimeout(() => injectStatusStyles(), 500);
+              startAllUsersStatusListener();
+            }
           }, 2000);
         }
-        // Restart message listener if needed
         if (user.uid) {
           startMessageListener(user.uid);
+          if (iframeLoaded) {
+            setTimeout(() => injectStatusStyles(), 300);
+          }
         }
       }
     });
@@ -852,7 +973,7 @@
       }
       
       if (params.userId && !params.page) {
-        url = `profile.html?user=${params.userId}`;
+        url = `massages.html?user=${params.userId}`;
       }
 
       if (mainIframe.src !== url && !mainIframe.src.includes(url)) {
@@ -877,12 +998,14 @@
       }
     });
 
-    console.log('✅ Facebook · User Status Active with Smart Notifications');
-    console.log('🟢 User status is being tracked in Firebase');
-    console.log('🔔 Message notifications will appear as popups');
+    console.log('✅ Facebook · Real-time Status with All Users');
+    console.log('🟢 All users status tracked in Firebase');
+    console.log('🔔 Message notifications appear as popups');
     console.log('📨 Only shows once per message - no duplicates');
-    console.log('🔄 Offline messages shown when coming online');
+    console.log('🔄 Status updates instantly when users open/close');
     console.log('📱 Click notification to open chat');
+    console.log('👀 Everyone sees real-time online/offline status');
+    console.log('📌 Proper cleanup on page unload/visibility change');
   </script>
 </body>
 </html>
