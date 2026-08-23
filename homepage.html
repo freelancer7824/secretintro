@@ -2631,7 +2631,7 @@ function renderStories() {
     // Add "Create Story" button
     const createCard = document.createElement('div');
     createCard.className = 'story-card create-story';
-    createCard.onclick = () => openIframe('create-story.html', 'Create Story');
+    createCard.onclick = () => openIframe('story/create-story.html', 'Create Story');
     createCard.innerHTML = `
         <img src="${auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}" alt="Create Story">
         <div class="create-story-content">
