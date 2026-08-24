@@ -286,6 +286,15 @@
             margin-top: 2px;
         }
 
+        /* blocked name error - extra style */
+        .error-message.blocked {
+            background: #ffe5e5;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border-left: 4px solid #e41e3f;
+            font-weight: 500;
+        }
+
         @media (max-width: 500px) {
             .signup-container {
                 padding: 24px 16px;
@@ -327,7 +336,7 @@
 
     <div class="signup-container">
         <div class="signup-header">
-            <div class="logo">facebook</div>
+            <div class="logo">SecretIntro</div>
             <h2>Create a new account</h2>
             <p>It's quick and easy.</p>
         </div>
@@ -559,6 +568,19 @@
             }
         });
 
+        // ========== BLOCKED NAME CHECK ==========
+        function isNameBlocked(first, last) {
+            // Combine first + last (trimmed, case-insensitive) and check if it contains "SecretIntro" (ignoring spaces, symbols, case)
+            const full = (first + last).replace(/[\s\-_\.\,\!\@\#\$\%\^\&\*\(\)\+\=\[\]\{\}\\\|\;\:\'\"\<\>\/\?]/g, '').toLowerCase();
+            // Also check the raw combined string (without removing spaces/symbols) for exact match pattern
+            const rawCombined = (first + last).toLowerCase();
+            // Block if the normalized string contains "secretintro" OR if raw combined contains "secretintro" (with possible spaces/symbols)
+            if (full.includes('secretintro')) return true;
+            // Extra: if rawCombined includes "secretintro" (case insensitive)
+            if (rawCombined.includes('secretintro')) return true;
+            return false;
+        }
+
         // ========== VALIDATION ==========
         function validateField(input, errorEl, condition, message) {
             if (!condition) {
@@ -584,6 +606,30 @@
                 lastName.value.trim().length >= 2,
                 'Last name must be at least 2 characters'
             );
+
+            // ---- BLOCKED NAME CHECK (SecretIntro) ----
+            const firstVal = firstName.value.trim();
+            const lastVal = lastName.value.trim();
+            if (isNameBlocked(firstVal, lastVal)) {
+                // Show custom blocked error on firstNameError (or we can use a separate)
+                firstNameError.textContent = '⚠️ This name is not allowed. Please choose a different name.';
+                firstNameError.classList.add('show', 'blocked');
+                isValid = false;
+            } else {
+                // If no blocked, ensure we remove blocked style
+                if (firstNameError.classList.contains('blocked')) {
+                    firstNameError.classList.remove('blocked');
+                }
+                // Also re-check if length error should show (but we already validated above)
+                // In case blocked was removed but length error also needs to be shown
+                if (firstName.value.trim().length < 2) {
+                    firstNameError.textContent = 'First name must be at least 2 characters';
+                    firstNameError.classList.add('show');
+                    isValid = false;
+                } else {
+                    firstNameError.classList.remove('show');
+                }
+            }
 
             // Email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -636,6 +682,7 @@
         async function signupUser(e) {
             e.preventDefault();
 
+            // Re-validate including blocked name
             if (!validateForm()) {
                 showToast('Please fix all errors before continuing');
                 return;
@@ -719,19 +766,30 @@
         // ========== EVENT LISTENERS ==========
         form.addEventListener('submit', signupUser);
 
-        // Real-time validation on input
-        firstName.addEventListener('input', () => {
-            if (firstName.value.trim().length >= 2) {
-                firstNameError.classList.remove('show');
+        // Real-time validation on input (with blocked name check on firstName and lastName)
+        function checkNameBlock() {
+            const firstVal = firstName.value.trim();
+            const lastVal = lastName.value.trim();
+            if (isNameBlocked(firstVal, lastVal)) {
+                firstNameError.textContent = '⚠️ This name is not allowed. Please choose a different name.';
+                firstNameError.classList.add('show', 'blocked');
+            } else {
+                if (firstNameError.classList.contains('blocked')) {
+                    firstNameError.classList.remove('blocked');
+                }
+                if (firstVal.length >= 2) {
+                    firstNameError.classList.remove('show');
+                } else {
+                    firstNameError.textContent = 'First name must be at least 2 characters';
+                    firstNameError.classList.add('show');
+                }
             }
-        });
+        }
 
-        lastName.addEventListener('input', () => {
-            if (lastName.value.trim().length >= 2) {
-                lastNameError.classList.remove('show');
-            }
-        });
+        firstName.addEventListener('input', checkNameBlock);
+        lastName.addEventListener('input', checkNameBlock);
 
+        // Other real-time validation
         email.addEventListener('input', () => {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (emailRegex.test(email.value.trim())) {
@@ -753,7 +811,7 @@
             }
         });
 
-        console.log('🔥 Facebook Signup Page Ready!');
+        console.log('🔥 Facebook Signup Page Ready! (SecretIntro blocked)');
     </script>
 </body>
 </html>
