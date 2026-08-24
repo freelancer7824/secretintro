@@ -28,8 +28,47 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         
+        /* ===== SWIPE TO REFRESH INDICATOR ===== */
+        #swipe-refresh-indicator {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            z-index: 999;
+            color: #65676b;
+            font-size: 14px;
+            font-weight: 500;
+            transition: top 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            pointer-events: none;
+        }
+        #swipe-refresh-indicator.show {
+            top: 0;
+        }
+        #swipe-refresh-indicator .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e4e6eb;
+            border-top: 2px solid #1877f2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+        #swipe-refresh-indicator i {
+            margin-right: 8px;
+            font-size: 18px;
+            color: #1877f2;
+        }
+
         /* ===== OPTIMIZED ANIMATIONS ===== */
         @keyframes fadeIn {
             0% { opacity: 0; transform: scale(0.95); }
@@ -46,6 +85,11 @@
         @keyframes progressAnim {
             0% { transform: scaleX(0); }
             100% { transform: scaleX(1); }
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
         }
         
         /* ===== LOGIN OVERLAY ===== */
@@ -403,17 +447,17 @@
             flex-shrink: 0;
             cursor: pointer;
             transition: transform 0.2s;
+            will-change: transform;
         }
         .story-card:active { transform: scale(0.95); }
-        .story-card img {
+        .story-card img, .story-card video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
         .story-card video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            background: #000;
         }
         .create-story {
             display: flex;
@@ -454,6 +498,7 @@
             font-weight: bold;
             padding: 2px 7px;
             border-radius: 4px;
+            z-index: 2;
         }
         .story-name {
             position: absolute;
@@ -462,6 +507,7 @@
             font-size: 12px;
             font-weight: bold;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            z-index: 2;
         }
         .story-video-tag {
             position: absolute;
@@ -659,6 +705,7 @@
             transition: 0.2s;
             overflow: hidden;
             border-radius: 4px;
+            will-change: transform;
         }
         .feed-post:active { background: #fafafa; }
         .feed-post.banner-post { padding: 0; overflow: hidden; }
@@ -952,7 +999,7 @@
         .banner-post .caption-text { color: #fff; }
         .banner-post .caption-text.truncated { -webkit-line-clamp: 5; }
 
-        /* ===== POST DETAIL OVERLAY (FULLY RESPONSIVE) ===== */
+        /* ===== POST DETAIL OVERLAY ===== */
         #post-detail-overlay {
             display: none;
             position: fixed;
@@ -993,7 +1040,6 @@
             transition: 0.2s;
         }
         .post-detail-header .back-btn:hover { background: #f0f2f5; }
-        .post-detail-header .back-btn:active { background: #e4e6eb; }
         .post-detail-body {
             max-width: 680px;
             width: 100%;
@@ -1001,14 +1047,7 @@
             padding: 0 0 80px 0;
             overflow-x: hidden;
         }
-        .post-detail-body .feed-post {
-            cursor: default;
-            box-shadow: none;
-            margin-top: 0;
-            border-radius: 0;
-            overflow-x: hidden;
-            max-width: 100%;
-        }
+        .post-detail-body .feed-post { cursor: default; box-shadow: none; margin-top: 0; border-radius: 0; }
         .post-detail-body .feed-post:hover { background: #fff; }
         .post-detail-body .feed-post .post-caption {
             pointer-events: auto;
@@ -1016,13 +1055,6 @@
             overflow-wrap: break-word;
             max-width: 100%;
             font-size: clamp(15px, 2.5vw, 18px);
-        }
-        .post-detail-body .feed-post .post-image-content {
-            width: 100%;
-            max-width: 100%;
-            overflow: hidden;
-            background: #000;
-            position: relative;
         }
         .post-detail-body .feed-post .post-image-content img {
             width: 100%;
@@ -1032,43 +1064,14 @@
             display: block;
             margin: 0 auto;
         }
-        .post-detail-body .feed-post.banner-post .banner-content {
-            padding: clamp(30px, 5vw, 60px) clamp(15px, 3vw, 40px);
-            min-height: clamp(100px, 20vh, 200px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-        }
-        .post-detail-body .feed-post.banner-post .banner-content .post-caption {
-            color: #fff;
-            font-size: clamp(18px, 4vw, 28px);
-            font-weight: 600;
-            padding: 0 10px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            max-width: 100%;
-        }
         .post-detail-body .comments-section {
             display: block !important;
             background: #ffffff;
             border-top: none;
             padding: 0 16px 20px;
-            overflow-x: hidden;
         }
-        .post-detail-body .post-stats {
-            padding: 10px 16px;
-            border-bottom: 1px solid #ced0d4;
-            flex-wrap: wrap;
-            gap: 5px;
-            font-size: clamp(12px, 1.5vw, 14px);
-        }
-        .post-detail-body .post-actions {
-            border-bottom: 1px solid #ced0d4;
-            flex-wrap: wrap;
-        }
+        .post-detail-body .post-stats { padding: 10px 16px; border-bottom: 1px solid #ced0d4; flex-wrap: wrap; }
+        .post-detail-body .post-actions { border-bottom: 1px solid #ced0d4; flex-wrap: wrap; }
         .post-detail-body .post-actions .action-btn {
             font-size: clamp(13px, 1.8vw, 16px);
             padding: 10px 4px;
@@ -1089,13 +1092,10 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            overflow-x: hidden;
         }
         .post-detail-body .comment-item-detail {
             display: flex;
             gap: 10px;
-            overflow-x: hidden;
-            flex-wrap: wrap;
             width: 100%;
         }
         .post-detail-body .comment-avatar {
@@ -1118,7 +1118,6 @@
             border-radius: 18px;
             max-width: 100%;
             word-wrap: break-word;
-            overflow-wrap: break-word;
         }
         .post-detail-body .comment-author {
             font-size: clamp(12px, 1.5vw, 14px);
@@ -1131,7 +1130,6 @@
             color: #050505;
             line-height: 1.4;
             word-wrap: break-word;
-            overflow-wrap: break-word;
         }
         .post-detail-body .comment-footer-actions {
             display: flex;
@@ -1160,7 +1158,6 @@
             gap: 8px;
             margin: 0 -16px;
             z-index: 5;
-            overflow-x: hidden;
             flex-wrap: nowrap;
         }
         .post-detail-body .current-user-avatar {
@@ -1236,7 +1233,7 @@
             border: 3px solid #e4e6eb;
             border-top: 3px solid #1877f2;
             border-radius: 50%;
-            animation: spin 1s linear forwards;
+            animation: spin 1s linear infinite;
         }
         #end-of-feed {
             text-align: center;
@@ -1369,7 +1366,7 @@
         }
         .notif-popup .notif-close:hover { background: #f0f2f5; }
 
-        /* ===== RESPONSIVE EXTRA ===== */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 480px) {
             .header { padding: 6px 12px; min-height: 48px; }
             .header .logo { font-size: 18px; }
@@ -1414,6 +1411,12 @@
     </style>
 </head>
 <body>
+
+    <!-- SWIPE TO REFRESH INDICATOR -->
+    <div id="swipe-refresh-indicator">
+        <div class="spinner"></div>
+        <span>Pull to refresh</span>
+    </div>
 
     <!-- TOAST -->
     <div id="toast" class="toast-msg"></div>
@@ -1605,1877 +1608,1809 @@
     </div>
 
     <script>
-        // ========== WAIT FOR DOM TO LOAD ==========
+        // ========== DOM READY ==========
         document.addEventListener('DOMContentLoaded', function() {
-            
-        // ========== FIREBASE CONFIG ==========
-        const firebaseConfig = {
-            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
-            authDomain: "money-generate-dbab3.firebaseapp.com",
-            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
-            projectId: "money-generate-dbab3",
-            storageBucket: "money-generate-dbab3.firebasestorage.app",
-            messagingSenderId: "579756089926",
-            appId: "1:579756089926:web:abbe35377e3657889be047"
-        };
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+            // ========== FIREBASE CONFIG ==========
+            const firebaseConfig = {
+                apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+                authDomain: "money-generate-dbab3.firebaseapp.com",
+                databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+                projectId: "money-generate-dbab3",
+                storageBucket: "money-generate-dbab3.firebasestorage.app",
+                messagingSenderId: "579756089926",
+                appId: "1:579756089926:web:abbe35377e3657889be047"
+            };
 
-        // ========== DOM REFS (with null checks) ==========
-        function getEl(id) {
-            const el = document.getElementById(id);
-            if (!el) console.warn('Element not found:', id);
-            return el;
-        }
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
 
-        const loginOverlay = getEl('login-overlay');
-        const loginEmail = getEl('login-email');
-        const loginPassword = getEl('login-password');
-        const loginBtn = getEl('login-btn');
-        const createAccountBtn = getEl('create-account-btn');
-        const logoutBtn = getEl('logout-btn');
-        const toast = getEl('toast');
-        const feedContainer = getEl('feed-container');
-        const feedLoading = getEl('feed-loading');
-        const detailOverlay = getEl('post-detail-overlay');
-        const detailBody = getEl('post-detail-body');
-        const detailBackBtn = getEl('detail-back-btn');
-        const scrollLoader = getEl('scroll-loader');
-        const endOfFeed = getEl('end-of-feed');
-        const storiesContainer = getEl('stories-container');
-        const iframeOverlay = getEl('iframe-overlay');
-        const iframeContent = getEl('iframe-content');
-        const iframeBackBtn = getEl('iframe-back-btn');
-        const navOverlay = getEl('nav-overlay');
-        const navToggleBtn = getEl('nav-toggle-btn');
-        const navMenuTab = getEl('nav-menu-tab');
-        const navOverlayClose = getEl('nav-overlay-close');
-        const headerStatusDot = getEl('header-status-dot');
-        const notifPopup = getEl('notifPopup');
-        const notifAvatar = getEl('notifAvatar');
-        const notifName = getEl('notifName');
-        const notifPreview = getEl('notifPreview');
-        const notifTime = getEl('notifTime');
+            // ========== DOM REFS ==========
+            function getEl(id) {
+                const el = document.getElementById(id);
+                if (!el) console.warn('Element not found:', id);
+                return el;
+            }
 
-        // Badge elements
-        const notifBadgeHeader = getEl('notifBadgeHeader');
-        const notifBadgeTab = getEl('notifBadgeTab');
-        const notifBadgeNav = getEl('notifBadgeNav');
-        const messengerBadgeHeader = getEl('messengerBadgeHeader');
-        const messengerBadgeTab = getEl('messengerBadgeTab');
-        const messengerBadgeNav = getEl('messengerBadgeNav');
+            const loginOverlay = getEl('login-overlay');
+            const loginEmail = getEl('login-email');
+            const loginPassword = getEl('login-password');
+            const loginBtn = getEl('login-btn');
+            const createAccountBtn = getEl('create-account-btn');
+            const logoutBtn = getEl('logout-btn');
+            const toast = getEl('toast');
+            const feedContainer = getEl('feed-container');
+            const feedLoading = getEl('feed-loading');
+            const detailOverlay = getEl('post-detail-overlay');
+            const detailBody = getEl('post-detail-body');
+            const detailBackBtn = getEl('detail-back-btn');
+            const scrollLoader = getEl('scroll-loader');
+            const endOfFeed = getEl('end-of-feed');
+            const storiesContainer = getEl('stories-container');
+            const iframeOverlay = getEl('iframe-overlay');
+            const iframeContent = getEl('iframe-content');
+            const iframeBackBtn = getEl('iframe-back-btn');
+            const navOverlay = getEl('nav-overlay');
+            const navToggleBtn = getEl('nav-toggle-btn');
+            const navMenuTab = getEl('nav-menu-tab');
+            const navOverlayClose = getEl('nav-overlay-close');
+            const headerStatusDot = getEl('header-status-dot');
+            const notifPopup = getEl('notifPopup');
+            const notifAvatar = getEl('notifAvatar');
+            const notifName = getEl('notifName');
+            const notifPreview = getEl('notifPreview');
+            const notifTime = getEl('notifTime');
+            const swipeIndicator = getEl('swipe-refresh-indicator');
 
-        let currentUser = null;
-        let notifTimer = null;
-        let pendingNotifData = null;
-        let notifListenerUnsubscribe = null;
-        let unreadNotifCount = 0;
-        let unreadMessageCount = 0;
-        let shownNotifIds = new Set();
+            const notifBadgeHeader = getEl('notifBadgeHeader');
+            const notifBadgeTab = getEl('notifBadgeTab');
+            const notifBadgeNav = getEl('notifBadgeNav');
+            const messengerBadgeHeader = getEl('messengerBadgeHeader');
+            const messengerBadgeTab = getEl('messengerBadgeTab');
+            const messengerBadgeNav = getEl('messengerBadgeNav');
 
-        // ========== ENHANCED STATUS MANAGEMENT ==========
-        // Track if user is online
-        let isUserOnline = false;
-        let statusUpdateInterval = null;
-        let hasSetOffline = false;
+            let currentUser = null;
+            let notifTimer = null;
+            let pendingNotifData = null;
+            let notifListenerUnsubscribe = null;
+            let unreadNotifCount = 0;
+            let unreadMessageCount = 0;
+            let shownNotifIds = new Set();
 
-        // Set user online with immediate update
-        function setUserOnline(uid) {
-            if (!uid) return;
-            isUserOnline = true;
-            hasSetOffline = false;
-            console.log('🟢 Setting user online:', uid);
-            
-            db.collection('users').doc(uid).set({
-                status: 'online',
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).then(() => {
-                console.log('✅ User status set to online');
-                if (headerStatusDot) headerStatusDot.className = 'online-dot';
-            }).catch(err => console.warn('Status update error:', err));
-        }
+            // ========== SWIPE TO REFRESH ==========
+            let touchStartY = 0;
+            let touchMoveY = 0;
+            let isRefreshing = false;
+            let isSwipingDown = false;
 
-        // Set user offline with immediate update
-        function setUserOffline(uid) {
-            if (!uid || hasSetOffline) return;
-            hasSetOffline = true;
-            isUserOnline = false;
-            console.log('🔴 Setting user offline:', uid);
-            
-            db.collection('users').doc(uid).set({
-                status: 'offline',
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).then(() => {
-                console.log('✅ User status set to offline');
-                if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
-            }).catch(err => {
-                console.warn('Status update error:', err);
+            document.addEventListener('touchstart', function(e) {
+                if (window.scrollY <= 0) {
+                    touchStartY = e.touches[0].clientY;
+                    isSwipingDown = false;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (window.scrollY <= 0 && touchStartY > 0) {
+                    const currentY = e.touches[0].clientY;
+                    const diff = currentY - touchStartY;
+                    if (diff > 10 && !isRefreshing) {
+                        isSwipingDown = true;
+                        e.preventDefault();
+                        const indicator = swipeIndicator;
+                        if (indicator) {
+                            indicator.classList.add('show');
+                            if (diff > 80) {
+                                indicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Release to refresh';
+                            } else {
+                                indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
+                            }
+                        }
+                    }
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchend', function(e) {
+                if (isSwipingDown && !isRefreshing && touchStartY > 0) {
+                    const diff = e.changedTouches[0].clientY - touchStartY;
+                    if (diff > 80) {
+                        // Refresh!
+                        isRefreshing = true;
+                        const indicator = swipeIndicator;
+                        if (indicator) {
+                            indicator.innerHTML = '<div class="spinner"></div><span>Refreshing...</span>';
+                        }
+                        refreshFeed();
+                    } else {
+                        const indicator = swipeIndicator;
+                        if (indicator) {
+                            indicator.classList.remove('show');
+                            indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
+                        }
+                    }
+                }
+                touchStartY = 0;
+                isSwipingDown = false;
+            }, { passive: true });
+
+            async function refreshFeed() {
+                try {
+                    // Clear cache and reload
+                    postsLoaded = 0;
+                    lastDoc = null;
+                    hasMore = true;
+                    if (feedContainer) {
+                        const posts = feedContainer.querySelectorAll('.feed-post');
+                        posts.forEach(el => el.remove());
+                    }
+                    if (feedLoading) {
+                        feedLoading.style.display = 'block';
+                        feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refreshing...';
+                    }
+                    if (endOfFeed) endOfFeed.style.display = 'none';
+                    
+                    // Reload stories
+                    await loadStories(true);
+                    
+                    // Reload posts
+                    await loadPosts(false);
+                    
+                    showToast('Feed refreshed!');
+                } catch (e) {
+                    console.error('Refresh error:', e);
+                    showToast('Error refreshing feed');
+                } finally {
+                    isRefreshing = false;
+                    const indicator = swipeIndicator;
+                    if (indicator) {
+                        indicator.classList.remove('show');
+                        indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
+                    }
+                }
+            }
+
+            // ========== OPTIMIZED STATUS MANAGEMENT ==========
+            let isUserOnline = false;
+            let statusUpdateInterval = null;
+            let hasSetOffline = false;
+
+            function setUserOnline(uid) {
+                if (!uid) return;
+                isUserOnline = true;
                 hasSetOffline = false;
-            });
-        }
-
-        // ========== HANDLE PAGE VISIBILITY ==========
-        function handleVisibilityChange() {
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            if (document.hidden) {
-                // Page is hidden - set offline
-                console.log('📱 Page hidden - setting offline');
-                setUserOffline(user.uid);
-            } else {
-                // Page is visible - set online
-                console.log('📱 Page visible - setting online');
-                setUserOnline(user.uid);
+                db.collection('users').doc(uid).set({
+                    status: 'online',
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).then(() => {
+                    if (headerStatusDot) headerStatusDot.className = 'online-dot';
+                }).catch(err => console.warn('Status update error:', err));
             }
-        }
 
-        // ========== HANDLE PAGE UNLOAD ==========
-        function handlePageUnload() {
-            const user = auth.currentUser;
-            if (user) {
-                console.log('🚪 Page unloading - setting offline');
-                setUserOffline(user.uid);
+            function setUserOffline(uid) {
+                if (!uid || hasSetOffline) return;
+                hasSetOffline = true;
+                isUserOnline = false;
+                db.collection('users').doc(uid).set({
+                    status: 'offline',
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).then(() => {
+                    if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
+                }).catch(err => {
+                    console.warn('Status update error:', err);
+                    hasSetOffline = false;
+                });
             }
-        }
 
-        // ========== START STATUS MONITORING ==========
-        function startStatusMonitoring(user) {
-            if (!user) return;
-            
-            // Clear existing interval
-            if (statusUpdateInterval) {
-                clearInterval(statusUpdateInterval);
-                statusUpdateInterval = null;
-            }
-            
-            // Set online immediately
-            setUserOnline(user.uid);
-            
-            // Update status every 30 seconds to keep it fresh
-            statusUpdateInterval = setInterval(() => {
-                if (auth.currentUser && !document.hidden) {
+            function handleVisibilityChange() {
+                const user = auth.currentUser;
+                if (!user) return;
+                if (document.hidden) {
+                    setUserOffline(user.uid);
+                } else {
                     setUserOnline(user.uid);
                 }
-            }, 30000);
-            
-            // Listen to visibility changes
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            
-            // Listen to page unload events
-            window.addEventListener('beforeunload', handlePageUnload);
-            window.addEventListener('pagehide', handlePageUnload);
-            
-            console.log('✅ Status monitoring started for user:', user.uid);
-        }
-
-        // ========== STOP STATUS MONITORING ==========
-        function stopStatusMonitoring(user) {
-            if (statusUpdateInterval) {
-                clearInterval(statusUpdateInterval);
-                statusUpdateInterval = null;
-            }
-            
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('beforeunload', handlePageUnload);
-            window.removeEventListener('pagehide', handlePageUnload);
-            
-            if (user) {
-                setUserOffline(user.uid);
-            }
-            
-            console.log('🛑 Status monitoring stopped');
-        }
-
-        // ========== HANDLE LOGOUT ==========
-        function handleLogout() {
-            const user = auth.currentUser;
-            if (user) {
-                // Set offline before signing out
-                setUserOffline(user.uid);
-                // Small delay to ensure the update goes through
-                setTimeout(() => {
-                    auth.signOut().then(() => {
-                        showToast('Logged out');
-                        toggleNavOverlay(false);
-                        if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
-                        updateNotifBadge(-unreadNotifCount);
-                        updateMessengerBadge(0);
-                    });
-                }, 300);
-            } else {
-                auth.signOut();
-            }
-        }
-
-        // ========== CREATE USER DOCUMENT ==========
-        async function createUserDocument(user) {
-            if (!user) return;
-            try {
-                const docRef = db.collection('users').doc(user.uid);
-                const doc = await docRef.get();
-                if (!doc.exists) {
-                    const userData = {
-                        uid: user.uid,
-                        fullName: user.displayName || user.email?.split('@')[0] || 'User',
-                        email: user.email || '',
-                        photoURL: user.photoURL ||
-                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-                        bio: 'Hey there! I\'m using Facebook Clone',
-                        location: 'Rajshahi',
-                        birthday: '21 March',
-                        relationship: 'Single',
-                        language: 'English',
-                        phone: '+880 1234 567890',
-                        workTitle: 'Freelancer',
-                        workRole: 'Chief marketing officer (CMO)',
-                        coverPhoto: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
-                        status: 'online',
-                        friends: ['Md Hridoy Hasan', 'SM Pasha Hasan', 'Nur-Alom Shekh'],
-                        mutual: 12,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-                    await docRef.set(userData);
-                } else {
-                    await docRef.update({ status: 'online', updatedAt: new Date().toISOString() });
-                }
-            } catch (error) {
-                console.error('Error creating user document:', error);
-            }
-        }
-
-        // ========== PROFILE NAVIGATION ==========
-        function openProfileIframe(targetUserId) {
-            const userId = targetUserId || auth.currentUser?.uid;
-            if (!userId) { showToast('Please login first'); return; }
-            const url = `profile.html?user=${userId}`;
-            if (iframeContent) iframeContent.src = url;
-            if (iframeOverlay) iframeOverlay.classList.add('show');
-            if (iframeBackBtn) iframeBackBtn.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            history.pushState({ iframeOverlay: true, url: url }, '');
-        }
-
-        // ========== GET USER DATA ==========
-        async function getUserData(userId) {
-            try {
-                const doc = await db.collection('users').doc(userId).get();
-                if (doc.exists) return { id: userId, ...doc.data() };
-                return null;
-            } catch (error) { console.error('Error fetching user data:', error); return null; }
-        }
-
-        // ========== IFRAME OVERLAY ==========
-        function openIframe(url, title) {
-            if (url === 'profile.html' && auth.currentUser) {
-                url = `profile.html?user=${auth.currentUser.uid}`;
-            }
-            if (iframeContent) iframeContent.src = url;
-            if (iframeOverlay) iframeOverlay.classList.add('show');
-            if (iframeBackBtn) iframeBackBtn.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            history.pushState({ iframeOverlay: true, url: url }, '');
-        }
-
-        function closeIframe() {
-            if (iframeOverlay) iframeOverlay.classList.remove('show');
-            if (iframeBackBtn) iframeBackBtn.classList.remove('show');
-            document.body.style.overflow = '';
-            if (iframeContent) iframeContent.src = 'about:blank';
-            if (history.state && history.state.iframeOverlay) history.back();
-        }
-
-        if (iframeBackBtn) {
-            iframeBackBtn.addEventListener('click', closeIframe);
-        }
-
-        window.addEventListener('popstate', function(e) {
-            if (iframeOverlay && iframeOverlay.classList.contains('show')) { e.preventDefault();
-                closeIframe(); }
-            if (detailOverlay && detailOverlay.classList.contains('show')) { e.preventDefault();
-                closePostDetail(); }
-        });
-
-        // ========== TOAST ==========
-        let toastTimer;
-
-        function showToast(msg) {
-            if (!toast) return;
-            toast.textContent = msg;
-            toast.style.display = 'block';
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
-        }
-
-        // ========== NOTIFICATION SYSTEM ==========
-        function playNotifSound() {
-            try {
-                const ctx = new(window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.frequency.value = 880;
-                osc.type = 'sine';
-                gain.gain.value = 0.1;
-                osc.start();
-                setTimeout(() => {
-                    osc.frequency.value = 1100;
-                    setTimeout(() => { osc.stop();
-                        ctx.close(); }, 150);
-                }, 150);
-            } catch (e) { console.log('Sound error:', e); }
-        }
-
-        function showNotifPopup(senderName, preview, photoURL, timestamp, notifId) {
-            if (shownNotifIds.has(notifId)) return;
-            shownNotifIds.add(notifId);
-            if (shownNotifIds.size > 200) {
-                const arr = Array.from(shownNotifIds);
-                shownNotifIds = new Set(arr.slice(arr.length - 100));
             }
 
-            if (notifAvatar) notifAvatar.src = photoURL ||
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            if (notifName) notifName.textContent = senderName || 'User';
-            if (notifPreview) notifPreview.textContent = preview || 'New notification';
-            const time = timestamp ? new Date(timestamp) : new Date();
-            if (notifTime) notifTime.textContent = formatTime(time);
-
-            if (notifPopup) notifPopup.style.display = 'block';
-            playNotifSound();
-
-            clearTimeout(notifTimer);
-            notifTimer = setTimeout(closeNotif, 5000);
-        }
-
-        function closeNotif() {
-            if (notifPopup) notifPopup.style.display = 'none';
-            clearTimeout(notifTimer);
-            pendingNotifData = null;
-        }
-
-        function openNotifChat() {
-            closeNotif();
-            if (pendingNotifData && pendingNotifData.type === 'message') {
-                openIframe('messenger.html', 'Messenger');
-            } else {
-                openIframe('notifications.html', 'Notifications');
-            }
-        }
-
-        function formatTime(date) {
-            const now = new Date();
-            const diff = now - date;
-            if (diff < 60000) return 'Just now';
-            if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
-            if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
-            return date.toLocaleDateString();
-        }
-
-        // ========== START NOTIFICATION LISTENERS ==========
-        function startNotificationListeners(userId) {
-            if (notifListenerUnsubscribe) {
-                notifListenerUnsubscribe();
-                notifListenerUnsubscribe = null;
-            }
-
-            console.log('👂 Starting notification listeners for:', userId);
-
-            // Listen for new comments on user's posts
-            const postsQuery = db.collection('all-user-post')
-                .where('userId', '==', userId);
-
-            notifListenerUnsubscribe = postsQuery.onSnapshot((snapshot) => {
-                snapshot.docChanges().forEach(async (change) => {
-                    if (change.type === 'modified') {
-                        const data = change.doc.data();
-                        const postId = change.doc.id;
-                        const comments = data.comments || [];
-                        
-                        if (comments.length > 0) {
-                            const lastComment = comments[comments.length - 1];
-                            if (lastComment.userId && lastComment.userId !== userId) {
-                                const senderData = await getUserData(lastComment.userId);
-                                if (senderData) {
-                                    const name = senderData.fullName || senderData.firstName || 'Someone';
-                                    const photo = senderData.photoURL || '';
-                                    const preview = `💬 ${lastComment.text || 'commented on your post'}`;
-                                    const notifId = `${postId}_comment_${lastComment.id || Date.now()}`;
-                                    showNotifPopup(name, preview, photo, new Date().toISOString(), notifId);
-                                    updateNotifBadge(1);
-                                }
-                            }
-                        }
-                    }
-                });
-            }, (error) => {
-                console.error('Error listening to comments:', error);
-            });
-
-            // Listen for new likes on user's posts
-            const likesQuery = db.collection('all-user-post')
-                .where('userId', '==', userId);
-
-            likesQuery.onSnapshot((snapshot) => {
-                snapshot.docChanges().forEach(async (change) => {
-                    if (change.type === 'modified') {
-                        const data = change.doc.data();
-                        const postId = change.doc.id;
-                        const likedBy = data.likedBy || [];
-                        const previousLikedBy = change.doc.data().likedBy || [];
-                        
-                        if (likedBy.length > previousLikedBy.length) {
-                            const newLiker = likedBy.find(id => !previousLikedBy.includes(id));
-                            if (newLiker && newLiker !== userId) {
-                                const senderData = await getUserData(newLiker);
-                                if (senderData) {
-                                    const name = senderData.fullName || senderData.firstName || 'Someone';
-                                    const photo = senderData.photoURL || '';
-                                    const preview = `❤️ liked your post`;
-                                    const notifId = `${postId}_like_${newLiker}_${Date.now()}`;
-                                    showNotifPopup(name, preview, photo, new Date().toISOString(), notifId);
-                                    updateNotifBadge(1);
-                                }
-                            }
-                        }
-                    }
-                });
-            }, (error) => {
-                console.error('Error listening to likes:', error);
-            });
-
-            // Listen for messages (unread count)
-            const messageQuery = db.collection('chats')
-                .where('participants', 'array-contains', userId);
-
-            messageQuery.onSnapshot((snapshot) => {
-                let count = 0;
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const messages = data.messages || [];
-                    for (const msg of messages) {
-                        if (msg.sender !== userId && !msg.seen && !msg.deletedFor?.includes(userId)) {
-                            count++;
-                        }
-                    }
-                });
-                unreadMessageCount = count;
-                updateMessengerBadge(count);
-            }, (error) => {
-                console.error('Error listening to messages:', error);
-            });
-        }
-
-        // ========== UPDATE BADGES ==========
-        function updateNotifBadge(change) {
-            unreadNotifCount += change;
-            if (unreadNotifCount < 0) unreadNotifCount = 0;
-            const display = unreadNotifCount > 0 ? unreadNotifCount : '';
-            if (notifBadgeHeader) notifBadgeHeader.textContent = display;
-            if (notifBadgeTab) notifBadgeTab.textContent = display;
-            if (notifBadgeNav) notifBadgeNav.textContent = display;
-        }
-
-        function updateMessengerBadge(count) {
-            const display = count > 0 ? count : '';
-            if (messengerBadgeHeader) messengerBadgeHeader.textContent = display;
-            if (messengerBadgeTab) messengerBadgeTab.textContent = display;
-            if (messengerBadgeNav) messengerBadgeNav.textContent = display;
-        }
-
-        // ========== STORY VIEWER ==========
-        let currentStoryIndex = 0;
-        let storyDataCache = [];
-        let storyTimer = null;
-        let isVideoPlaying = false;
-        let currentVideoElement = null;
-
-        const storyModal = getEl('story-viewer-modal');
-        const viewerUserPic = getEl('viewer-user-pic');
-        const viewerUsername = getEl('viewer-username');
-        const viewerTime = getEl('viewer-time');
-        const viewerStoryImg = getEl('viewer-story-img');
-        const viewerBg = getEl('viewer-bg');
-        const videoIndicator = getEl('story-video-indicator');
-        const storyPrevBtn = getEl('story-prev-btn');
-        const storyNextBtn = getEl('story-next-btn');
-        const closeStoryViewerBtn = getEl('close-story-viewer');
-
-        function openStoryViewer(index) {
-            if (storyDataCache.length === 0) {
-                showToast('No stories available');
-                return;
-            }
-            currentStoryIndex = index % storyDataCache.length;
-            isVideoPlaying = false;
-            
-            const mainArea = document.querySelector('.story-main-image-area');
-            const oldVideo = mainArea ? mainArea.querySelector('video') : null;
-            if (oldVideo) {
-                oldVideo.pause();
-                oldVideo.currentTime = 0;
-                oldVideo.remove();
-                currentVideoElement = null;
-            }
-            
-            if (viewerStoryImg) {
-                viewerStoryImg.style.display = 'none';
-                viewerStoryImg.src = '';
-            }
-            if (videoIndicator) videoIndicator.classList.remove('show');
-            
-            if (storyModal) storyModal.style.display = 'flex';
-            
-            setTimeout(() => {
-                showStory(currentStoryIndex);
-            }, 100);
-        }
-
-        function showStory(index) {
-            const story = storyDataCache[index];
-            if (!story) return;
-            
-            if (viewerUserPic) viewerUserPic.src = story.pic || 'default.jpg';
-            if (viewerUsername) viewerUsername.textContent = story.name || 'User';
-            if (viewerTime) viewerTime.textContent = story.time || 'Just now';
-            
-            const storyUrl = story.img || story.imageUrl || story.pic || 'default.jpg';
-            const isVideo = story.mediaType === 'video' || storyUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i);
-            
-            const mainArea = document.querySelector('.story-main-image-area');
-            
-            if (currentVideoElement) {
-                currentVideoElement.pause();
-                currentVideoElement.currentTime = 0;
-                currentVideoElement.remove();
-                currentVideoElement = null;
-            }
-            
-            if (viewerStoryImg) {
-                viewerStoryImg.style.display = 'none';
-            }
-            if (videoIndicator) videoIndicator.classList.remove('show');
-            
-            if (isVideo) {
-                const video = document.createElement('video');
-                video.id = 'story-video-player';
-                video.style.cssText = 'width:100%; height:100%; object-fit:contain; display:block; background:#000;';
-                video.setAttribute('playsinline', '');
-                video.setAttribute('webkit-playsinline', '');
-                video.setAttribute('controls', '');
-                video.muted = false;
-                video.volume = 1.0;
-                video.preload = 'auto';
-                video.src = storyUrl;
-                video.poster = story.pic || 'default.jpg';
-                
-                if (mainArea) mainArea.appendChild(video);
-                currentVideoElement = video;
-                
-                if (videoIndicator) videoIndicator.classList.add('show');
-                
-                video.addEventListener('loadeddata', function() {
-                    console.log('Video loaded, playing');
-                    this.currentTime = 0;
-                    this.play().catch(e => console.log('Play error:', e));
-                });
-                
-                video.addEventListener('play', function() {
-                    isVideoPlaying = true;
-                    if (videoIndicator) videoIndicator.classList.remove('show');
-                    if (storyTimer) {
-                        clearTimeout(storyTimer);
-                        storyTimer = null;
-                    }
-                });
-                
-                video.addEventListener('ended', function() {
-                    isVideoPlaying = false;
-                    if (videoIndicator) videoIndicator.classList.remove('show');
-                    setTimeout(() => {
-                        nextStory();
-                    }, 500);
-                });
-                
-                video.addEventListener('pause', function() {
-                    isVideoPlaying = false;
-                    if (!this.ended && videoIndicator) {
-                        videoIndicator.classList.add('show');
-                    }
-                });
-                
-                if (viewerBg) viewerBg.style.backgroundImage = `url('${story.pic || storyUrl}')`;
-                
-                setTimeout(() => {
-                    if (video) {
-                        video.currentTime = 0;
-                        video.play().catch(() => {});
-                    }
-                }, 200);
-                
-            } else {
-                if (viewerStoryImg) {
-                    viewerStoryImg.style.display = 'block';
-                    viewerStoryImg.src = storyUrl;
-                }
-                if (viewerBg) viewerBg.style.backgroundImage = `url('${storyUrl}')`;
-                if (videoIndicator) videoIndicator.classList.remove('show');
-                
-                if (storyTimer) clearTimeout(storyTimer);
-                storyTimer = setTimeout(() => {
-                    nextStory();
-                }, 5000);
-            }
-        }
-
-        function nextStory() {
-            if (storyDataCache.length === 0) return;
-            
-            if (currentVideoElement) {
-                currentVideoElement.pause();
-                currentVideoElement.currentTime = 0;
-                currentVideoElement.remove();
-                currentVideoElement = null;
-            }
-            isVideoPlaying = false;
-            
-            currentStoryIndex = (currentStoryIndex + 1) % storyDataCache.length;
-            showStory(currentStoryIndex);
-        }
-
-        function prevStory() {
-            if (storyDataCache.length === 0) return;
-            
-            if (currentVideoElement) {
-                currentVideoElement.pause();
-                currentVideoElement.currentTime = 0;
-                currentVideoElement.remove();
-                currentVideoElement = null;
-            }
-            isVideoPlaying = false;
-            
-            currentStoryIndex = (currentStoryIndex - 1 + storyDataCache.length) % storyDataCache.length;
-            showStory(currentStoryIndex);
-        }
-
-        function closeStoryViewer() {
-            if (storyModal) storyModal.style.display = 'none';
-            if (currentVideoElement) {
-                currentVideoElement.pause();
-                currentVideoElement.currentTime = 0;
-                currentVideoElement.remove();
-                currentVideoElement = null;
-            }
-            isVideoPlaying = false;
-            if (videoIndicator) videoIndicator.classList.remove('show');
-            if (storyTimer) {
-                clearTimeout(storyTimer);
-                storyTimer = null;
-            }
-        }
-
-        if (storyPrevBtn) {
-            storyPrevBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                prevStory();
-            });
-        }
-
-        if (storyNextBtn) {
-            storyNextBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                nextStory();
-            });
-        }
-
-        if (closeStoryViewerBtn) {
-            closeStoryViewerBtn.addEventListener('click', closeStoryViewer);
-        }
-
-        if (storyModal) {
-            storyModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeStoryViewer();
-                }
-            });
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (!storyModal || storyModal.style.display !== 'flex') return;
-            
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                prevStory();
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                nextStory();
-            } else if (e.key === 'Escape') {
-                closeStoryViewer();
-            } else if (e.key === ' ' || e.key === 'Space') {
-                e.preventDefault();
-                if (currentVideoElement) {
-                    if (currentVideoElement.paused) {
-                        currentVideoElement.play().catch(() => {});
-                    } else {
-                        currentVideoElement.pause();
-                    }
-                }
-            }
-        });
-
-        window.openStoryViewer = openStoryViewer;
-        window.nextStory = nextStory;
-        window.prevStory = prevStory;
-        window.closeStoryViewer = closeStoryViewer;
-
-        // ========== LOAD STORIES ==========
-        async function loadStories() {
-            try {
+            function handlePageUnload() {
                 const user = auth.currentUser;
-                let stories = [];
-                
-                await cleanupOldStories();
-                
                 if (user) {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    const userData = userDoc.exists ? userDoc.data() : {};
-                    const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
-                    const userPic = user.photoURL || userData.photoURL ||
-                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-                    
-                    const userStoryDoc = await db.collection('stories').doc(user.uid).get();
-                    if (userStoryDoc.exists) {
-                        const storyData = userStoryDoc.data();
-                        const storyDate = storyData.timestamp?.toDate?.() || new Date(storyData.createdAt);
-                        const diffHours = (Date.now() - storyDate.getTime()) / (1000 * 60 * 60);
-                        
-                        if (diffHours < 24) {
-                            let mediaType = storyData.mediaType || 'image';
-                            const url = storyData.imageUrl || '';
-                            if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) {
-                                mediaType = 'video';
+                    setUserOffline(user.uid);
+                }
+            }
+
+            function startStatusMonitoring(user) {
+                if (!user) return;
+                if (statusUpdateInterval) {
+                    clearInterval(statusUpdateInterval);
+                    statusUpdateInterval = null;
+                }
+                setUserOnline(user.uid);
+                statusUpdateInterval = setInterval(() => {
+                    if (auth.currentUser && !document.hidden) {
+                        setUserOnline(user.uid);
+                    }
+                }, 30000);
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                window.addEventListener('beforeunload', handlePageUnload);
+                window.addEventListener('pagehide', handlePageUnload);
+            }
+
+            function stopStatusMonitoring(user) {
+                if (statusUpdateInterval) {
+                    clearInterval(statusUpdateInterval);
+                    statusUpdateInterval = null;
+                }
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                window.removeEventListener('beforeunload', handlePageUnload);
+                window.removeEventListener('pagehide', handlePageUnload);
+                if (user) {
+                    setUserOffline(user.uid);
+                }
+            }
+
+            // ========== HANDLE LOGOUT ==========
+            function handleLogout() {
+                const user = auth.currentUser;
+                if (user) {
+                    setUserOffline(user.uid);
+                    setTimeout(() => {
+                        auth.signOut().then(() => {
+                            showToast('Logged out');
+                            toggleNavOverlay(false);
+                            if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
+                            updateNotifBadge(-unreadNotifCount);
+                            updateMessengerBadge(0);
+                        });
+                    }, 300);
+                } else {
+                    auth.signOut();
+                }
+            }
+
+            // ========== CREATE USER DOCUMENT ==========
+            async function createUserDocument(user) {
+                if (!user) return;
+                try {
+                    const docRef = db.collection('users').doc(user.uid);
+                    const doc = await docRef.get();
+                    if (!doc.exists) {
+                        const userData = {
+                            uid: user.uid,
+                            fullName: user.displayName || user.email?.split('@')[0] || 'User',
+                            email: user.email || '',
+                            photoURL: user.photoURL ||
+                                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+                            bio: 'Hey there! I\'m using SecretIntro',
+                            location: 'Rajshahi',
+                            birthday: '21 March',
+                            relationship: 'Single',
+                            language: 'English',
+                            phone: '+880 1234 567890',
+                            workTitle: 'Freelancer',
+                            workRole: 'Chief marketing officer (CMO)',
+                            coverPhoto: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
+                            status: 'online',
+                            friends: ['Md Hridoy Hasan', 'SM Pasha Hasan', 'Nur-Alom Shekh'],
+                            mutual: 12,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+                        await docRef.set(userData);
+                    } else {
+                        await docRef.update({ status: 'online', updatedAt: new Date().toISOString() });
+                    }
+                } catch (error) {
+                    console.error('Error creating user document:', error);
+                }
+            }
+
+            // ========== PROFILE NAVIGATION ==========
+            function openProfileIframe(targetUserId) {
+                const userId = targetUserId || auth.currentUser?.uid;
+                if (!userId) { showToast('Please login first'); return; }
+                const url = `profile.html?user=${userId}`;
+                if (iframeContent) iframeContent.src = url;
+                if (iframeOverlay) iframeOverlay.classList.add('show');
+                if (iframeBackBtn) iframeBackBtn.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                history.pushState({ iframeOverlay: true, url: url }, '');
+            }
+
+            // ========== GET USER DATA ==========
+            async function getUserData(userId) {
+                try {
+                    const doc = await db.collection('users').doc(userId).get();
+                    if (doc.exists) return { id: userId, ...doc.data() };
+                    return null;
+                } catch (error) { console.error('Error fetching user data:', error); return null; }
+            }
+
+            // ========== IFRAME OVERLAY ==========
+            function openIframe(url, title) {
+                if (url === 'profile.html' && auth.currentUser) {
+                    url = `profile.html?user=${auth.currentUser.uid}`;
+                }
+                if (iframeContent) iframeContent.src = url;
+                if (iframeOverlay) iframeOverlay.classList.add('show');
+                if (iframeBackBtn) iframeBackBtn.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                history.pushState({ iframeOverlay: true, url: url }, '');
+            }
+
+            function closeIframe() {
+                if (iframeOverlay) iframeOverlay.classList.remove('show');
+                if (iframeBackBtn) iframeBackBtn.classList.remove('show');
+                document.body.style.overflow = '';
+                if (iframeContent) iframeContent.src = 'about:blank';
+                if (history.state && history.state.iframeOverlay) history.back();
+            }
+
+            if (iframeBackBtn) {
+                iframeBackBtn.addEventListener('click', closeIframe);
+            }
+
+            window.addEventListener('popstate', function(e) {
+                if (iframeOverlay && iframeOverlay.classList.contains('show')) { e.preventDefault();
+                    closeIframe(); }
+                if (detailOverlay && detailOverlay.classList.contains('show')) { e.preventDefault();
+                    closePostDetail(); }
+            });
+
+            // ========== TOAST ==========
+            let toastTimer;
+
+            function showToast(msg) {
+                if (!toast) return;
+                toast.textContent = msg;
+                toast.style.display = 'block';
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+            }
+
+            // ========== NOTIFICATION SYSTEM ==========
+            function playNotifSound() {
+                try {
+                    const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = 880;
+                    osc.type = 'sine';
+                    gain.gain.value = 0.1;
+                    osc.start();
+                    setTimeout(() => {
+                        osc.frequency.value = 1100;
+                        setTimeout(() => { osc.stop();
+                            ctx.close(); }, 150);
+                    }, 150);
+                } catch (e) { console.log('Sound error:', e); }
+            }
+
+            function showNotifPopup(senderName, preview, photoURL, timestamp, notifId) {
+                if (shownNotifIds.has(notifId)) return;
+                shownNotifIds.add(notifId);
+                if (shownNotifIds.size > 200) {
+                    const arr = Array.from(shownNotifIds);
+                    shownNotifIds = new Set(arr.slice(arr.length - 100));
+                }
+                if (notifAvatar) notifAvatar.src = photoURL ||
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                if (notifName) notifName.textContent = senderName || 'User';
+                if (notifPreview) notifPreview.textContent = preview || 'New notification';
+                const time = timestamp ? new Date(timestamp) : new Date();
+                if (notifTime) notifTime.textContent = formatTime(time);
+                if (notifPopup) notifPopup.style.display = 'block';
+                playNotifSound();
+                clearTimeout(notifTimer);
+                notifTimer = setTimeout(closeNotif, 5000);
+            }
+
+            function closeNotif() {
+                if (notifPopup) notifPopup.style.display = 'none';
+                clearTimeout(notifTimer);
+                pendingNotifData = null;
+            }
+
+            function openNotifChat() {
+                closeNotif();
+                if (pendingNotifData && pendingNotifData.type === 'message') {
+                    openIframe('messenger.html', 'Messenger');
+                } else {
+                    openIframe('notifications.html', 'Notifications');
+                }
+            }
+
+            function formatTime(date) {
+                const now = new Date();
+                const diff = now - date;
+                if (diff < 60000) return 'Just now';
+                if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+                if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+                if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+                return date.toLocaleDateString();
+            }
+
+            // ========== START NOTIFICATION LISTENERS ==========
+            function startNotificationListeners(userId) {
+                if (notifListenerUnsubscribe) {
+                    notifListenerUnsubscribe();
+                    notifListenerUnsubscribe = null;
+                }
+                console.log('👂 Starting notification listeners for:', userId);
+
+                const postsQuery = db.collection('all-user-post').where('userId', '==', userId);
+                notifListenerUnsubscribe = postsQuery.onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach(async (change) => {
+                        if (change.type === 'modified') {
+                            const data = change.doc.data();
+                            const postId = change.doc.id;
+                            const comments = data.comments || [];
+                            if (comments.length > 0) {
+                                const lastComment = comments[comments.length - 1];
+                                if (lastComment.userId && lastComment.userId !== userId) {
+                                    const senderData = await getUserData(lastComment.userId);
+                                    if (senderData) {
+                                        const name = senderData.fullName || senderData.firstName || 'Someone';
+                                        const photo = senderData.photoURL || '';
+                                        const preview = `💬 ${lastComment.text || 'commented on your post'}`;
+                                        const notifId = `${postId}_comment_${lastComment.id || Date.now()}`;
+                                        showNotifPopup(name, preview, photo, new Date().toISOString(), notifId);
+                                        updateNotifBadge(1);
+                                    }
+                                }
                             }
+                            const likedBy = data.likedBy || [];
+                            const prevData = change.doc.data();
+                            const prevLikedBy = prevData.likedBy || [];
+                            if (likedBy.length > prevLikedBy.length) {
+                                const newLiker = likedBy.find(id => !prevLikedBy.includes(id));
+                                if (newLiker && newLiker !== userId) {
+                                    const senderData = await getUserData(newLiker);
+                                    if (senderData) {
+                                        const name = senderData.fullName || senderData.firstName || 'Someone';
+                                        const photo = senderData.photoURL || '';
+                                        const preview = `❤️ liked your post`;
+                                        const notifId = `${postId}_like_${newLiker}_${Date.now()}`;
+                                        showNotifPopup(name, preview, photo, new Date().toISOString(), notifId);
+                                        updateNotifBadge(1);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }, (error) => {
+                    console.error('Error listening to notifications:', error);
+                });
+
+                const messageQuery = db.collection('chats').where('participants', 'array-contains', userId);
+                messageQuery.onSnapshot((snapshot) => {
+                    let count = 0;
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const messages = data.messages || [];
+                        for (const msg of messages) {
+                            if (msg.sender !== userId && !msg.seen && !msg.deletedFor?.includes(userId)) {
+                                count++;
+                            }
+                        }
+                    });
+                    unreadMessageCount = count;
+                    updateMessengerBadge(count);
+                }, (error) => {
+                    console.error('Error listening to messages:', error);
+                });
+            }
+
+            // ========== UPDATE BADGES ==========
+            function updateNotifBadge(change) {
+                unreadNotifCount += change;
+                if (unreadNotifCount < 0) unreadNotifCount = 0;
+                const display = unreadNotifCount > 0 ? unreadNotifCount : '';
+                if (notifBadgeHeader) notifBadgeHeader.textContent = display;
+                if (notifBadgeTab) notifBadgeTab.textContent = display;
+                if (notifBadgeNav) notifBadgeNav.textContent = display;
+            }
+
+            function updateMessengerBadge(count) {
+                const display = count > 0 ? count : '';
+                if (messengerBadgeHeader) messengerBadgeHeader.textContent = display;
+                if (messengerBadgeTab) messengerBadgeTab.textContent = display;
+                if (messengerBadgeNav) messengerBadgeNav.textContent = display;
+            }
+
+            // ========== STORY VIEWER ==========
+            let currentStoryIndex = 0;
+            let storyDataCache = [];
+            let storyTimer = null;
+            let isVideoPlaying = false;
+            let currentVideoElement = null;
+
+            const storyModal = getEl('story-viewer-modal');
+            const viewerUserPic = getEl('viewer-user-pic');
+            const viewerUsername = getEl('viewer-username');
+            const viewerTime = getEl('viewer-time');
+            const viewerStoryImg = getEl('viewer-story-img');
+            const viewerBg = getEl('viewer-bg');
+            const videoIndicator = getEl('story-video-indicator');
+            const storyPrevBtn = getEl('story-prev-btn');
+            const storyNextBtn = getEl('story-next-btn');
+            const closeStoryViewerBtn = getEl('close-story-viewer');
+
+            function openStoryViewer(index) {
+                if (storyDataCache.length === 0) {
+                    showToast('No stories available');
+                    return;
+                }
+                currentStoryIndex = index % storyDataCache.length;
+                isVideoPlaying = false;
+                const mainArea = document.querySelector('.story-main-image-area');
+                const oldVideo = mainArea ? mainArea.querySelector('video') : null;
+                if (oldVideo) {
+                    oldVideo.pause();
+                    oldVideo.currentTime = 0;
+                    oldVideo.remove();
+                    currentVideoElement = null;
+                }
+                if (viewerStoryImg) {
+                    viewerStoryImg.style.display = 'none';
+                    viewerStoryImg.src = '';
+                }
+                if (videoIndicator) videoIndicator.classList.remove('show');
+                if (storyModal) storyModal.style.display = 'flex';
+                setTimeout(() => {
+                    showStory(currentStoryIndex);
+                }, 100);
+            }
+
+            function showStory(index) {
+                const story = storyDataCache[index];
+                if (!story) return;
+                if (viewerUserPic) viewerUserPic.src = story.pic || 'default.jpg';
+                if (viewerUsername) viewerUsername.textContent = story.name || 'User';
+                if (viewerTime) viewerTime.textContent = story.time || 'Just now';
+                const storyUrl = story.img || story.imageUrl || story.pic || 'default.jpg';
+                const isVideo = story.mediaType === 'video' || storyUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i);
+                const mainArea = document.querySelector('.story-main-image-area');
+                if (currentVideoElement) {
+                    currentVideoElement.pause();
+                    currentVideoElement.currentTime = 0;
+                    currentVideoElement.remove();
+                    currentVideoElement = null;
+                }
+                if (viewerStoryImg) {
+                    viewerStoryImg.style.display = 'none';
+                }
+                if (videoIndicator) videoIndicator.classList.remove('show');
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.id = 'story-video-player';
+                    video.style.cssText = 'width:100%; height:100%; object-fit:contain; display:block; background:#000;';
+                    video.setAttribute('playsinline', '');
+                    video.setAttribute('webkit-playsinline', '');
+                    video.setAttribute('controls', '');
+                    video.muted = false;
+                    video.volume = 1.0;
+                    video.preload = 'auto';
+                    video.src = storyUrl;
+                    video.poster = story.pic || 'default.jpg';
+                    if (mainArea) mainArea.appendChild(video);
+                    currentVideoElement = video;
+                    if (videoIndicator) videoIndicator.classList.add('show');
+                    video.addEventListener('loadeddata', function() {
+                        this.currentTime = 0;
+                        this.play().catch(e => console.log('Play error:', e));
+                    });
+                    video.addEventListener('play', function() {
+                        isVideoPlaying = true;
+                        if (videoIndicator) videoIndicator.classList.remove('show');
+                        if (storyTimer) {
+                            clearTimeout(storyTimer);
+                            storyTimer = null;
+                        }
+                    });
+                    video.addEventListener('ended', function() {
+                        isVideoPlaying = false;
+                        if (videoIndicator) videoIndicator.classList.remove('show');
+                        setTimeout(() => { nextStory(); }, 500);
+                    });
+                    video.addEventListener('pause', function() {
+                        isVideoPlaying = false;
+                        if (!this.ended && videoIndicator) {
+                            videoIndicator.classList.add('show');
+                        }
+                    });
+                    if (viewerBg) viewerBg.style.backgroundImage = `url('${story.pic || storyUrl}')`;
+                    setTimeout(() => {
+                        if (video) {
+                            video.currentTime = 0;
+                            video.play().catch(() => {});
+                        }
+                    }, 200);
+                } else {
+                    if (viewerStoryImg) {
+                        viewerStoryImg.style.display = 'block';
+                        viewerStoryImg.src = storyUrl;
+                    }
+                    if (viewerBg) viewerBg.style.backgroundImage = `url('${storyUrl}')`;
+                    if (videoIndicator) videoIndicator.classList.remove('show');
+                    if (storyTimer) clearTimeout(storyTimer);
+                    storyTimer = setTimeout(() => { nextStory(); }, 5000);
+                }
+            }
+
+            function nextStory() {
+                if (storyDataCache.length === 0) return;
+                if (currentVideoElement) {
+                    currentVideoElement.pause();
+                    currentVideoElement.currentTime = 0;
+                    currentVideoElement.remove();
+                    currentVideoElement = null;
+                }
+                isVideoPlaying = false;
+                currentStoryIndex = (currentStoryIndex + 1) % storyDataCache.length;
+                showStory(currentStoryIndex);
+            }
+
+            function prevStory() {
+                if (storyDataCache.length === 0) return;
+                if (currentVideoElement) {
+                    currentVideoElement.pause();
+                    currentVideoElement.currentTime = 0;
+                    currentVideoElement.remove();
+                    currentVideoElement = null;
+                }
+                isVideoPlaying = false;
+                currentStoryIndex = (currentStoryIndex - 1 + storyDataCache.length) % storyDataCache.length;
+                showStory(currentStoryIndex);
+            }
+
+            function closeStoryViewer() {
+                if (storyModal) storyModal.style.display = 'none';
+                if (currentVideoElement) {
+                    currentVideoElement.pause();
+                    currentVideoElement.currentTime = 0;
+                    currentVideoElement.remove();
+                    currentVideoElement = null;
+                }
+                isVideoPlaying = false;
+                if (videoIndicator) videoIndicator.classList.remove('show');
+                if (storyTimer) {
+                    clearTimeout(storyTimer);
+                    storyTimer = null;
+                }
+            }
+
+            if (storyPrevBtn) {
+                storyPrevBtn.addEventListener('click', function(e) { e.stopPropagation();
+                    prevStory(); });
+            }
+            if (storyNextBtn) {
+                storyNextBtn.addEventListener('click', function(e) { e.stopPropagation();
+                    nextStory(); });
+            }
+            if (closeStoryViewerBtn) {
+                closeStoryViewerBtn.addEventListener('click', closeStoryViewer);
+            }
+            if (storyModal) {
+                storyModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeStoryViewer();
+                });
+            }
+            document.addEventListener('keydown', function(e) {
+                if (!storyModal || storyModal.style.display !== 'flex') return;
+                if (e.key === 'ArrowLeft') { e.preventDefault();
+                    prevStory(); }
+                if (e.key === 'ArrowRight') { e.preventDefault();
+                    nextStory(); }
+                if (e.key === 'Escape') closeStoryViewer();
+                if (e.key === ' ' || e.key === 'Space') {
+                    e.preventDefault();
+                    if (currentVideoElement) {
+                        if (currentVideoElement.paused) {
+                            currentVideoElement.play().catch(() => {});
+                        } else {
+                            currentVideoElement.pause();
+                        }
+                    }
+                }
+            });
+
+            window.openStoryViewer = openStoryViewer;
+            window.nextStory = nextStory;
+            window.prevStory = prevStory;
+            window.closeStoryViewer = closeStoryViewer;
+
+            // ========== LOAD STORIES (CACHED) ==========
+            let storiesLoaded = false;
+            let storiesCache = [];
+
+            async function loadStories(force = false) {
+                if (storiesLoaded && !force) {
+                    renderStories();
+                    return;
+                }
+                try {
+                    const user = auth.currentUser;
+                    let stories = [];
+                    await cleanupOldStories();
+                    
+                    if (user) {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        const userData = userDoc.exists ? userDoc.data() : {};
+                        const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
+                        const userPic = user.photoURL || userData.photoURL ||
+                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                        const userStoryDoc = await db.collection('stories').doc(user.uid).get();
+                        if (userStoryDoc.exists) {
+                            const storyData = userStoryDoc.data();
+                            const storyDate = storyData.timestamp?.toDate?.() || new Date(storyData.createdAt);
+                            const diffHours = (Date.now() - storyDate.getTime()) / (1000 * 60 * 60);
+                            if (diffHours < 24) {
+                                let mediaType = storyData.mediaType || 'image';
+                                const url = storyData.imageUrl || '';
+                                if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) mediaType = 'video';
+                                stories.push({
+                                    name: userName,
+                                    pic: userPic,
+                                    img: storyData.imageUrl || userPic,
+                                    thumbnail: storyData.thumbnail || storyData.imageUrl || userPic,
+                                    imageUrl: storyData.imageUrl || userPic,
+                                    time: 'Now',
+                                    uid: user.uid,
+                                    mediaType: mediaType,
+                                    timestamp: storyDate
+                                });
+                            }
+                        }
+                    }
+                    
+                    const storiesSnapshot = await db.collection('stories')
+                        .orderBy('timestamp', 'desc')
+                        .limit(20)
+                        .get();
+                    
+                    const now = new Date();
+                    storiesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
+                        const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                        if (diffHours < 24 && data.uid !== user?.uid) {
+                            let mediaType = data.mediaType || 'image';
+                            const url = data.imageUrl || '';
+                            if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) mediaType = 'video';
                             stories.push({
-                                name: userName,
-                                pic: userPic,
-                                img: storyData.imageUrl || userPic,
-                                thumbnail: storyData.thumbnail || storyData.imageUrl || userPic,
-                                imageUrl: storyData.imageUrl || userPic,
-                                time: 'Now',
-                                uid: user.uid,
+                                name: data.userName || 'User',
+                                pic: data.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                                img: data.imageUrl || data.userImage || '',
+                                thumbnail: data.thumbnail || data.imageUrl || data.userImage || '',
+                                imageUrl: data.imageUrl || data.userImage || '',
+                                time: getTimeAgo(storyDate),
+                                uid: data.uid,
                                 mediaType: mediaType,
                                 timestamp: storyDate
                             });
                         }
-                    }
-                }
-                
-                const storiesSnapshot = await db.collection('stories')
-                    .orderBy('timestamp', 'desc')
-                    .limit(20)
-                    .get();
-                
-                const now = new Date();
-                storiesSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
-                    const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                    });
                     
-                    if (diffHours < 24 && data.uid !== user?.uid) {
-                        let mediaType = data.mediaType || 'image';
-                        const url = data.imageUrl || '';
-                        if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) {
-                            mediaType = 'video';
+                    const uniqueStories = [];
+                    const seenUids = new Set();
+                    for (const story of stories) {
+                        if (!seenUids.has(story.uid)) {
+                            seenUids.add(story.uid);
+                            uniqueStories.push(story);
                         }
-                        stories.push({
-                            name: data.userName || 'User',
-                            pic: data.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-                            img: data.imageUrl || data.userImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-                            thumbnail: data.thumbnail || data.imageUrl || data.userImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-                            imageUrl: data.imageUrl || data.userImage || '',
-                            time: getTimeAgo(storyDate),
-                            uid: data.uid,
-                            mediaType: mediaType,
-                            timestamp: storyDate
-                        });
                     }
-                });
-                
-                const uniqueStories = [];
-                const seenUids = new Set();
-                for (const story of stories) {
-                    if (!seenUids.has(story.uid)) {
-                        seenUids.add(story.uid);
-                        uniqueStories.push(story);
-                    }
-                }
-                
-                uniqueStories.sort((a, b) => {
-                    if (a.uid === user?.uid) return -1;
-                    if (b.uid === user?.uid) return 1;
-                    return (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0);
-                });
-                
-                storyDataCache = uniqueStories.length > 0 ? uniqueStories : getDefaultStories();
-                renderStories();
-            } catch (error) {
-                console.error('Error loading stories:', error);
-                storyDataCache = getDefaultStories();
-                renderStories();
-            }
-        }
-
-        function getTimeAgo(date) {
-            if (!date) return 'Just now';
-            const now = new Date();
-            const diff = now - date;
-            if (diff < 60000) return 'Just now';
-            if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
-            return Math.floor(diff / 86400000) + 'd';
-        }
-
-        function getDefaultStories() {
-            return [
-                { 
-                    name: 'Md Rhoman', 
-                    pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-                    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-                    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-                    time: '1h',
-                    uid: 'default1',
-                    mediaType: 'image'
-                },
-                { 
-                    name: 'হাবিবুর সোহান', 
-                    pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-                    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-                    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-                    time: '3h',
-                    uid: 'default2',
-                    mediaType: 'image'
-                }
-            ];
-        }
-
-        function renderStories() {
-            if (!storiesContainer) return;
-            storiesContainer.innerHTML = '';
-            
-            const createCard = document.createElement('div');
-            createCard.className = 'story-card create-story';
-            createCard.onclick = () => openIframe('story/create-story.html', 'Create Story');
-            const userPhoto = auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
-            createCard.innerHTML = `
-                <img src="${userPhoto}" alt="Create Story">
-                <div class="create-story-content">
-                    <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
-                    <span>Create story</span>
-                </div>
-            `;
-            storiesContainer.appendChild(createCard);
-            
-            storyDataCache.forEach((story, index) => {
-                const card = document.createElement('div');
-                card.className = 'story-card';
-                card.onclick = () => openStoryViewer(index);
-                
-                const isVideo = story.mediaType === 'video' || (story.imageUrl && story.imageUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i));
-                const videoUrl = story.imageUrl || story.img || '';
-                const thumbnailUrl = story.thumbnail || story.pic || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
-                
-                if (isVideo && videoUrl) {
-                    card.innerHTML = `
-                        <video src="${videoUrl}" 
-                               muted 
-                               autoplay 
-                               loop 
-                               playsinline 
-                               style="width:100%; height:100%; object-fit:cover;"
-                               poster="${thumbnailUrl}">
-                        </video>
-                        <div class="story-video-tag"><i class="fa-solid fa-video"></i> Video</div>
-                        <div class="story-name">${story.name || 'User'}</div>
-                        <span class="story-badge">${story.time || 'Now'}</span>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        <span class="story-badge">${story.time || 'Now'}</span>
-                        <img src="${thumbnailUrl}" alt="Story" loading="lazy" 
-                             onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'">
-                        <div class="story-name">${story.name || 'User'}</div>
-                    `;
-                }
-                
-                storiesContainer.appendChild(card);
-            });
-        }
-
-        async function cleanupOldStories() {
-            try {
-                const now = new Date();
-                const storiesSnapshot = await db.collection('stories').get();
-                const batch = db.batch();
-                let deleteCount = 0;
-                
-                storiesSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
-                    const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                    uniqueStories.sort((a, b) => {
+                        if (a.uid === user?.uid) return -1;
+                        if (b.uid === user?.uid) return 1;
+                        return (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0);
+                    });
                     
-                    if (diffHours >= 24) {
-                        batch.delete(doc.ref);
-                        deleteCount++;
+                    storyDataCache = uniqueStories.length > 0 ? uniqueStories : getDefaultStories();
+                    storiesCache = storyDataCache;
+                    storiesLoaded = true;
+                    renderStories();
+                } catch (error) {
+                    console.error('Error loading stories:', error);
+                    storyDataCache = storiesCache.length > 0 ? storiesCache : getDefaultStories();
+                    renderStories();
+                }
+            }
+
+            function getTimeAgo(date) {
+                if (!date) return 'Just now';
+                const now = new Date();
+                const diff = now - date;
+                if (diff < 60000) return 'Just now';
+                if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+                if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+                return Math.floor(diff / 86400000) + 'd';
+            }
+
+            function getDefaultStories() {
+                return [
+                    { name: 'Md Rhoman', pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80', time: '1h', uid: 'default1', mediaType: 'image' },
+                    { name: 'হাবিবুর সোহান', pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80', time: '3h', uid: 'default2', mediaType: 'image' }
+                ];
+            }
+
+            function renderStories() {
+                if (!storiesContainer) return;
+                storiesContainer.innerHTML = '';
+                const createCard = document.createElement('div');
+                createCard.className = 'story-card create-story';
+                createCard.onclick = () => openIframe('story/create-story.html', 'Create Story');
+                const userPhoto = auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
+                createCard.innerHTML = `
+                    <img src="${userPhoto}" alt="Create Story">
+                    <div class="create-story-content">
+                        <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
+                        <span>Create story</span>
+                    </div>
+                `;
+                storiesContainer.appendChild(createCard);
+                storyDataCache.forEach((story, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'story-card';
+                    card.onclick = () => openStoryViewer(index);
+                    const isVideo = story.mediaType === 'video' || (story.imageUrl && story.imageUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i));
+                    const videoUrl = story.imageUrl || story.img || '';
+                    const thumbnailUrl = story.thumbnail || story.pic || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
+                    if (isVideo && videoUrl) {
+                        card.innerHTML = `
+                            <video src="${videoUrl}" muted autoplay loop playsinline style="width:100%; height:100%; object-fit:cover;" poster="${thumbnailUrl}"></video>
+                            <div class="story-video-tag"><i class="fa-solid fa-video"></i> Video</div>
+                            <div class="story-name">${story.name || 'User'}</div>
+                            <span class="story-badge">${story.time || 'Now'}</span>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <span class="story-badge">${story.time || 'Now'}</span>
+                            <img src="${thumbnailUrl}" alt="Story" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'">
+                            <div class="story-name">${story.name || 'User'}</div>
+                        `;
                     }
+                    storiesContainer.appendChild(card);
                 });
-                
-                if (deleteCount > 0) {
-                    await batch.commit();
-                    console.log(`🗑️ Cleaned up ${deleteCount} old stories`);
+            }
+
+            async function cleanupOldStories() {
+                try {
+                    const now = new Date();
+                    const storiesSnapshot = await db.collection('stories').get();
+                    const batch = db.batch();
+                    let deleteCount = 0;
+                    storiesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
+                        const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                        if (diffHours >= 24) {
+                            batch.delete(doc.ref);
+                            deleteCount++;
+                        }
+                    });
+                    if (deleteCount > 0) {
+                        await batch.commit();
+                        console.log(`🗑️ Cleaned up ${deleteCount} old stories`);
+                    }
+                } catch (error) {
+                    console.error('Error cleaning up stories:', error);
                 }
-            } catch (error) {
-                console.error('Error cleaning up stories:', error);
-            }
-        }
-
-        setInterval(() => {
-            if (auth.currentUser) {
-                loadStories();
-            }
-        }, 30000);
-
-        // ========== POST DETAIL FUNCTIONS ==========
-        let currentDetailPostId = null;
-
-        function openPostDetail(postId) {
-            currentDetailPostId = postId;
-            if (detailOverlay) detailOverlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            sessionStorage.setItem('feedScrollY', window.scrollY);
-            loadPostDetail(postId);
-            history.pushState({ detailOpen: true }, '');
-        }
-
-        function closePostDetail() {
-            if (detailOverlay) detailOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-            const scrollY = parseInt(sessionStorage.getItem('feedScrollY')) || 0;
-            setTimeout(() => window.scrollTo(0, scrollY), 50);
-            if (history.state && history.state.detailOpen) history.back();
-            currentDetailPostId = null;
-        }
-
-        if (detailBackBtn) {
-            detailBackBtn.addEventListener('click', closePostDetail);
-        }
-
-        async function loadPostDetail(postId) {
-            if (!detailBody) return;
-            detailBody.innerHTML = '<div class="detail-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading post...</div>';
-            try {
-                const doc = await db.collection('all-user-post').doc(postId).get();
-                if (!doc.exists) { detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Post not found</div>'; return; }
-                const post = { id: doc.id, ...doc.data() };
-                if (!post.comments) post.comments = [];
-                post.comments = post.comments.map(c => ({
-                    id: c.id || Date.now().toString(),
-                    userName: c.userName || 'User',
-                    userImage: c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-                    text: c.text || '',
-                    timestamp: c.timestamp || new Date().toISOString(),
-                    replies: c.replies || [],
-                    liked: c.liked || false,
-                    userId: c.userId || ''
-                }));
-                const postEl = createDetailPostElement(post);
-                detailBody.innerHTML = '';
-                detailBody.appendChild(postEl);
-                attachDetailListeners(postId);
-            } catch (error) {
-                console.error('Error loading post detail:', error);
-                detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Error loading post</div>';
-            }
-        }
-
-        function getThemeStyles(theme) {
-            const styles = {
-                'purple': { background: '#8a2be2', color: '#fff' },
-                'red': { background: '#e41e3f', color: '#fff' },
-                'dark': { background: '#212529', color: '#fff' },
-                'gradient-1': { background: 'linear-gradient(135deg, #ff416c, #ff4b2b)', color: '#fff' },
-                'gradient-2': { background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', color: '#fff' },
-                'gradient-3': { background: 'linear-gradient(135deg, #f2994a, #f2c94c)', color: '#fff' },
-                'dark-blue': { background: '#3b5998', color: '#fff' },
-                'white': { background: '#ffffff', color: '#050505' }
-            };
-            return styles[theme] || styles['white'];
-        }
-
-        function createDetailPostElement(post) {
-            const div = document.createElement('div');
-            div.className = 'feed-post';
-            div.dataset.postId = post.id;
-
-            const user = auth.currentUser;
-            let userName = post.userName || user?.displayName || user?.email?.split('@')[0] || 'Unknown User';
-            let userImage = post.userImage || user?.photoURL ||
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            let userId = post.userId || '';
-
-            if (user && post.userId === user.uid) {
-                if (user.displayName) userName = user.displayName;
-                if (user.photoURL) userImage = user.photoURL;
             }
 
-            const caption = post.caption || '';
-            const fullText = post.fullText || caption;
-            const imageUrl = post.imageUrl || '';
-            const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
-            const likes = post.likes || 0;
-            const comments = post.comments || [];
-            const isBanner = post.isBanner || false;
-            const bannerTheme = post.bannerTheme || 'white';
-            const themeStyle = getThemeStyles(bannerTheme);
-            const userId_check = auth.currentUser?.uid;
-            const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
+            setInterval(() => {
+                if (auth.currentUser) {
+                    loadStories(true);
+                }
+            }, 60000);
 
-            let captionHTML = '';
-            if (caption) {
-                if (isBanner) {
-                    captionHTML = `
-                        <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
-                            <div class="post-caption caption-text">${escapeHTML(caption)}</div>
-                        </div>
-                    `;
+            // ========== POST DETAIL FUNCTIONS ==========
+            let currentDetailPostId = null;
+
+            function openPostDetail(postId) {
+                currentDetailPostId = postId;
+                if (detailOverlay) detailOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                sessionStorage.setItem('feedScrollY', window.scrollY);
+                loadPostDetail(postId);
+                history.pushState({ detailOpen: true }, '');
+            }
+
+            function closePostDetail() {
+                if (detailOverlay) detailOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+                const scrollY = parseInt(sessionStorage.getItem('feedScrollY')) || 0;
+                setTimeout(() => window.scrollTo(0, scrollY), 50);
+                if (history.state && history.state.detailOpen) history.back();
+                currentDetailPostId = null;
+            }
+
+            if (detailBackBtn) {
+                detailBackBtn.addEventListener('click', closePostDetail);
+            }
+
+            async function loadPostDetail(postId) {
+                if (!detailBody) return;
+                detailBody.innerHTML = '<div class="detail-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading post...</div>';
+                try {
+                    const doc = await db.collection('all-user-post').doc(postId).get();
+                    if (!doc.exists) { detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Post not found</div>'; return; }
+                    const post = { id: doc.id, ...doc.data() };
+                    if (!post.comments) post.comments = [];
+                    post.comments = post.comments.map(c => ({
+                        id: c.id || Date.now().toString(),
+                        userName: c.userName || 'User',
+                        userImage: c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        text: c.text || '',
+                        timestamp: c.timestamp || new Date().toISOString(),
+                        replies: c.replies || [],
+                        liked: c.liked || false,
+                        userId: c.userId || ''
+                    }));
+                    const postEl = createDetailPostElement(post);
+                    detailBody.innerHTML = '';
+                    detailBody.appendChild(postEl);
+                    attachDetailListeners(postId);
+                } catch (error) {
+                    console.error('Error loading post detail:', error);
+                    detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Error loading post</div>';
+                }
+            }
+
+            function getThemeStyles(theme) {
+                const styles = {
+                    'purple': { background: '#8a2be2', color: '#fff' },
+                    'red': { background: '#e41e3f', color: '#fff' },
+                    'dark': { background: '#212529', color: '#fff' },
+                    'gradient-1': { background: 'linear-gradient(135deg, #ff416c, #ff4b2b)', color: '#fff' },
+                    'gradient-2': { background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', color: '#fff' },
+                    'gradient-3': { background: 'linear-gradient(135deg, #f2994a, #f2c94c)', color: '#fff' },
+                    'dark-blue': { background: '#3b5998', color: '#fff' },
+                    'white': { background: '#ffffff', color: '#050505' }
+                };
+                return styles[theme] || styles['white'];
+            }
+
+            function createDetailPostElement(post) {
+                const div = document.createElement('div');
+                div.className = 'feed-post';
+                div.dataset.postId = post.id;
+                const user = auth.currentUser;
+                let userName = post.userName || user?.displayName || user?.email?.split('@')[0] || 'Unknown User';
+                let userImage = post.userImage || user?.photoURL ||
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                let userId = post.userId || '';
+                if (user && post.userId === user.uid) {
+                    if (user.displayName) userName = user.displayName;
+                    if (user.photoURL) userImage = user.photoURL;
+                }
+                const caption = post.caption || '';
+                const fullText = post.fullText || caption;
+                const imageUrl = post.imageUrl || '';
+                const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
+                const likes = post.likes || 0;
+                const comments = post.comments || [];
+                const isBanner = post.isBanner || false;
+                const bannerTheme = post.bannerTheme || 'white';
+                const themeStyle = getThemeStyles(bannerTheme);
+                const userId_check = auth.currentUser?.uid;
+                const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
+
+                let captionHTML = '';
+                if (caption) {
+                    if (isBanner) {
+                        captionHTML = `
+                            <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
+                                <div class="post-caption caption-text">${escapeHTML(caption)}</div>
+                            </div>
+                        `;
+                    } else {
+                        captionHTML = `
+                            <div class="post-caption">
+                                <span class="caption-text">${escapeHTML(fullText)}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                const sortedComments = [...comments].reverse();
+                let commentsHTML = '';
+                if (sortedComments.length > 0) {
+                    commentsHTML = sortedComments.map((c, index) => {
+                        const hasReplies = c.replies && c.replies.length > 0;
+                        const repliesHTML = hasReplies ? c.replies.map(r => `
+                            <div class="comment-item-detail">
+                                <img src="${r.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
+                                <div class="comment-bubble-container">
+                                    <div class="comment-bubble">
+                                        <div class="comment-author">${escapeHTML(r.userName || 'User')}</div>
+                                        <div class="comment-text">${escapeHTML(r.text)}</div>
+                                    </div>
+                                    <div class="comment-footer-actions">
+                                        <span>${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'Just now'}</span>
+                                        <span class="like-comment-btn" onclick="event.stopPropagation(); likeCommentDetail(this, '${post.id}', '${r.id || index}', 'reply')">Like</span>
+                                        <span onclick="event.stopPropagation(); replyToComment(this, '${escapeHTML(r.userName || 'User')}')">Reply</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : '';
+                        return `
+                            <div class="comment-item-detail" data-comment-id="${c.id || index}">
+                                <img src="${c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
+                                <div class="comment-bubble-container">
+                                    <div class="comment-bubble">
+                                        <div class="comment-author">${escapeHTML(c.userName || 'User')}</div>
+                                        <div class="comment-text">${escapeHTML(c.text)}</div>
+                                    </div>
+                                    <div class="comment-footer-actions">
+                                        <span>${c.timestamp ? new Date(c.timestamp).toLocaleString() : 'Just now'}</span>
+                                        <span class="like-comment-btn" onclick="event.stopPropagation(); likeCommentDetail(this, '${post.id}', '${c.id || index}', 'comment')">Like</span>
+                                        <span onclick="event.stopPropagation(); replyToComment(this, '${escapeHTML(c.userName || 'User')}')">Reply</span>
+                                    </div>
+                                    ${hasReplies ? `<div class="reply-container">${repliesHTML}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 } else {
-                    captionHTML = `
-                        <div class="post-caption">
-                            <span class="caption-text">${escapeHTML(fullText)}</span>
+                    commentsHTML = '<div style="padding:12px 0;color:#65676b;text-align:center;font-size:14px;">No comments yet. Be the first to comment!</div>';
+                }
+
+                const currentUser = auth.currentUser;
+                div.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user-info">
+                            <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
+                                <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
+                                <span class="online-status ${auth.currentUser && post.userId === auth.currentUser.uid ? 'active' : 'inactive'}" data-userid="${userId}"></span>
+                            </div>
+                            <div class="post-meta">
+                                <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
+                                <span>${timestamp}</span>
+                            </div>
                         </div>
-                    `;
+                        <div class="post-options">
+                            <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
+                        </div>
+                    </div>
+                    ${captionHTML}
+                    ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy"></div>` : ''}
+                    <div class="post-stats">
+                        <div class="stat-left">
+                            <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
+                            <span class="like-count">${likes}</span>
+                        </div>
+                        <div class="stat-right">
+                            <span class="comment-count">${comments.length} comments</span>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <div class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); handleLikePost('${post.id}', this)">
+                            ${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}
+                        </div>
+                        <div class="action-btn comment-toggle-btn" onclick="event.stopPropagation();"><i class="fa-regular fa-comment"></i> Comment</div>
+                        <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
+                    </div>
+                    <div class="comments-section active">
+                        <div class="comments-section-header">
+                            <span>Most relevant <i class="fa-solid fa-caret-down" style="font-size:12px;"></i></span>
+                        </div>
+                        <div class="comments-list" id="detail-comments-list">
+                            ${commentsHTML}
+                        </div>
+                        <div class="comment-input-bar">
+                            <img src="${currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Your Avatar" class="current-user-avatar">
+                            <div class="input-wrapper">
+                                <input type="text" id="detail-comment-input" placeholder="Write a comment...">
+                                <div class="input-icons">
+                                    <i class="fa-regular fa-face-smile"></i>
+                                    <i class="fa-regular fa-images"></i>
+                                    <i class="fa-regular fa-gift"></i>
+                                    <i class="fa-regular fa-paper-plane send-icon" id="detail-send-btn"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if (isBanner) div.classList.add('banner-post');
+                return div;
+            }
+
+            async function likeCommentDetail(el, postId, commentId, type) {
+                el.style.pointerEvents = 'none';
+                if (el.style.color === 'rgb(24, 119, 242)') {
+                    el.style.color = '#65676b';
+                    el.textContent = 'Like';
+                    el.style.pointerEvents = 'auto';
+                    el.onclick = function(e) { e.stopPropagation();
+                        likeCommentDetail(this, postId, commentId, type); };
+                    return;
+                }
+                el.style.color = '#1877f2';
+                el.textContent = 'Liked';
+                el.style.cursor = 'default';
+                el.onclick = null;
+                try {
+                    const doc = await db.collection('all-user-post').doc(postId).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        let comments = data.comments || [];
+                        let updatedComments = [...comments];
+                        if (type === 'comment') {
+                            updatedComments = comments.map(c => {
+                                if (c.id === commentId.toString()) return { ...c, liked: true };
+                                return c;
+                            });
+                        } else if (type === 'reply') {
+                            updatedComments = comments.map(c => {
+                                if (c.replies) {
+                                    const updatedReplies = c.replies.map(r => {
+                                        if (r.id === commentId.toString()) return { ...r, liked: true };
+                                        return r;
+                                    });
+                                    return { ...c, replies: updatedReplies };
+                                }
+                                return c;
+                            });
+                        }
+                        await db.collection('all-user-post').doc(postId).set({ ...data, comments: updatedComments }, { merge: true });
+                    }
+                } catch (error) {
+                    console.error('Error liking comment:', error);
+                    el.style.color = '#65676b';
+                    el.textContent = 'Like';
+                    el.style.pointerEvents = 'auto';
+                    el.onclick = function(e) { e.stopPropagation();
+                        likeCommentDetail(this, postId, commentId, type); };
                 }
             }
 
-            const sortedComments = [...comments].reverse();
-            let commentsHTML = '';
-            if (sortedComments.length > 0) {
-                commentsHTML = sortedComments.map((c, index) => {
-                    const hasReplies = c.replies && c.replies.length > 0;
-                    const repliesHTML = hasReplies ? c.replies.map(r => `
-                        <div class="comment-item-detail">
-                            <img src="${r.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
-                            <div class="comment-bubble-container">
-                                <div class="comment-bubble">
-                                    <div class="comment-author">${escapeHTML(r.userName || 'User')}</div>
-                                    <div class="comment-text">${escapeHTML(r.text)}</div>
-                                </div>
-                                <div class="comment-footer-actions">
-                                    <span>${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'Just now'}</span>
-                                    <span class="like-comment-btn" onclick="event.stopPropagation(); likeCommentDetail(this, '${post.id}', '${r.id || index}', 'reply')">Like</span>
-                                    <span onclick="event.stopPropagation(); replyToComment(this, '${escapeHTML(r.userName || 'User')}')">Reply</span>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('') : '';
-                    return `
-                        <div class="comment-item-detail" data-comment-id="${c.id || index}">
-                            <img src="${c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
-                            <div class="comment-bubble-container">
-                                <div class="comment-bubble">
-                                    <div class="comment-author">${escapeHTML(c.userName || 'User')}</div>
-                                    <div class="comment-text">${escapeHTML(c.text)}</div>
-                                </div>
-                                <div class="comment-footer-actions">
-                                    <span>${c.timestamp ? new Date(c.timestamp).toLocaleString() : 'Just now'}</span>
-                                    <span class="like-comment-btn" onclick="event.stopPropagation(); likeCommentDetail(this, '${post.id}', '${c.id || index}', 'comment')">Like</span>
-                                    <span onclick="event.stopPropagation(); replyToComment(this, '${escapeHTML(c.userName || 'User')}')">Reply</span>
-                                </div>
-                                ${hasReplies ? `<div class="reply-container">${repliesHTML}</div>` : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                commentsHTML = '<div style="padding:12px 0;color:#65676b;text-align:center;font-size:14px;">No comments yet. Be the first to comment!</div>';
+            function replyToComment(el, userName) {
+                const input = document.getElementById('detail-comment-input');
+                if (input) { input.value = `@${userName} `;
+                    input.focus(); }
             }
 
-            const currentUser = auth.currentUser;
-            div.innerHTML = `
-                <div class="post-header">
-                    <div class="post-user-info">
-                        <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
-                            <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
-                            <span class="online-status ${auth.currentUser && post.userId === auth.currentUser.uid ? 'active' : 'inactive'}" data-userid="${userId}"></span>
-                        </div>
-                        <div class="post-meta">
-                            <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
-                            <span>${timestamp}</span>
-                        </div>
-                    </div>
-                    <div class="post-options">
-                        <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
-                    </div>
-                </div>
-                ${captionHTML}
-                ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy"></div>` : ''}
-                <div class="post-stats">
-                    <div class="stat-left">
-                        <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
-                        <span class="like-count">${likes}</span>
-                    </div>
-                    <div class="stat-right">
-                        <span class="comment-count">${comments.length} comments</span>
-                    </div>
-                </div>
-                <div class="post-actions">
-                    <div class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); handleLikePost('${post.id}', this)">
-                        ${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}
-                    </div>
-                    <div class="action-btn comment-toggle-btn" onclick="event.stopPropagation();"><i class="fa-regular fa-comment"></i> Comment</div>
-                    <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
-                </div>
-                <div class="comments-section active">
-                    <div class="comments-section-header">
-                        <span>Most relevant <i class="fa-solid fa-caret-down" style="font-size:12px;"></i></span>
-                    </div>
-                    <div class="comments-list" id="detail-comments-list">
-                        ${commentsHTML}
-                    </div>
-                    <div class="comment-input-bar">
-                        <img src="${currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Your Avatar" class="current-user-avatar">
-                        <div class="input-wrapper">
-                            <input type="text" id="detail-comment-input" placeholder="Write a comment...">
-                            <div class="input-icons">
-                                <i class="fa-regular fa-face-smile"></i>
-                                <i class="fa-regular fa-images"></i>
-                                <i class="fa-regular fa-gift"></i>
-                                <i class="fa-regular fa-paper-plane send-icon" id="detail-send-btn"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            if (isBanner) div.classList.add('banner-post');
-            return div;
-        }
-
-        async function likeCommentDetail(el, postId, commentId, type) {
-            el.style.pointerEvents = 'none';
-            if (el.style.color === 'rgb(24, 119, 242)') {
-                el.style.color = '#65676b';
-                el.textContent = 'Like';
-                el.style.pointerEvents = 'auto';
-                el.onclick = function(e) { e.stopPropagation();
-                    likeCommentDetail(this, postId, commentId, type); };
-                return;
+            function attachDetailListeners(postId) {
+                const sendBtn = document.getElementById('detail-send-btn');
+                if (sendBtn) {
+                    const newSendBtn = sendBtn.cloneNode(true);
+                    sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+                    newSendBtn.addEventListener('click', function(e) { e.stopPropagation();
+                        sendComment(postId); });
+                }
+                const commentInput = document.getElementById('detail-comment-input');
+                if (commentInput) {
+                    const newCommentInput = commentInput.cloneNode(true);
+                    commentInput.parentNode.replaceChild(newCommentInput, commentInput);
+                    newCommentInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault();
+                            sendComment(postId); }
+                    });
+                }
             }
-            el.style.color = '#1877f2';
-            el.textContent = 'Liked';
-            el.style.cursor = 'default';
-            el.onclick = null;
-            try {
-                const doc = await db.collection('all-user-post').doc(postId).get();
-                if (doc.exists) {
+
+            async function handleLikePost(postId, btnElement) {
+                btnElement.style.pointerEvents = 'none';
+                const postDiv = btnElement.closest('.feed-post');
+                const likeCountSpan = postDiv.querySelector('.like-count');
+                let currentLikes = parseInt(likeCountSpan.textContent) || 0;
+                const userId = auth.currentUser?.uid;
+                if (!userId) { showToast('Please login to like');
+                    btnElement.style.pointerEvents = 'auto'; return; }
+                try {
+                    const doc = await db.collection('all-user-post').doc(postId).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const likedBy = data.likedBy || [];
+                        if (likedBy.includes(userId)) {
+                            const newLikedBy = likedBy.filter(id => id !== userId);
+                            await db.collection('all-user-post').doc(postId).update({ likes: currentLikes - 1, likedBy: newLikedBy });
+                            btnElement.classList.remove('liked');
+                            btnElement.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Like';
+                            likeCountSpan.textContent = currentLikes - 1;
+                            showToast('Post unliked');
+                        } else {
+                            const newLikedBy = [...likedBy, userId];
+                            await db.collection('all-user-post').doc(postId).update({ likes: currentLikes + 1, likedBy: newLikedBy });
+                            btnElement.classList.add('liked');
+                            btnElement.innerHTML = '<i class="fa-solid fa-thumbs-up"></i> Liked';
+                            likeCountSpan.textContent = currentLikes + 1;
+                            showToast('Post liked!');
+                        }
+                    }
+                } catch (error) { console.error('Error handling like:', error);
+                    showToast('Error: ' + error.message); }
+                btnElement.style.pointerEvents = 'auto';
+            }
+
+            async function sendComment(postId) {
+                const input = document.getElementById('detail-comment-input');
+                const text = input.value.trim();
+                if (!text) { showToast('Please write a comment'); return; }
+                const user = auth.currentUser;
+                if (!user) { showToast('Please login to comment'); return; }
+                const userName = user.displayName || user.email?.split('@')[0] || 'User';
+                const userImage = user.photoURL ||
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                const isReply = text.startsWith('@');
+                let replyToUser = '';
+                let commentText = text;
+                if (isReply) {
+                    const parts = text.split(' ');
+                    replyToUser = parts[0].substring(1);
+                    commentText = parts.slice(1).join(' ') || text;
+                }
+                try {
+                    const docRef = db.collection('all-user-post').doc(postId);
+                    const doc = await docRef.get();
+                    if (!doc.exists) { showToast('Post not found'); return; }
                     const data = doc.data();
                     let comments = data.comments || [];
-                    let updatedComments = [...comments];
-                    if (type === 'comment') {
-                        updatedComments = comments.map(c => {
-                            if (c.id === commentId.toString()) return { ...c, liked: true };
-                            return c;
-                        });
-                    } else if (type === 'reply') {
-                        updatedComments = comments.map(c => {
-                            if (c.replies) {
-                                const updatedReplies = c.replies.map(r => {
-                                    if (r.id === commentId.toString()) return { ...r, liked: true };
-                                    return r;
+                    const newComment = {
+                        id: Date.now().toString(),
+                        userName: userName,
+                        userImage: userImage,
+                        text: isReply ? commentText : text,
+                        timestamp: new Date().toISOString(),
+                        replies: [],
+                        liked: false,
+                        userId: user.uid
+                    };
+                    if (isReply) {
+                        let found = false;
+                        const updatedComments = comments.map(c => {
+                            if (c.userName === replyToUser && !found) {
+                                found = true;
+                                if (!c.replies) c.replies = [];
+                                c.replies.push({
+                                    id: Date.now().toString(),
+                                    userName: userName,
+                                    userImage: userImage,
+                                    text: commentText,
+                                    timestamp: new Date().toISOString(),
+                                    liked: false,
+                                    userId: user.uid
                                 });
-                                return { ...c, replies: updatedReplies };
                             }
                             return c;
                         });
-                    }
-                    await db.collection('all-user-post').doc(postId).set({ ...data, comments: updatedComments }, { merge: true });
-                }
-            } catch (error) {
-                console.error('Error liking comment:', error);
-                el.style.color = '#65676b';
-                el.textContent = 'Like';
-                el.style.pointerEvents = 'auto';
-                el.onclick = function(e) { e.stopPropagation();
-                    likeCommentDetail(this, postId, commentId, type); };
-            }
-        }
-
-        function replyToComment(el, userName) {
-            const input = document.getElementById('detail-comment-input');
-            if (input) { input.value = `@${userName} `;
-                input.focus(); }
-        }
-
-        function attachDetailListeners(postId) {
-            const sendBtn = document.getElementById('detail-send-btn');
-            if (sendBtn) {
-                const newSendBtn = sendBtn.cloneNode(true);
-                sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
-                newSendBtn.addEventListener('click', function(e) { e.stopPropagation();
-                    sendComment(postId); });
-            }
-            const commentInput = document.getElementById('detail-comment-input');
-            if (commentInput) {
-                const newCommentInput = commentInput.cloneNode(true);
-                commentInput.parentNode.replaceChild(newCommentInput, commentInput);
-                newCommentInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') { e.preventDefault();
-                        sendComment(postId); }
-                });
-            }
-        }
-
-        async function handleLikePost(postId, btnElement) {
-            btnElement.style.pointerEvents = 'none';
-            const postDiv = btnElement.closest('.feed-post');
-            const likeCountSpan = postDiv.querySelector('.like-count');
-            let currentLikes = parseInt(likeCountSpan.textContent) || 0;
-            const userId = auth.currentUser?.uid;
-            if (!userId) { showToast('Please login to like');
-                btnElement.style.pointerEvents = 'auto'; return; }
-            try {
-                const doc = await db.collection('all-user-post').doc(postId).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    const likedBy = data.likedBy || [];
-                    if (likedBy.includes(userId)) {
-                        const newLikedBy = likedBy.filter(id => id !== userId);
-                        await db.collection('all-user-post').doc(postId).update({ likes: currentLikes - 1, likedBy: newLikedBy });
-                        btnElement.classList.remove('liked');
-                        btnElement.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Like';
-                        likeCountSpan.textContent = currentLikes - 1;
-                        showToast('Post unliked');
+                        if (!found) updatedComments.push(newComment);
+                        await docRef.update({ comments: updatedComments });
                     } else {
-                        const newLikedBy = [...likedBy, userId];
-                        await db.collection('all-user-post').doc(postId).update({ likes: currentLikes + 1, likedBy: newLikedBy });
-                        btnElement.classList.add('liked');
-                        btnElement.innerHTML = '<i class="fa-solid fa-thumbs-up"></i> Liked';
-                        likeCountSpan.textContent = currentLikes + 1;
-                        showToast('Post liked!');
+                        comments.push(newComment);
+                        await docRef.update({ comments: comments });
                     }
-                }
-            } catch (error) { console.error('Error handling like:', error);
-                showToast('Error: ' + error.message); }
-            btnElement.style.pointerEvents = 'auto';
-        }
-
-        async function sendComment(postId) {
-            const input = document.getElementById('detail-comment-input');
-            const text = input.value.trim();
-            if (!text) { showToast('Please write a comment'); return; }
-            const user = auth.currentUser;
-            if (!user) { showToast('Please login to comment'); return; }
-            const userName = user.displayName || user.email?.split('@')[0] || 'User';
-            const userImage = user.photoURL ||
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            const isReply = text.startsWith('@');
-            let replyToUser = '';
-            let commentText = text;
-            if (isReply) {
-                const parts = text.split(' ');
-                replyToUser = parts[0].substring(1);
-                commentText = parts.slice(1).join(' ') || text;
+                    showToast('Comment added!');
+                    input.value = '';
+                    setTimeout(() => { loadPostDetail(postId); }, 300);
+                } catch (error) { console.error('Error adding comment:', error);
+                    showToast('Error: ' + error.message); }
             }
-            try {
-                const docRef = db.collection('all-user-post').doc(postId);
-                const doc = await docRef.get();
-                if (!doc.exists) { showToast('Post not found'); return; }
-                const data = doc.data();
-                let comments = data.comments || [];
-                const newComment = {
-                    id: Date.now().toString(),
-                    userName: userName,
-                    userImage: userImage,
-                    text: isReply ? commentText : text,
-                    timestamp: new Date().toISOString(),
-                    replies: [],
-                    liked: false,
-                    userId: user.uid
-                };
-                if (isReply) {
-                    let found = false;
-                    const updatedComments = comments.map(c => {
-                        if (c.userName === replyToUser && !found) {
-                            found = true;
-                            if (!c.replies) c.replies = [];
-                            c.replies.push({
-                                id: Date.now().toString(),
-                                userName: userName,
-                                userImage: userImage,
-                                text: commentText,
-                                timestamp: new Date().toISOString(),
-                                liked: false,
-                                userId: user.uid
-                            });
-                        }
-                        return c;
-                    });
-                    if (!found) updatedComments.push(newComment);
-                    await docRef.update({ comments: updatedComments });
+
+            function escapeHTML(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function toggleReadMore(postId, fullText, event) {
+                event.stopPropagation();
+                const captionSpan = document.getElementById(`caption-${postId}`);
+                if (!captionSpan) return;
+                if (captionSpan.classList.contains('truncated')) {
+                    captionSpan.textContent = fullText;
+                    captionSpan.classList.remove('truncated');
+                    const btn = captionSpan.parentElement.querySelector('.read-more-btn');
+                    if (btn) btn.textContent = 'show less';
                 } else {
-                    comments.push(newComment);
-                    await docRef.update({ comments: comments });
+                    captionSpan.textContent = fullText.substring(0, 150) + '...';
+                    captionSpan.classList.add('truncated');
+                    const btn = captionSpan.parentElement.querySelector('.read-more-btn');
+                    if (btn) btn.textContent = 'read more';
                 }
-                showToast('Comment added!');
-                input.value = '';
-                setTimeout(() => { loadPostDetail(postId); }, 300);
-            } catch (error) { console.error('Error adding comment:', error);
-                showToast('Error: ' + error.message); }
-        }
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        function toggleReadMore(postId, fullText, event) {
-            event.stopPropagation();
-            const captionSpan = document.getElementById(`caption-${postId}`);
-            if (!captionSpan) return;
-            if (captionSpan.classList.contains('truncated')) {
-                captionSpan.textContent = fullText;
-                captionSpan.classList.remove('truncated');
-                const btn = captionSpan.parentElement.querySelector('.read-more-btn');
-                if (btn) btn.textContent = 'show less';
-            } else {
-                captionSpan.textContent = fullText.substring(0, 150) + '...';
-                captionSpan.classList.add('truncated');
-                const btn = captionSpan.parentElement.querySelector('.read-more-btn');
-                if (btn) btn.textContent = 'read more';
             }
-        }
 
-        // ========== INFINITE SCROLL ==========
-        let lastDoc = null;
-        let isLoading = false;
-        let hasMore = true;
-        let postsLoaded = 0;
-        const POSTS_PER_PAGE = 10;
+            // ========== INFINITE SCROLL ==========
+            let lastDoc = null;
+            let isLoading = false;
+            let hasMore = true;
+            let postsLoaded = 0;
+            const POSTS_PER_PAGE = 10;
 
-        function shuffleArray(arr) {
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
-        async function loadPosts(loadMore = false) {
-            if (isLoading || (!loadMore && postsLoaded > 0)) return;
-            if (!loadMore) {
-                postsLoaded = 0;
-                lastDoc = null;
-                hasMore = true;
-                if (endOfFeed) endOfFeed.style.display = 'none';
-                if (feedContainer) {
-                    const existingPosts = feedContainer.querySelectorAll('.feed-post');
-                    existingPosts.forEach(el => el.remove());
+            function shuffleArray(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
                 }
-                if (feedLoading) {
-                    feedLoading.style.display = 'block';
-                    feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading posts...';
+                return arr;
+            }
+
+            async function loadPosts(loadMore = false) {
+                if (isLoading || (!loadMore && postsLoaded > 0)) return;
+                if (!loadMore) {
+                    postsLoaded = 0;
+                    lastDoc = null;
+                    hasMore = true;
+                    if (endOfFeed) endOfFeed.style.display = 'none';
+                    if (feedContainer) {
+                        const existingPosts = feedContainer.querySelectorAll('.feed-post');
+                        existingPosts.forEach(el => el.remove());
+                    }
+                    if (feedLoading) {
+                        feedLoading.style.display = 'block';
+                        feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading posts...';
+                    }
+                } else {
+                    if (scrollLoader) scrollLoader.style.display = 'block';
                 }
-            } else {
-                if (scrollLoader) scrollLoader.style.display = 'block';
-            }
-            if (!hasMore) { 
-                if (scrollLoader) scrollLoader.style.display = 'none';
-                if (endOfFeed) endOfFeed.style.display = 'block'; 
-                return; 
-            }
-            isLoading = true;
-            try {
-                let query = db.collection('all-user-post')
-                    .orderBy('timestamp', 'desc')
-                    .limit(POSTS_PER_PAGE);
-                if (lastDoc) query = query.startAfter(lastDoc);
-                const snapshot = await query.get();
-                if (snapshot.empty) {
-                    hasMore = false;
+                if (!hasMore) {
                     if (scrollLoader) scrollLoader.style.display = 'none';
-                    if (postsLoaded === 0 && feedLoading) {
-                        feedLoading.innerHTML = 'No posts yet. Be the first to share!';
-                    } else if (endOfFeed) {
-                        endOfFeed.style.display = 'block';
+                    if (endOfFeed) endOfFeed.style.display = 'block';
+                    return;
+                }
+                isLoading = true;
+                try {
+                    let query = db.collection('all-user-post')
+                        .orderBy('timestamp', 'desc')
+                        .limit(POSTS_PER_PAGE);
+                    if (lastDoc) query = query.startAfter(lastDoc);
+                    const snapshot = await query.get();
+                    if (snapshot.empty) {
+                        hasMore = false;
+                        if (scrollLoader) scrollLoader.style.display = 'none';
+                        if (postsLoaded === 0 && feedLoading) {
+                            feedLoading.innerHTML = 'No posts yet. Be the first to share!';
+                        } else if (endOfFeed) {
+                            endOfFeed.style.display = 'block';
+                        }
+                        isLoading = false;
+                        return;
                     }
+                    const posts = [];
+                    snapshot.forEach(doc => { const data = doc.data();
+                        posts.push({ id: doc.id, ...data }); });
+                    const shuffledPosts = shuffleArray(posts);
+                    lastDoc = snapshot.docs[snapshot.docs.length - 1];
+                    postsLoaded += shuffledPosts.length;
+                    if (feedLoading) feedLoading.style.display = 'none';
+                    if (scrollLoader) scrollLoader.style.display = 'none';
+                    shuffledPosts.forEach((post) => {
+                        const postEl = createPostElement(post);
+                        if (feedContainer && scrollLoader) {
+                            feedContainer.insertBefore(postEl, scrollLoader);
+                        }
+                    });
+                    attachFeedListeners();
+                    shuffledPosts.forEach(post => {
+                        if (post.userId) {
+                            db.collection('users').doc(post.userId).onSnapshot((doc) => {
+                                if (doc.exists) {
+                                    const data = doc.data();
+                                    const postDiv = document.querySelector(`.feed-post[data-userid="${post.userId}"]`);
+                                    if (postDiv) {
+                                        const statusEl = postDiv.querySelector('.online-status');
+                                        if (statusEl) {
+                                            statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
+                                                'inactive');
+                                        }
+                                        const nameEl = postDiv.querySelector('.post-meta h4');
+                                        const imgEl = postDiv.querySelector('.post-user-info img');
+                                        if (nameEl && data.fullName) nameEl.textContent = data.fullName;
+                                        if (imgEl && data.photoURL) imgEl.src = data.photoURL;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    hasMore = shuffledPosts.length >= POSTS_PER_PAGE;
+                    if (!hasMore && endOfFeed) endOfFeed.style.display = 'block';
                     isLoading = false;
-                    return;
-                }
-                const posts = [];
-                snapshot.forEach(doc => { const data = doc.data();
-                    posts.push({ id: doc.id, ...data }); });
-                const shuffledPosts = shuffleArray(posts);
-                lastDoc = snapshot.docs[snapshot.docs.length - 1];
-                postsLoaded += shuffledPosts.length;
-                if (feedLoading) feedLoading.style.display = 'none';
-                if (scrollLoader) scrollLoader.style.display = 'none';
-                shuffledPosts.forEach((post) => {
-                    const postEl = createPostElement(post);
-                    if (feedContainer && scrollLoader) {
-                        feedContainer.insertBefore(postEl, scrollLoader);
-                    }
-                });
-                attachFeedListeners();
-                shuffledPosts.forEach(post => {
-                    if (post.userId) {
-                        db.collection('users').doc(post.userId).onSnapshot((doc) => {
-                            if (doc.exists) {
-                                const data = doc.data();
-                                const postDiv = document.querySelector(`.feed-post[data-userid="${post.userId}"]`);
-                                if (postDiv) {
-                                    const statusEl = postDiv.querySelector('.online-status');
-                                    if (statusEl) {
-                                        statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
-                                            'inactive');
-                                    }
-                                    const nameEl = postDiv.querySelector('.post-meta h4');
-                                    const imgEl = postDiv.querySelector('.post-user-info img');
-                                    if (nameEl && data.fullName) nameEl.textContent = data.fullName;
-                                    if (imgEl && data.photoURL) imgEl.src = data.photoURL;
-                                }
-                            }
-                        });
-                    }
-                });
-                hasMore = shuffledPosts.length >= POSTS_PER_PAGE;
-                if (!hasMore && endOfFeed) endOfFeed.style.display = 'block';
-                isLoading = false;
-            } catch (error) {
-                console.error('Error loading posts:', error);
-                if (feedLoading) feedLoading.innerHTML = '⚠️ Failed to load posts. Please refresh.';
-                if (scrollLoader) scrollLoader.style.display = 'none';
-                isLoading = false;
-                showToast('Error loading posts: ' + error.message);
-            }
-        }
-
-        function attachFeedListeners() {
-            if (!feedContainer) return;
-            document.querySelectorAll('#feed-container .like-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-                newBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const postDiv = this.closest('.feed-post');
-                    const postId = postDiv.dataset.postId;
-                    handleLikePost(postId, this);
-                });
-            });
-            document.querySelectorAll('#feed-container .comment-toggle-btn').forEach(btn => {
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-                newBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const postDiv = this.closest('.feed-post');
-                    const postId = postDiv.dataset.postId;
-                    openPostDetail(postId);
-                });
-            });
-        }
-
-        let observer = null;
-
-        function setupInfiniteScroll() {
-            if (observer) observer.disconnect();
-            if (!scrollLoader) return;
-            observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && !isLoading && hasMore) loadPosts(true);
-                });
-            }, { root: null, rootMargin: '100px', threshold: 0.1 });
-            observer.observe(scrollLoader);
-        }
-
-        function createPostElement(post) {
-            const div = document.createElement('div');
-            div.className = 'feed-post';
-            div.dataset.postId = post.id;
-            div.dataset.userId = post.userId || '';
-
-            div.addEventListener('click', function(e) {
-                if (e.target.closest('.action-btn') || e.target.closest('.read-more-btn') ||
-                    e.target.closest('.comment-box-input') || e.target.closest('.post-options') ||
-                    e.target.closest('.profile-container') || e.target.closest('.post-meta h4') ||
-                    e.target.closest('.comment-item') || e.target.closest('.comment-count') ||
-                    e.target.closest('.post-image-content') || e.target.closest('.like-btn') ||
-                    e.target.closest('.comment-toggle-btn')) {
-                    return;
-                }
-                openPostDetail(post.id);
-            });
-
-            const currentUser = auth.currentUser;
-            let userName = post.userName || 'Unknown User';
-            let userImage = post.userImage ||
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            let userId = post.userId || '';
-            if (currentUser && post.userId === currentUser.uid) {
-                if (currentUser.displayName) userName = currentUser.displayName;
-                if (currentUser.photoURL) userImage = currentUser.photoURL;
-            }
-
-            const caption = post.caption || '';
-            const fullText = post.fullText || caption;
-            const imageUrl = post.imageUrl || '';
-            const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
-            const likes = post.likes || 0;
-            const comments = post.comments || [];
-            const isBanner = post.isBanner || false;
-            const bannerTheme = post.bannerTheme || 'white';
-            const themeStyle = getThemeStyles(bannerTheme);
-            const needsReadMore = fullText.length > 150;
-
-            let captionHTML = '';
-            if (caption) {
-                if (isBanner) {
-                    captionHTML = `
-                        <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
-                            <div class="post-caption caption-text">${escapeHTML(caption)}</div>
-                        </div>
-                    `;
-                } else {
-                    const displayText = needsReadMore ? fullText.substring(0, 150) + '...' : fullText;
-                    captionHTML = `
-                        <div class="post-caption">
-                            <span class="caption-text ${needsReadMore ? 'truncated' : ''}" id="caption-${post.id}">${escapeHTML(displayText)}</span>
-                            ${needsReadMore ? `<span class="read-more-btn" onclick="toggleReadMore('${post.id}', '${escapeHTML(fullText)}', event)">read more</span>` : ''}
-                        </div>
-                    `;
+                } catch (error) {
+                    console.error('Error loading posts:', error);
+                    if (feedLoading) feedLoading.innerHTML = '⚠️ Failed to load posts. Please refresh.';
+                    if (scrollLoader) scrollLoader.style.display = 'none';
+                    isLoading = false;
+                    showToast('Error loading posts: ' + error.message);
                 }
             }
 
-            const userId_check = auth.currentUser?.uid;
-            const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
-
-            let statusClass = 'inactive';
-            if (currentUser && post.userId === currentUser.uid) {
-                statusClass = 'active';
-            }
-
-            div.innerHTML = `
-                <div class="post-header">
-                    <div class="post-user-info">
-                        <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
-                            <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
-                            <span class="online-status ${statusClass}" data-userid="${userId}"></span>
-                        </div>
-                        <div class="post-meta">
-                            <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
-                            <span>${timestamp}</span>
-                        </div>
-                    </div>
-                    <div class="post-options">
-                        <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
-                    </div>
-                </div>
-                ${captionHTML}
-                ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy" onclick="event.stopPropagation(); openPostDetail('${post.id}')"></div>` : ''}
-                <div class="post-stats">
-                    <div class="stat-left">
-                        <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
-                        <span class="like-count">${likes}</span>
-                    </div>
-                    <div class="stat-right">
-                        <span class="comment-count" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="cursor:pointer;">${comments.length} comments</span>
-                    </div>
-                </div>
-                <div class="post-actions">
-                    <div class="action-btn like-btn ${isLiked ? 'liked' : ''}">${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}</div>
-                    <div class="action-btn comment-toggle-btn"><i class="fa-regular fa-comment"></i> Comment</div>
-                    <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
-                </div>
-                <div class="comments-section">
-                    <div class="comments-list">
-                        ${comments.slice(0, 3).map(c => 
-                            `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')">
-                                <b>${escapeHTML(c.userName || 'User')}:</b> ${escapeHTML(c.text)}
-                            </div>`
-                        ).join('')}
-                        ${comments.length > 3 ? `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="color:#1877f2;font-weight:600;">View all ${comments.length} comments</div>` : ''}
-                    </div>
-                </div>
-            `;
-            if (isBanner) div.classList.add('banner-post');
-
-            if (post.userId) {
-                db.collection('users').doc(post.userId).onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        const newName = data.fullName || data.displayName || post.userName;
-                        const newPhoto = data.photoURL || post.userImage;
-                        const nameEl = div.querySelector('.post-meta h4');
-                        const imgEl = div.querySelector('.post-user-info img');
-                        const statusEl = div.querySelector('.online-status');
-                        if (nameEl && newName) nameEl.textContent = newName;
-                        if (imgEl && newPhoto) imgEl.src = newPhoto;
-                        if (statusEl) {
-                            if (auth.currentUser && post.userId === auth.currentUser.uid) {
-                                statusEl.className = 'online-status active';
-                            } else {
-                                statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' : 'inactive');
-                            }
-                        }
-                    }
+            function attachFeedListeners() {
+                if (!feedContainer) return;
+                document.querySelectorAll('#feed-container .like-btn').forEach(btn => {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const postDiv = this.closest('.feed-post');
+                        const postId = postDiv.dataset.postId;
+                        handleLikePost(postId, this);
+                    });
+                });
+                document.querySelectorAll('#feed-container .comment-toggle-btn').forEach(btn => {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const postDiv = this.closest('.feed-post');
+                        const postId = postDiv.dataset.postId;
+                        openPostDetail(postId);
+                    });
                 });
             }
 
-            return div;
-        }
+            let observer = null;
 
-        // ========== AUTH STATE ==========
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                await createUserDocument(user);
-                
-                // Start enhanced status monitoring
-                startStatusMonitoring(user);
-
-                if (loginOverlay) loginOverlay.classList.remove('show');
-                const headerPic = document.getElementById('header-profile-pic');
-                if (headerPic && user.photoURL) headerPic.src = user.photoURL;
-                if (headerStatusDot) headerStatusDot.className = 'online-dot';
-                showToast('Welcome ' + (user.displayName || user.email?.split('@')[0] || 'User'));
-                postsLoaded = 0;
-                lastDoc = null;
-                hasMore = true;
-                loadPosts(false);
-                setupInfiniteScroll();
-                loadStories();
-                startNotificationListeners(user.uid);
-
-                db.collection('users').doc(user.uid).onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        const newName = data.fullName || data.displayName;
-                        if (newName && newName !== user.displayName) {
-                            user.updateProfile({ displayName: newName }).catch(() => {});
-                        }
-                        if (data.photoURL) {
-                            const headerPic = document.getElementById('header-profile-pic');
-                            if (headerPic) headerPic.src = data.photoURL;
-                            user.updateProfile({ photoURL: data.photoURL }).catch(() => {});
-                        }
-                        if (headerStatusDot) {
-                            headerStatusDot.className = 'online-dot' + (data.status === 'online' ? '' : ' offline');
-                        }
-                        if (feedContainer) {
-                            document.querySelectorAll('#feed-container .feed-post').forEach(postEl => {
-                                const userIdAttr = postEl.dataset.userId;
-                                if (userIdAttr === user.uid) {
-                                    const nameEl = postEl.querySelector('.post-meta h4');
-                                    const imgEl = postEl.querySelector('.post-user-info img');
-                                    const statusEl = postEl.querySelector('.online-status');
-                                    if (nameEl) nameEl.textContent = newName || 'User';
-                                    if (imgEl && data.photoURL) imgEl.src = data.photoURL;
-                                    if (statusEl) statusEl.className = 'online-status active';
-                                } else {
-                                    const statusEl = postEl.querySelector('.online-status');
-                                    if (statusEl && data.status !== undefined) {
-                                        statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
-                                            'inactive');
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-
-            } else {
-                // User is logged out - stop monitoring
-                if (currentUser) {
-                    stopStatusMonitoring(currentUser);
-                }
-                currentUser = null;
-                if (loginOverlay) loginOverlay.classList.add('show');
-                if (feedContainer) {
-                    const posts = feedContainer.querySelectorAll('.feed-post');
-                    posts.forEach(el => el.remove());
-                }
-                if (feedLoading) {
-                    feedLoading.style.display = 'block';
-                    feedLoading.innerHTML = 'Please login to see posts.';
-                }
+            function setupInfiniteScroll() {
                 if (observer) observer.disconnect();
-                if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
-                if (notifListenerUnsubscribe) { notifListenerUnsubscribe();
-                    notifListenerUnsubscribe = null; }
+                if (!scrollLoader) return;
+                observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !isLoading && hasMore) loadPosts(true);
+                    });
+                }, { root: null, rootMargin: '100px', threshold: 0.1 });
+                observer.observe(scrollLoader);
             }
-        });
 
-        // ========== LOGIN ==========
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                const email = loginEmail ? loginEmail.value.trim() : '';
-                const pass = loginPassword ? loginPassword.value.trim() : '';
-                if (!email || !pass) { showToast('Please fill in both fields'); return; }
-                auth.signInWithEmailAndPassword(email, pass)
-                    .then((userCredential) => {
-                        showToast('Login successful!');
-                        createUserDocument(userCredential.user);
-                        // Status will be set by onAuthStateChanged
-                    })
-                    .catch(err => { showToast('Error: ' + err.message); });
-            });
-        }
+            function createPostElement(post) {
+                const div = document.createElement('div');
+                div.className = 'feed-post';
+                div.dataset.postId = post.id;
+                div.dataset.userId = post.userId || '';
 
-        // ========== CREATE ACCOUNT ==========
-        if (createAccountBtn) {
-            createAccountBtn.addEventListener('click', () => {
-                window.location.href = 'signup.html';
-            });
-        }
+                div.addEventListener('click', function(e) {
+                    if (e.target.closest('.action-btn') || e.target.closest('.read-more-btn') ||
+                        e.target.closest('.comment-box-input') || e.target.closest('.post-options') ||
+                        e.target.closest('.profile-container') || e.target.closest('.post-meta h4') ||
+                        e.target.closest('.comment-item') || e.target.closest('.comment-count') ||
+                        e.target.closest('.post-image-content') || e.target.closest('.like-btn') ||
+                        e.target.closest('.comment-toggle-btn')) {
+                        return;
+                    }
+                    openPostDetail(post.id);
+                });
 
-        // ========== LOGOUT ==========
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', handleLogout);
-        }
-
-        // ========== UI INTERACTIONS ==========
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        function toggleNavOverlay(show) {
-            if (!navOverlay) return;
-            if (show) { navOverlay.classList.add('show');
-                document.body.style.overflow = 'hidden'; } else { navOverlay.classList.remove('show');
-                document.body.style.overflow = ''; }
-        }
-        if (navToggleBtn) navToggleBtn.addEventListener('click', () => toggleNavOverlay(true));
-        if (navMenuTab) navMenuTab.addEventListener('click', () => toggleNavOverlay(true));
-        if (navOverlayClose) navOverlayClose.addEventListener('click', () => toggleNavOverlay(false));
-        if (navOverlay) navOverlay.addEventListener('click', (e) => { if (e.target === navOverlay) toggleNavOverlay(false); });
-
-        // Top icon clicks
-        const searchIcon = getEl('search-icon');
-        if (searchIcon) searchIcon.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('search.html', 'Search'); });
-        
-        const notifIcon = getEl('notif-icon');
-        if (notifIcon) notifIcon.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('notifications.html', 'Notifications'); });
-        
-        const messengerIcon = getEl('messenger-icon');
-        if (messengerIcon) messengerIcon.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('messenger.html', 'Messenger'); });
-        
-        const tabFriends = getEl('tab-friends');
-        if (tabFriends) tabFriends.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('friend-request.html', 'Friends'); });
-        
-        const tabMessenger = getEl('tab-messenger');
-        if (tabMessenger) tabMessenger.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('messenger.html', 'Messenger'); });
-        
-        const tabVideos = getEl('tab-videos');
-        if (tabVideos) tabVideos.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('videos.html', 'Videos'); });
-        
-        const tabNotifications = getEl('tab-notifications');
-        if (tabNotifications) tabNotifications.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('notifications.html', 'Notifications'); });
-        
-        const triggerPost = getEl('trigger-post');
-        if (triggerPost) triggerPost.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('create-post.html', 'Create Post'); });
-        
-        const triggerPhoto = getEl('trigger-photo');
-        if (triggerPhoto) triggerPhoto.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('upload-photo.html', 'Upload Photo'); });
-        
-        const openPostModal = getEl('open-post-modal');
-        if (openPostModal) openPostModal.addEventListener('click', function(e) { e.stopPropagation();
-            openIframe('create-post.html', 'Create Post'); });
-
-        // Modal for creating post
-        const postModal = getEl('post-modal');
-        const closeModal = getEl('close-modal');
-        const modalText = getEl('modal-text');
-        if (closeModal) {
-            closeModal.addEventListener('click', async () => {
-                if (modalText && modalText.value.trim()) {
-                    const user = auth.currentUser;
-                    if (user) {
-                        const userName = user.displayName || user.email?.split('@')[0] || 'Anonymous';
-                        try {
-                            await db.collection('all-user-post').add({
-                                userName: userName,
-                                userId: user.uid,
-                                userImage: user.photoURL ||
-                                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-                                caption: modalText.value.trim(),
-                                fullText: modalText.value.trim(),
-                                imageUrl: '',
-                                likes: 0,
-                                likedBy: [],
-                                comments: [],
-                                isBanner: false,
-                                bannerTheme: 'white',
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                            showToast('Post created successfully!');
-                            modalText.value = '';
-                            postsLoaded = 0;
-                            lastDoc = null;
-                            hasMore = true;
-                            loadPosts(false);
-                        } catch (err) { showToast('Error creating post: ' + err.message); }
-                    } else showToast('Please login first');
+                const currentUser = auth.currentUser;
+                let userName = post.userName || 'Unknown User';
+                let userImage = post.userImage ||
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                let userId = post.userId || '';
+                if (currentUser && post.userId === currentUser.uid) {
+                    if (currentUser.displayName) userName = currentUser.displayName;
+                    if (currentUser.photoURL) userImage = currentUser.photoURL;
                 }
-                if (postModal) postModal.style.display = 'none';
-            });
-        }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && loginOverlay && loginOverlay.classList.contains('show')) {
-                if (loginBtn) loginBtn.click();
+                const caption = post.caption || '';
+                const fullText = post.fullText || caption;
+                const imageUrl = post.imageUrl || '';
+                const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
+                const likes = post.likes || 0;
+                const comments = post.comments || [];
+                const isBanner = post.isBanner || false;
+                const bannerTheme = post.bannerTheme || 'white';
+                const themeStyle = getThemeStyles(bannerTheme);
+                const needsReadMore = fullText.length > 150;
+
+                let captionHTML = '';
+                if (caption) {
+                    if (isBanner) {
+                        captionHTML = `
+                            <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
+                                <div class="post-caption caption-text">${escapeHTML(caption)}</div>
+                            </div>
+                        `;
+                    } else {
+                        const displayText = needsReadMore ? fullText.substring(0, 150) + '...' : fullText;
+                        captionHTML = `
+                            <div class="post-caption">
+                                <span class="caption-text ${needsReadMore ? 'truncated' : ''}" id="caption-${post.id}">${escapeHTML(displayText)}</span>
+                                ${needsReadMore ? `<span class="read-more-btn" onclick="toggleReadMore('${post.id}', '${escapeHTML(fullText)}', event)">read more</span>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                const userId_check = auth.currentUser?.uid;
+                const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
+
+                let statusClass = 'inactive';
+                if (currentUser && post.userId === currentUser.uid) {
+                    statusClass = 'active';
+                }
+
+                div.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user-info">
+                            <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
+                                <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
+                                <span class="online-status ${statusClass}" data-userid="${userId}"></span>
+                            </div>
+                            <div class="post-meta">
+                                <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
+                                <span>${timestamp}</span>
+                            </div>
+                        </div>
+                        <div class="post-options">
+                            <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
+                        </div>
+                    </div>
+                    ${captionHTML}
+                    ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy" onclick="event.stopPropagation(); openPostDetail('${post.id}')"></div>` : ''}
+                    <div class="post-stats">
+                        <div class="stat-left">
+                            <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
+                            <span class="like-count">${likes}</span>
+                        </div>
+                        <div class="stat-right">
+                            <span class="comment-count" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="cursor:pointer;">${comments.length} comments</span>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <div class="action-btn like-btn ${isLiked ? 'liked' : ''}">${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}</div>
+                        <div class="action-btn comment-toggle-btn"><i class="fa-regular fa-comment"></i> Comment</div>
+                        <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
+                    </div>
+                    <div class="comments-section">
+                        <div class="comments-list">
+                            ${comments.slice(0, 3).map(c => 
+                                `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')">
+                                    <b>${escapeHTML(c.userName || 'User')}:</b> ${escapeHTML(c.text)}
+                                </div>`
+                            ).join('')}
+                            ${comments.length > 3 ? `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="color:#1877f2;font-weight:600;">View all ${comments.length} comments</div>` : ''}
+                        </div>
+                    </div>
+                `;
+                if (isBanner) div.classList.add('banner-post');
+
+                if (post.userId) {
+                    db.collection('users').doc(post.userId).onSnapshot((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            const newName = data.fullName || data.displayName || post.userName;
+                            const newPhoto = data.photoURL || post.userImage;
+                            const nameEl = div.querySelector('.post-meta h4');
+                            const imgEl = div.querySelector('.post-user-info img');
+                            const statusEl = div.querySelector('.online-status');
+                            if (nameEl && newName) nameEl.textContent = newName;
+                            if (imgEl && newPhoto) imgEl.src = newPhoto;
+                            if (statusEl) {
+                                if (auth.currentUser && post.userId === auth.currentUser.uid) {
+                                    statusEl.className = 'online-status active';
+                                } else {
+                                    statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' : 'inactive');
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return div;
             }
-        });
 
-        // ========== EXPOSE GLOBALLY ==========
-        window.openProfileIframe = openProfileIframe;
-        window.openIframe = openIframe;
-        window.openPostDetail = openPostDetail;
-        window.toggleReadMore = toggleReadMore;
-        window.handleLikePost = handleLikePost;
-        window.likeCommentDetail = likeCommentDetail;
-        window.replyToComment = replyToComment;
-        window.showToast = showToast;
-        window.openStoryViewer = openStoryViewer;
-        window.getUserData = getUserData;
-        window.closeNotif = closeNotif;
-        window.openNotifChat = openNotifChat;
-        window.handleLogout = handleLogout;
+            // ========== AUTH STATE ==========
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await createUserDocument(user);
+                    startStatusMonitoring(user);
+                    if (loginOverlay) loginOverlay.classList.remove('show');
+                    const headerPic = document.getElementById('header-profile-pic');
+                    if (headerPic && user.photoURL) headerPic.src = user.photoURL;
+                    if (headerStatusDot) headerStatusDot.className = 'online-dot';
+                    showToast('Welcome ' + (user.displayName || user.email?.split('@')[0] || 'User'));
+                    postsLoaded = 0;
+                    lastDoc = null;
+                    hasMore = true;
+                    loadPosts(false);
+                    setupInfiniteScroll();
+                    await loadStories(true);
+                    startNotificationListeners(user.uid);
 
-        console.log('🔥 SecretIntro - Enhanced Online Status System');
-        console.log('🚀 Real-time online/offline status tracking');
-        console.log('📱 Status updates on visibility change');
-        console.log('🔴 Sets offline immediately on page close');
-        console.log('🟢 Sets online instantly on page load');
-        console.log('👀 All users see real-time status changes');
-        
-        }); // End of DOMContentLoaded
+                    db.collection('users').doc(user.uid).onSnapshot((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            const newName = data.fullName || data.displayName;
+                            if (newName && newName !== user.displayName) {
+                                user.updateProfile({ displayName: newName }).catch(() => {});
+                            }
+                            if (data.photoURL) {
+                                const headerPic = document.getElementById('header-profile-pic');
+                                if (headerPic) headerPic.src = data.photoURL;
+                                user.updateProfile({ photoURL: data.photoURL }).catch(() => {});
+                            }
+                            if (headerStatusDot) {
+                                headerStatusDot.className = 'online-dot' + (data.status === 'online' ? '' : ' offline');
+                            }
+                            if (feedContainer) {
+                                document.querySelectorAll('#feed-container .feed-post').forEach(postEl => {
+                                    const userIdAttr = postEl.dataset.userId;
+                                    if (userIdAttr === user.uid) {
+                                        const nameEl = postEl.querySelector('.post-meta h4');
+                                        const imgEl = postEl.querySelector('.post-user-info img');
+                                        const statusEl = postEl.querySelector('.online-status');
+                                        if (nameEl) nameEl.textContent = newName || 'User';
+                                        if (imgEl && data.photoURL) imgEl.src = data.photoURL;
+                                        if (statusEl) statusEl.className = 'online-status active';
+                                    } else {
+                                        const statusEl = postEl.querySelector('.online-status');
+                                        if (statusEl && data.status !== undefined) {
+                                            statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
+                                                'inactive');
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                } else {
+                    if (currentUser) {
+                        stopStatusMonitoring(currentUser);
+                    }
+                    currentUser = null;
+                    if (loginOverlay) loginOverlay.classList.add('show');
+                    if (feedContainer) {
+                        const posts = feedContainer.querySelectorAll('.feed-post');
+                        posts.forEach(el => el.remove());
+                    }
+                    if (feedLoading) {
+                        feedLoading.style.display = 'block';
+                        feedLoading.innerHTML = 'Please login to see posts.';
+                    }
+                    if (observer) observer.disconnect();
+                    if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
+                    if (notifListenerUnsubscribe) { notifListenerUnsubscribe();
+                        notifListenerUnsubscribe = null; }
+                }
+            });
+
+            // ========== LOGIN ==========
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    const email = loginEmail ? loginEmail.value.trim() : '';
+                    const pass = loginPassword ? loginPassword.value.trim() : '';
+                    if (!email || !pass) { showToast('Please fill in both fields'); return; }
+                    auth.signInWithEmailAndPassword(email, pass)
+                        .then((userCredential) => {
+                            showToast('Login successful!');
+                            createUserDocument(userCredential.user);
+                        })
+                        .catch(err => { showToast('Error: ' + err.message); });
+                });
+            }
+
+            if (createAccountBtn) {
+                createAccountBtn.addEventListener('click', () => {
+                    window.location.href = 'signup.html';
+                });
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+
+            // ========== UI INTERACTIONS ==========
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            function toggleNavOverlay(show) {
+                if (!navOverlay) return;
+                if (show) { navOverlay.classList.add('show');
+                    document.body.style.overflow = 'hidden'; } else { navOverlay.classList.remove('show');
+                    document.body.style.overflow = ''; }
+            }
+            if (navToggleBtn) navToggleBtn.addEventListener('click', () => toggleNavOverlay(true));
+            if (navMenuTab) navMenuTab.addEventListener('click', () => toggleNavOverlay(true));
+            if (navOverlayClose) navOverlayClose.addEventListener('click', () => toggleNavOverlay(false));
+            if (navOverlay) navOverlay.addEventListener('click', (e) => { if (e.target === navOverlay) toggleNavOverlay(false); });
+
+            const searchIcon = getEl('search-icon');
+            if (searchIcon) searchIcon.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('search.html', 'Search'); });
+            const notifIcon = getEl('notif-icon');
+            if (notifIcon) notifIcon.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('notifications.html', 'Notifications'); });
+            const messengerIcon = getEl('messenger-icon');
+            if (messengerIcon) messengerIcon.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('messenger.html', 'Messenger'); });
+            const tabFriends = getEl('tab-friends');
+            if (tabFriends) tabFriends.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('friend-request.html', 'Friends'); });
+            const tabMessenger = getEl('tab-messenger');
+            if (tabMessenger) tabMessenger.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('messenger.html', 'Messenger'); });
+            const tabVideos = getEl('tab-videos');
+            if (tabVideos) tabVideos.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('videos.html', 'Videos'); });
+            const tabNotifications = getEl('tab-notifications');
+            if (tabNotifications) tabNotifications.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('notifications.html', 'Notifications'); });
+            const triggerPost = getEl('trigger-post');
+            if (triggerPost) triggerPost.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('create-post.html', 'Create Post'); });
+            const triggerPhoto = getEl('trigger-photo');
+            if (triggerPhoto) triggerPhoto.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('upload-photo.html', 'Upload Photo'); });
+            const openPostModal = getEl('open-post-modal');
+            if (openPostModal) openPostModal.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('create-post.html', 'Create Post'); });
+
+            const postModal = getEl('post-modal');
+            const closeModal = getEl('close-modal');
+            const modalText = getEl('modal-text');
+            if (closeModal) {
+                closeModal.addEventListener('click', async () => {
+                    if (modalText && modalText.value.trim()) {
+                        const user = auth.currentUser;
+                        if (user) {
+                            const userName = user.displayName || user.email?.split('@')[0] || 'Anonymous';
+                            try {
+                                await db.collection('all-user-post').add({
+                                    userName: userName,
+                                    userId: user.uid,
+                                    userImage: user.photoURL ||
+                                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                                    caption: modalText.value.trim(),
+                                    fullText: modalText.value.trim(),
+                                    imageUrl: '',
+                                    likes: 0,
+                                    likedBy: [],
+                                    comments: [],
+                                    isBanner: false,
+                                    bannerTheme: 'white',
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                showToast('Post created successfully!');
+                                modalText.value = '';
+                                postsLoaded = 0;
+                                lastDoc = null;
+                                hasMore = true;
+                                loadPosts(false);
+                            } catch (err) { showToast('Error creating post: ' + err.message); }
+                        } else showToast('Please login first');
+                    }
+                    if (postModal) postModal.style.display = 'none';
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && loginOverlay && loginOverlay.classList.contains('show')) {
+                    if (loginBtn) loginBtn.click();
+                }
+            });
+
+            // ========== EXPOSE GLOBALLY ==========
+            window.openProfileIframe = openProfileIframe;
+            window.openIframe = openIframe;
+            window.openPostDetail = openPostDetail;
+            window.toggleReadMore = toggleReadMore;
+            window.handleLikePost = handleLikePost;
+            window.likeCommentDetail = likeCommentDetail;
+            window.replyToComment = replyToComment;
+            window.showToast = showToast;
+            window.openStoryViewer = openStoryViewer;
+            window.getUserData = getUserData;
+            window.closeNotif = closeNotif;
+            window.openNotifChat = openNotifChat;
+            window.handleLogout = handleLogout;
+
+            console.log('🚀 SecretIntro - Ultra Fast Feed');
+            console.log('📱 Swipe to refresh enabled');
+            console.log('⚡ Stories cached for instant load');
+            console.log('🔄 Dynamic online/offline status');
+            console.log('📦 Infinite scroll with optimization');
+
+        }); // End DOMContentLoaded
     </script>
 </body>
 </html>
