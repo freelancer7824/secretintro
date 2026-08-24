@@ -2,8 +2,8 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>Profile · Facebook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <title>প্রোফাইল · SecretIntro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
     </script>
@@ -11,9 +11,8 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript">
-    </script>
     <style>
+        /* ===== RESET & BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -25,6 +24,8 @@
             background: #f0f2f5;
             min-height: 100vh;
             height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
         body {
             display: flex;
@@ -32,17 +33,23 @@
             padding: 0;
             margin: 0;
         }
+
+        /* ===== PROFILE WRAPPER - FULL PAGE SCROLL ===== */
         .profile-wrapper {
             max-width: 680px;
             width: 100%;
             background: #fff;
             border-radius: 0;
             box-shadow: none;
-            overflow: hidden;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-y: visible;
+            overflow-x: hidden;
+            position: relative;
         }
+
+        /* ===== COVER AREA ===== */
         .cover-area {
             height: 28vh;
             min-height: 160px;
@@ -83,6 +90,8 @@
         .cover-edit-icon.show {
             display: flex;
         }
+
+        /* ===== PROFILE PIC ===== */
         .profile-pic-section {
             display: flex;
             align-items: flex-end;
@@ -130,13 +139,15 @@
         .profile-pic-edit.show {
             display: flex;
         }
+
+        /* ===== PROFILE INFO ===== */
         .profile-info {
             padding: 6px 16px 10px;
             border-bottom: 1px solid #e4e6eb;
             flex-shrink: 0;
         }
         .profile-info .name {
-            font-size: 24px;
+            font-size: clamp(20px, 4vw, 24px);
             font-weight: 700;
             color: #1c1e21;
             line-height: 1.3;
@@ -146,17 +157,18 @@
             flex-wrap: wrap;
         }
         .profile-info .bio {
-            font-size: 14px;
+            font-size: clamp(13px, 2vw, 15px);
             color: #65676b;
             margin-top: 2px;
+            word-wrap: break-word;
         }
         .profile-info .location {
-            font-size: 14px;
+            font-size: clamp(13px, 2vw, 15px);
             color: #65676b;
             margin-top: 2px;
         }
         .profile-info .friends-count {
-            font-size: 14px;
+            font-size: clamp(13px, 2vw, 15px);
             color: #65676b;
             margin-top: 4px;
         }
@@ -164,6 +176,8 @@
             font-weight: 600;
             color: #1c1e21;
         }
+
+        /* ===== ACTION BAR ===== */
         .action-bar {
             display: flex;
             flex-wrap: wrap;
@@ -176,7 +190,7 @@
             padding: 6px 16px;
             border-radius: 6px;
             border: none;
-            font-size: 13px;
+            font-size: clamp(12px, 1.5vw, 14px);
             font-weight: 600;
             cursor: pointer;
             display: inline-flex;
@@ -185,33 +199,37 @@
             transition: 0.2s;
             flex: 1 1 auto;
             justify-content: center;
+            min-height: 40px;
+        }
+        .action-btn:active {
+            transform: scale(0.96);
         }
         .action-btn.primary {
             background: #1877f2;
             color: #fff;
         }
-        .action-btn.primary:hover {
+        .action-btn.primary:active {
             background: #166fe5;
         }
         .action-btn.secondary {
             background: #e4e6eb;
             color: #1c1e21;
         }
-        .action-btn.secondary:hover {
+        .action-btn.secondary:active {
             background: #d8dadf;
         }
         .action-btn.success {
             background: #42b72a;
             color: #fff;
         }
-        .action-btn.success:hover {
+        .action-btn.success:active {
             background: #36a420;
         }
         .action-btn.danger {
             background: #e41e3f;
             color: #fff;
         }
-        .action-btn.danger:hover {
+        .action-btn.danger:active {
             background: #c91a36;
         }
         .action-btn:disabled {
@@ -222,23 +240,18 @@
             background: #e4e6eb;
             color: #1c1e21;
         }
-        .action-btn.friend-requested:hover {
-            background: #d8dadf;
+        .action-btn.friend-requested:disabled {
+            opacity: 0.6;
         }
         .action-btn.friend-accepted {
             background: #42b72a;
             color: #fff;
         }
-        .action-btn.friend-accepted:hover {
-            background: #36a420;
+        .action-btn.friend-accepted:disabled {
+            opacity: 0.7;
         }
-        .action-btn.request-btn {
-            background: #e4e6eb;
-            color: #1c1e21;
-        }
-        .action-btn.request-btn:hover {
-            background: #d8dadf;
-        }
+
+        /* ===== TABS ===== */
         .profile-tabs {
             display: flex;
             border-bottom: 1px solid #e4e6eb;
@@ -247,10 +260,17 @@
             overflow-x: auto;
             flex-shrink: 0;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .profile-tabs::-webkit-scrollbar {
+            display: none;
         }
         .profile-tab {
             padding: 12px 14px;
-            font-size: 13px;
+            font-size: clamp(12px, 1.8vw, 14px);
             font-weight: 600;
             color: #65676b;
             cursor: pointer;
@@ -258,26 +278,42 @@
             transition: 0.2s;
             white-space: nowrap;
             flex-shrink: 0;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .profile-tab.active {
             color: #1877f2;
             border-bottom-color: #1877f2;
         }
-        .profile-tab:hover {
+        .profile-tab:active {
             background: #f0f2f5;
             border-radius: 8px 8px 0 0;
         }
+
+        /* ===== TAB CONTENT - FULL SCROLL ===== */
         #tab-content {
             flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow-y: visible;
+            overflow-x: hidden;
+            padding-bottom: 30px;
         }
+        .tab-panel {
+            display: none;
+            padding-bottom: 20px;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* ===== DETAILS SECTION ===== */
         .details-section {
             padding: 14px 16px;
             border-bottom: 1px solid #e4e6eb;
         }
         .details-section h3 {
-            font-size: 17px;
+            font-size: clamp(16px, 2.5vw, 18px);
             font-weight: 600;
             color: #1c1e21;
             margin-bottom: 10px;
@@ -287,19 +323,21 @@
             align-items: center;
             gap: 10px;
             padding: 5px 0;
-            font-size: 14px;
+            font-size: clamp(13px, 1.8vw, 15px);
             color: #1c1e21;
+            flex-wrap: wrap;
         }
         .detail-row i {
             width: 20px;
             color: #65676b;
             font-size: 15px;
             text-align: center;
+            flex-shrink: 0;
         }
         .detail-row .detail-label {
             color: #65676b;
             min-width: 70px;
-            font-size: 13px;
+            font-size: clamp(12px, 1.5vw, 14px);
         }
         .work-item {
             background: #f7f8fa;
@@ -323,9 +361,11 @@
             display: inline-block;
             margin-top: 4px;
         }
-        .see-more-link:hover {
+        .see-more-link:active {
             text-decoration: underline;
         }
+
+        /* ===== FRIENDS GRID ===== */
         .friends-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -338,8 +378,9 @@
             transition: 0.2s;
             padding: 6px 2px;
             border-radius: 8px;
+            min-height: 80px;
         }
-        .friend-card:hover {
+        .friend-card:active {
             background: #f0f2f5;
         }
         .friend-card img {
@@ -350,10 +391,11 @@
             margin-bottom: 3px;
         }
         .friend-card .fname {
-            font-size: 11px;
+            font-size: clamp(10px, 1.3vw, 12px);
             font-weight: 600;
             color: #1c1e21;
             line-height: 1.2;
+            word-break: break-word;
         }
         .friend-card .mutual {
             font-size: 10px;
@@ -367,19 +409,20 @@
             padding: 4px 16px 12px;
             display: inline-block;
         }
-        .see-all-link:hover {
+        .see-all-link:active {
             text-decoration: underline;
         }
+
+        /* ===== POSTS ===== */
         .posts-section {
             padding: 6px 16px 20px;
         }
         .posts-section h3 {
-            font-size: 17px;
+            font-size: clamp(16px, 2.5vw, 18px);
             font-weight: 600;
             color: #1c1e21;
             margin-bottom: 10px;
         }
-
         .post-item {
             background: #fff;
             border-radius: 8px;
@@ -389,7 +432,7 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .post-item:hover {
+        .post-item:active {
             background: #fafafa;
         }
         .post-item .post-header {
@@ -418,16 +461,16 @@
         }
         .post-item .post-user .pname {
             font-weight: 600;
-            font-size: 15px;
+            font-size: clamp(14px, 2vw, 16px);
             color: #1c1e21;
             display: block;
             cursor: pointer;
         }
-        .post-item .post-user .pname:hover {
+        .post-item .post-user .pname:active {
             text-decoration: underline;
         }
         .post-item .post-user .ptime {
-            font-size: 12px;
+            font-size: clamp(11px, 1.3vw, 13px);
             color: #65676b;
         }
         .post-item .post-actions-right {
@@ -449,7 +492,7 @@
             align-items: center;
             justify-content: center;
         }
-        .post-item .post-actions-right .delete-btn:hover {
+        .post-item .post-actions-right .delete-btn:active {
             background: #f0f2f5;
             color: #e41e3f;
         }
@@ -457,7 +500,7 @@
             padding: 0 14px 8px;
         }
         .post-item .post-text {
-            font-size: 15px;
+            font-size: clamp(14px, 2vw, 16px);
             color: #1c1e21;
             margin: 4px 0 8px;
             word-wrap: break-word;
@@ -468,7 +511,7 @@
             border-radius: 8px;
             text-align: center;
             font-weight: 600;
-            font-size: 18px;
+            font-size: clamp(16px, 2.5vw, 20px);
         }
         .post-item .post-image {
             width: 100%;
@@ -479,7 +522,7 @@
             background: #000;
         }
         .post-item .post-stats {
-            font-size: 13px;
+            font-size: clamp(12px, 1.5vw, 14px);
             color: #65676b;
             padding: 6px 14px 8px;
             border-top: 1px solid #e4e6eb;
@@ -508,7 +551,7 @@
             padding: 6px 12px;
             border: none;
             background: none;
-            font-size: 13px;
+            font-size: clamp(12px, 1.5vw, 14px);
             font-weight: 600;
             color: #65676b;
             cursor: pointer;
@@ -519,20 +562,24 @@
             gap: 6px;
             flex: 1;
             justify-content: center;
+            min-height: 38px;
         }
-        .post-item .post-actions .act-btn:hover {
+        .post-item .post-actions .act-btn:active {
             background: #f0f2f5;
         }
         .post-item .post-actions .act-btn.liked {
             color: #1877f2;
         }
 
+        /* ===== EMPTY STATE ===== */
         .empty-state {
             color: #65676b;
             font-size: 14px;
             text-align: center;
             padding: 40px 0;
         }
+
+        /* ===== TOAST ===== */
         .toast-msg {
             background: #333;
             color: #fff;
@@ -548,7 +595,10 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             max-width: 90%;
             text-align: center;
+            pointer-events: none;
         }
+
+        /* ===== ONLINE STATUS ===== */
         .online-status {
             display: inline-block;
             width: 10px;
@@ -563,7 +613,7 @@
             background: #b0b3b8;
         }
 
-        /* Edit Profile Modal */
+        /* ===== EDIT MODAL ===== */
         .edit-overlay {
             display: none;
             position: fixed;
@@ -602,7 +652,7 @@
             }
         }
         .edit-modal h2 {
-            font-size: 22px;
+            font-size: clamp(18px, 3vw, 22px);
             font-weight: 700;
             margin-bottom: 16px;
             display: flex;
@@ -619,7 +669,7 @@
             border-radius: 50%;
             transition: 0.2s;
         }
-        .edit-modal h2 .close-btn:hover {
+        .edit-modal h2 .close-btn:active {
             background: #f0f2f5;
         }
         .edit-modal .form-group {
@@ -660,13 +710,14 @@
             color: #fff;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: clamp(15px, 2vw, 17px);
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
             margin-top: 8px;
+            min-height: 48px;
         }
-        .edit-modal .save-btn:hover {
+        .edit-modal .save-btn:active {
             background: #166fe5;
         }
         .edit-modal .save-btn:disabled {
@@ -691,8 +742,9 @@
             align-items: center;
             gap: 6px;
             transition: 0.2s;
+            min-height: 36px;
         }
-        .edit-modal .photo-upload-row .upload-btn:hover {
+        .edit-modal .photo-upload-row .upload-btn:active {
             background: #d8dadf;
         }
         .edit-modal .photo-preview {
@@ -729,7 +781,7 @@
             }
         }
 
-        /* ===== FULL SCREEN POST DETAIL OVERLAY ===== */
+        /* ===== POST DETAIL OVERLAY ===== */
         #post-detail-overlay {
             display: none;
             position: fixed;
@@ -756,6 +808,7 @@
             align-items: center;
             gap: 16px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            min-height: 56px;
         }
         .post-detail-header .back-btn {
             background: none;
@@ -763,10 +816,16 @@
             font-size: 22px;
             cursor: pointer;
             color: #050505;
-            padding: 4px 8px;
+            padding: 8px;
+            border-radius: 50%;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .post-detail-header .back-btn:hover {
-            color: #1877f2;
+        .post-detail-header .back-btn:active {
+            background: #f0f2f5;
         }
         .post-detail-body {
             max-width: 680px;
@@ -781,18 +840,18 @@
             border-radius: 0;
             margin-bottom: 0;
         }
-        .post-detail-body .post-item:hover {
+        .post-detail-body .post-item:active {
             background: #fff;
         }
         .post-detail-body .post-item .post-text {
-            font-size: 18px;
+            font-size: clamp(16px, 2.5vw, 20px);
             padding: 4px 0 8px;
         }
         .post-detail-body .post-item .post-image {
             max-height: 500px;
         }
 
-        /* Comment section in detail view */
+        /* ===== DETAIL COMMENTS ===== */
         .detail-comments-section {
             padding: 12px 16px 80px;
             background: #fff;
@@ -832,12 +891,12 @@
         }
         .comment-item-detail .comment-author {
             font-weight: 600;
-            font-size: 13px;
+            font-size: clamp(12px, 1.5vw, 14px);
             color: #050505;
             margin-bottom: 2px;
         }
         .comment-item-detail .comment-text {
-            font-size: 14px;
+            font-size: clamp(13px, 1.8vw, 15px);
             color: #050505;
             line-height: 1.4;
             word-wrap: break-word;
@@ -855,11 +914,14 @@
             color: #65676b;
             margin-top: 4px;
             padding-left: 4px;
+            flex-wrap: wrap;
         }
         .comment-item-detail .comment-actions span {
             cursor: pointer;
+            padding: 2px 0;
+            min-height: 28px;
         }
-        .comment-item-detail .comment-actions span:hover {
+        .comment-item-detail .comment-actions span:active {
             text-decoration: underline;
         }
         .reply-container {
@@ -884,6 +946,7 @@
             padding: 8px 12px;
             gap: 8px;
             z-index: 5;
+            flex-wrap: nowrap;
         }
         .detail-comment-input-bar .current-user-avatar {
             width: 32px;
@@ -898,18 +961,20 @@
             border-radius: 20px;
             display: flex;
             align-items: center;
-            padding: 6px 12px;
+            padding: 4px 12px;
             min-width: 0;
+            gap: 4px;
         }
         .detail-comment-input-bar .input-wrapper input {
             flex: 1;
             border: none;
             background: transparent;
             outline: none;
-            font-size: 14px;
+            font-size: clamp(14px, 2vw, 16px);
             color: #050505;
             width: 100%;
             min-width: 0;
+            padding: 8px 0;
         }
         .detail-comment-input-bar .input-wrapper input::placeholder {
             color: #65676b;
@@ -917,18 +982,23 @@
         .detail-comment-input-bar .input-icons {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 18px;
+            gap: 4px;
+            font-size: clamp(16px, 2vw, 20px);
             color: #65676b;
             flex-shrink: 0;
         }
+        .detail-comment-input-bar .input-icons i {
+            cursor: pointer;
+            padding: 4px;
+            min-width: 30px;
+            text-align: center;
+        }
         .detail-comment-input-bar .input-icons .send-icon {
             color: #1877f2;
-            font-size: 20px;
-            cursor: pointer;
+            font-size: clamp(18px, 2.5vw, 22px);
         }
 
-        /* Messenger overlay */
+        /* ===== MESSENGER OVERLAY ===== */
         #messenger-overlay {
             display: none;
             position: fixed;
@@ -955,6 +1025,7 @@
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
+            min-height: 56px;
         }
         .messenger-header .close-messenger {
             background: none;
@@ -962,7 +1033,10 @@
             font-size: 22px;
             cursor: pointer;
             color: #65676b;
-            padding: 4px 8px;
+            padding: 8px;
+            border-radius: 50%;
+            min-width: 44px;
+            min-height: 44px;
         }
         .messenger-messages {
             flex: 1;
@@ -977,7 +1051,7 @@
             padding: 10px 14px;
             border-radius: 18px;
             word-wrap: break-word;
-            font-size: 14px;
+            font-size: clamp(13px, 1.8vw, 15px);
         }
         .messenger-messages .message-bubble.sent {
             background: #1877f2;
@@ -1011,6 +1085,7 @@
             border-radius: 20px;
             outline: none;
             font-size: 14px;
+            min-height: 44px;
         }
         .messenger-input-bar input:focus {
             border-color: #1877f2;
@@ -1028,16 +1103,49 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
-        .messenger-input-bar .send-msg-btn:hover {
+        .messenger-input-bar .send-msg-btn:active {
             background: #166fe5;
+            transform: scale(0.95);
         }
         .messenger-input-bar .send-msg-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
 
-        /* Responsive */
+        /* ===== UPLOAD PROGRESS ===== */
+        .upload-progress {
+            display: none;
+            padding: 8px 16px;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border-bottom: 1px solid #e4e6eb;
+        }
+        .upload-progress.show {
+            display: flex;
+        }
+        .upload-progress .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: #e4e6eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .upload-progress .progress-fill {
+            height: 100%;
+            background: #1877f2;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .upload-progress .progress-text {
+            font-size: 13px;
+            color: #65676b;
+            font-weight: 500;
+        }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 500px) {
             .profile-pic-section img {
                 width: 76px;
@@ -1052,7 +1160,7 @@
                 right: -2px;
             }
             .profile-info .name {
-                font-size: 20px;
+                font-size: 18px;
             }
             .friends-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -1060,6 +1168,7 @@
             .action-btn {
                 padding: 5px 12px;
                 font-size: 12px;
+                min-height: 36px;
             }
             .cover-area {
                 height: 22vh;
@@ -1101,6 +1210,10 @@
                 height: 80vh;
                 max-height: 400px;
             }
+            .profile-tab {
+                padding: 10px 10px;
+                font-size: 12px;
+            }
         }
         @media (max-width: 380px) {
             .profile-pic-section img {
@@ -1115,157 +1228,197 @@
                 width: 42px;
                 height: 42px;
             }
-            .profile-tab {
-                padding: 10px 10px;
-                font-size: 12px;
-            }
             .post-item .post-actions .act-btn {
                 font-size: 11px;
                 padding: 4px 8px;
+                min-height: 32px;
+            }
+        }
+        @media (min-width: 768px) {
+            .friends-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            .profile-pic-section img {
+                width: 120px;
+                height: 120px;
+                margin-top: -60px;
+            }
+            .cover-area {
+                height: 32vh;
+                min-height: 200px;
             }
         }
     </style>
 </head>
 <body>
 
+    <!-- TOAST -->
     <div id="toast" class="toast-msg"></div>
 
-    <!-- Edit Profile Overlay -->
+    <!-- ===== EDIT PROFILE OVERLAY ===== -->
     <div class="edit-overlay" id="edit-overlay">
         <div class="edit-modal">
-            <h2><span>Edit Profile</span><button class="close-btn" id="edit-close-btn"><i class="fa-solid fa-xmark"></i></button></h2>
+            <h2><span>প্রোফাইল এডিট</span><button class="close-btn" id="edit-close-btn"><i class="fa-solid fa-xmark"></i></button></h2>
             <form id="edit-form" autocomplete="off">
                 <div class="form-group">
-                    <label>Profile Photo</label>
+                    <label>প্রোফাইল ছবি</label>
                     <div class="photo-upload-row">
                         <img id="edit-profile-preview" class="photo-preview" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Profile" />
-                        <button type="button" class="upload-btn" id="edit-upload-profile"><i class="fa-solid fa-camera"></i> Change</button>
+                        <button type="button" class="upload-btn" id="edit-upload-profile"><i class="fa-solid fa-camera"></i> পরিবর্তন</button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Cover Photo</label>
+                    <label>কভার ছবি</label>
                     <div class="photo-upload-row">
                         <img id="edit-cover-preview" class="cover-preview" src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=200&q=80" alt="Cover" />
-                        <button type="button" class="upload-btn" id="edit-upload-cover"><i class="fa-solid fa-camera"></i> Change</button>
+                        <button type="button" class="upload-btn" id="edit-upload-cover"><i class="fa-solid fa-camera"></i> পরিবর্তন</button>
                     </div>
                 </div>
-                <div class="form-group"><label>Full Name</label><input type="text" id="edit-name" placeholder="Your full name" /></div>
-                <div class="form-group"><label>Bio</label><textarea id="edit-bio" placeholder="Tell something about yourself" rows="2"></textarea></div>
-                <div class="form-group"><label>Location</label><input type="text" id="edit-location" placeholder="City, Country" /></div>
-                <div class="form-group"><label>Birthday</label><input type="text" id="edit-birthday" placeholder="e.g. 21 March" /></div>
-                <div class="form-group"><label>Relationship</label><input type="text" id="edit-relationship" placeholder="Single, Married, etc." /></div>
-                <div class="form-group"><label>Language</label><input type="text" id="edit-language" placeholder="English, Bengali" /></div>
-                <div class="form-group"><label>Email</label><input type="email" id="edit-email" placeholder="your@email.com" /></div>
-                <div class="form-group"><label>Phone</label><input type="text" id="edit-phone" placeholder="+880 1234 567890" /></div>
-                <div class="form-group"><label>Work Title</label><input type="text" id="edit-work-title" placeholder="e.g. Freelancer" /></div>
-                <div class="form-group"><label>Work Role</label><input type="text" id="edit-work-role" placeholder="e.g. CMO" /></div>
-                <div class="form-group"><label>New Password (leave blank to keep current)</label><input type="password" id="edit-password" placeholder="Enter new password" /></div>
-                <button type="submit" class="save-btn" id="edit-save-btn">Save Changes</button>
+                <div class="form-group"><label>পুরো নাম</label><input type="text" id="edit-name" placeholder="আপনার পুরো নাম" /></div>
+                <div class="form-group"><label>বায়ো</label><textarea id="edit-bio" placeholder="নিজের সম্পর্কে কিছু লিখুন" rows="2"></textarea></div>
+                <div class="form-group"><label>অবস্থান</label><input type="text" id="edit-location" placeholder="শহর, দেশ" /></div>
+                <div class="form-group"><label>জন্মদিন</label><input type="text" id="edit-birthday" placeholder="যেমন: ২১ মার্চ" /></div>
+                <div class="form-group"><label>সম্পর্ক</label><input type="text" id="edit-relationship" placeholder="একক, বিবাহিত, ইত্যাদি" /></div>
+                <div class="form-group"><label>ভাষা</label><input type="text" id="edit-language" placeholder="বাংলা, ইংরেজি" /></div>
+                <div class="form-group"><label>ইমেইল</label><input type="email" id="edit-email" placeholder="your@email.com" /></div>
+                <div class="form-group"><label>ফোন</label><input type="text" id="edit-phone" placeholder="+৮৮০ ১২৩৪ ৫৬৭৮৯০" /></div>
+                <div class="form-group"><label>কাজের শিরোনাম</label><input type="text" id="edit-work-title" placeholder="যেমন: ফ্রিল্যান্সার" /></div>
+                <div class="form-group"><label>কাজের ভূমিকা</label><input type="text" id="edit-work-role" placeholder="যেমন: সিএমও" /></div>
+                <div class="form-group"><label>নতুন পাসওয়ার্ড (বদলাতে চাইলে)</label><input type="password" id="edit-password" placeholder="নতুন পাসওয়ার্ড দিন" /></div>
+                <button type="submit" class="save-btn" id="edit-save-btn">সংরক্ষণ করুন</button>
             </form>
         </div>
     </div>
 
-    <!-- ====== POST DETAIL OVERLAY ====== -->
+    <!-- ===== POST DETAIL OVERLAY ===== -->
     <div id="post-detail-overlay">
         <div class="post-detail-header">
             <button class="back-btn" id="detail-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
-            <span style="font-weight:600;font-size:16px;">Post</span>
+            <span style="font-weight:600;font-size:16px;">পোস্ট</span>
         </div>
         <div class="post-detail-body" id="post-detail-body">
             <div style="text-align:center;padding:40px;color:#65676b;">
-                <i class="fa-solid fa-spinner fa-spin"></i> Loading post...
+                <i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...
             </div>
         </div>
     </div>
 
-    <!-- ====== MESSENGER OVERLAY ====== -->
+    <!-- ===== MESSENGER OVERLAY ===== -->
     <div id="messenger-overlay">
         <div class="messenger-header">
-            <span style="font-weight:600;font-size:16px;"><i class="fa-regular fa-message"></i> Chat</span>
+            <span style="font-weight:600;font-size:16px;"><i class="fa-regular fa-message"></i> চ্যাট</span>
             <button class="close-messenger" id="close-messenger"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="messenger-messages" id="messenger-messages">
-            <div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">No messages yet</div>
+            <div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">কোনো বার্তা নেই</div>
         </div>
         <div class="messenger-input-bar">
-            <input type="text" id="messenger-input" placeholder="Type a message..." />
+            <input type="text" id="messenger-input" placeholder="একটি বার্তা লিখুন..." />
             <button class="send-msg-btn" id="send-msg-btn"><i class="fa-regular fa-paper-plane"></i></button>
         </div>
     </div>
 
+    <!-- ===== UPLOAD PROGRESS ===== -->
+    <div class="upload-progress" id="uploadProgress">
+        <span class="progress-text">আপলোড হচ্ছে...</span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-text" id="progressPercent">0%</span>
+    </div>
+
+    <!-- ===== MAIN PROFILE ===== -->
     <div class="profile-wrapper" id="profile-wrapper">
+        <!-- COVER -->
         <div class="cover-area" id="cover-area">
             <img id="cover-image" class="cover-img" src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80" alt="Cover" />
-            <div class="cover-edit-icon" id="cover-edit-btn" title="Change cover photo"><i class="fa-solid fa-camera"></i></div>
+            <div class="cover-edit-icon" id="cover-edit-btn" title="কভার ছবি পরিবর্তন"><i class="fa-solid fa-camera"></i></div>
         </div>
 
+        <!-- PROFILE PIC -->
         <div class="profile-pic-section">
             <div class="profile-pic-wrapper">
                 <img id="profile-pic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80" alt="Profile" />
-                <div class="profile-pic-edit" id="profile-pic-edit" title="Change profile picture"><i class="fa-solid fa-camera"></i></div>
+                <div class="profile-pic-edit" id="profile-pic-edit" title="প্রোফাইল ছবি পরিবর্তন"><i class="fa-solid fa-camera"></i></div>
             </div>
         </div>
 
+        <!-- INFO -->
         <div class="profile-info">
-            <div class="name" id="profile-name">User Name <span class="online-status active" id="status-dot"></span></div>
-            <div class="bio" id="profile-bio">Bio here</div>
-            <div class="location" id="profile-location"><i class="fa-solid fa-location-dot"></i> <span id="location-text">Rajshahi</span></div>
-            <div class="friends-count"><span id="friend-count">0</span> friends · <span id="mutual-count">0</span> mutual · <span id="post-count">0</span> posts</div>
+            <div class="name" id="profile-name">
+                <span id="name-text">লোড হচ্ছে...</span>
+                <span class="online-status active" id="status-dot"></span>
+            </div>
+            <div class="bio" id="profile-bio">বায়ো লোড হচ্ছে...</div>
+            <div class="location" id="profile-location"><i class="fa-solid fa-location-dot"></i> <span id="location-text">লোড হচ্ছে...</span></div>
+            <div class="friends-count">
+                <span id="friend-count">0</span> বন্ধু · 
+                <span id="mutual-count">0</span> মিউচুয়াল · 
+                <span id="post-count">0</span> পোস্ট
+            </div>
         </div>
 
+        <!-- ACTION BAR -->
         <div class="action-bar" id="action-bar"></div>
 
+        <!-- TABS - STICKY -->
         <div class="profile-tabs">
-            <div class="profile-tab active" data-tab="posts"><i class="fa-solid fa-newspaper"></i> Posts</div>
-            <div class="profile-tab" data-tab="about"><i class="fa-solid fa-circle-info"></i> About</div>
-            <div class="profile-tab" data-tab="friends"><i class="fa-solid fa-user-group"></i> Friends</div>
-            <div class="profile-tab" data-tab="photos"><i class="fa-solid fa-images"></i> Photos</div>
-            <div class="profile-tab" data-tab="reels"><i class="fa-solid fa-clapperboard"></i> Reels</div>
+            <div class="profile-tab active" data-tab="posts"><i class="fa-solid fa-newspaper"></i> পোস্ট</div>
+            <div class="profile-tab" data-tab="about"><i class="fa-solid fa-circle-info"></i> সম্পর্কে</div>
+            <div class="profile-tab" data-tab="friends"><i class="fa-solid fa-user-group"></i> বন্ধু</div>
+            <div class="profile-tab" data-tab="photos"><i class="fa-solid fa-images"></i> ছবি</div>
         </div>
 
+        <!-- TAB CONTENT - FULL SCROLL -->
         <div id="tab-content">
-            <div class="posts-section" id="posts-tab">
-                <h3>Posts</h3>
-                <div id="posts-list"><div class="empty-state">No posts yet</div></div>
+            <!-- Posts Tab -->
+            <div class="tab-panel active" id="posts-tab">
+                <div class="posts-section">
+                    <h3>পোস্ট</h3>
+                    <div id="posts-list"><div class="empty-state">কোনো পোস্ট নেই</div></div>
+                </div>
             </div>
 
-            <div class="details-section" id="about-tab" style="display:none;">
-                <h3>Personal details</h3>
-                <div class="detail-row"><i class="fa-solid fa-location-dot"></i> <span class="detail-label">Lives in</span> <span id="lives-in">Rajshahi</span></div>
-                <div class="detail-row"><i class="fa-regular fa-calendar"></i> <span class="detail-label">Birthday</span> <span id="birthday">21 March</span></div>
-                <div class="detail-row"><i class="fa-solid fa-heart"></i> <span class="detail-label">Relationship</span> <span id="relationship-status">Single</span></div>
-                <div class="detail-row"><i class="fa-solid fa-language"></i> <span class="detail-label">Language</span> <span id="language">English</span></div>
-                <div class="detail-row"><i class="fa-regular fa-envelope"></i> <span class="detail-label">Email</span> <span id="user-email">email@domain.com</span></div>
-                <div class="detail-row"><i class="fa-solid fa-phone"></i> <span class="detail-label">Phone</span> <span id="user-phone">+880 1234 567890</span></div>
-                <div style="margin-top:14px;">
-                    <h3 style="font-size:17px;margin-bottom:6px;"><i class="fa-solid fa-briefcase"></i> Work</h3>
-                    <div class="work-item" id="work-item">
-                        <div class="work-title" id="work-title">Freelancer</div>
-                        <div class="work-role" id="work-role">Chief marketing officer (CMO)</div>
+            <!-- About Tab -->
+            <div class="tab-panel" id="about-tab">
+                <div class="details-section">
+                    <h3>ব্যক্তিগত তথ্য</h3>
+                    <div class="detail-row"><i class="fa-solid fa-location-dot"></i> <span class="detail-label">থাকেন</span> <span id="lives-in">লোড হচ্ছে...</span></div>
+                    <div class="detail-row"><i class="fa-regular fa-calendar"></i> <span class="detail-label">জন্মদিন</span> <span id="birthday">লোড হচ্ছে...</span></div>
+                    <div class="detail-row"><i class="fa-solid fa-heart"></i> <span class="detail-label">সম্পর্ক</span> <span id="relationship-status">লোড হচ্ছে...</span></div>
+                    <div class="detail-row"><i class="fa-solid fa-language"></i> <span class="detail-label">ভাষা</span> <span id="language">লোড হচ্ছে...</span></div>
+                    <div class="detail-row"><i class="fa-regular fa-envelope"></i> <span class="detail-label">ইমেইল</span> <span id="user-email">লোড হচ্ছে...</span></div>
+                    <div class="detail-row"><i class="fa-solid fa-phone"></i> <span class="detail-label">ফোন</span> <span id="user-phone">লোড হচ্ছে...</span></div>
+                    <div style="margin-top:14px;">
+                        <h3 style="font-size:17px;margin-bottom:6px;"><i class="fa-solid fa-briefcase"></i> কাজ</h3>
+                        <div class="work-item" id="work-item">
+                            <div class="work-title" id="work-title">লোড হচ্ছে...</div>
+                            <div class="work-role" id="work-role">লোড হচ্ছে...</div>
+                        </div>
                     </div>
-                    <span class="see-more-link" id="see-more-work">See more work <i class="fa-solid fa-chevron-down"></i></span>
-                </div>
-                <div style="margin-top:14px;border-top:1px solid #e4e6eb;padding-top:14px;">
-                    <button class="action-btn primary" id="edit-profile-btn" style="width:100%;justify-content:center;"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</button>
+                    <div style="margin-top:14px;border-top:1px solid #e4e6eb;padding-top:14px;">
+                        <button class="action-btn primary" id="edit-profile-btn" style="width:100%;justify-content:center;min-height:44px;"><i class="fa-regular fa-pen-to-square"></i> প্রোফাইল এডিট</button>
+                    </div>
                 </div>
             </div>
 
-            <div id="friends-tab" style="display:none;">
+            <!-- Friends Tab -->
+            <div class="tab-panel" id="friends-tab">
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px 0;">
-                    <h3 style="font-size:17px;font-weight:600;"><i class="fa-solid fa-user-group"></i> Friends</h3>
-                    <span class="see-all-link" id="see-all-friends">See all</span>
+                    <h3 style="font-size:17px;font-weight:600;"><i class="fa-solid fa-user-group"></i> বন্ধু</h3>
+                    <span class="see-all-link" id="see-all-friends">সব দেখুন</span>
                 </div>
                 <div class="friends-grid" id="friends-grid"></div>
             </div>
 
-            <div id="photos-tab" style="display:none;padding:16px;">
-                <h3><i class="fa-solid fa-images"></i> Photos</h3>
-                <div class="empty-state">No photos to show</div>
-            </div>
-
-            <div id="reels-tab" style="display:none;padding:16px;">
-                <h3><i class="fa-solid fa-clapperboard"></i> Reels</h3>
-                <div class="empty-state">No reels yet</div>
+            <!-- Photos Tab -->
+            <div class="tab-panel" id="photos-tab">
+                <div style="padding:16px;">
+                    <h3><i class="fa-solid fa-images"></i> ছবি</h3>
+                    <div id="photos-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px;">
+                        <div class="empty-state" style="grid-column:1/-1;">কোনো ছবি নেই</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1286,14 +1439,15 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        const CLOUD_NAME = 'dhvtgzy5x';
-        const UPLOAD_PRESET = 'Rosenews';
+        // ========== TELEGRAM CONFIG ==========
+        const TELEGRAM_BOT_TOKEN = '8753538115:AAG5e4VI6JnHFERJVzEYMN4SguQLgBu79ts';
+        const TELEGRAM_CHAT_ID = '-5338253351';
 
         // ========== DOM REFS ==========
         const $ = id => document.getElementById(id);
         const profilePic = $('profile-pic');
         const coverImage = $('cover-image');
-        const profileName = $('profile-name');
+        const nameText = $('name-text');
         const profileBio = $('profile-bio');
         const locationText = $('location-text');
         const friendCount = $('friend-count');
@@ -1302,6 +1456,7 @@
         const actionBar = $('action-bar');
         const postsList = $('posts-list');
         const friendsGrid = $('friends-grid');
+        const photosGrid = $('photos-grid');
         const livesIn = $('lives-in');
         const birthday = $('birthday');
         const relationshipStatus = $('relationship-status');
@@ -1310,6 +1465,7 @@
         const workRole = $('work-role');
         const userEmail = $('user-email');
         const userPhone = $('user-phone');
+        const statusDot = $('status-dot');
 
         const editOverlay = $('edit-overlay');
         const editCloseBtn = $('edit-close-btn');
@@ -1339,13 +1495,34 @@
         const sendMsgBtn = $('send-msg-btn');
         const closeMessenger = $('close-messenger');
 
+        const uploadProgress = $('uploadProgress');
+        const progressFill = $('progressFill');
+        const progressPercent = $('progressPercent');
+
         let toastTimer;
         let currentUser = null;
         let currentProfileUserId = null;
         let unsubscribePosts = null;
         let unsubscribeProfile = null;
+        let unsubscribeFriends = null;
         let friendStatus = 'none';
         let messengerUnsubscribe = null;
+        let replyTarget = null;
+        let isUploading = false;
+
+        // ========== CACHE ==========
+        function getCache(key) {
+            try {
+                const d = localStorage.getItem('fb_profile_' + key);
+                return d ? JSON.parse(d) : null;
+            } catch { return null; }
+        }
+
+        function setCache(key, data) {
+            try {
+                localStorage.setItem('fb_profile_' + key, JSON.stringify(data));
+            } catch {}
+        }
 
         // ========== TOAST ==========
         function showToast(msg) {
@@ -1356,30 +1533,32 @@
             toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
+        // ========== ESCAPE HTML ==========
+        function escapeHTML(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
         // ========== GET USER ID FROM URL ==========
         function getUserIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
             return params.get('user');
         }
 
-        // ========== CACHE ==========
-        function getCache(key) {
-            try { const d = localStorage.getItem('fb_profile_' + key); return d ? JSON.parse(d) : null; } catch { return null; }
-        }
-
-        function setCache(key, data) {
-            try { localStorage.setItem('fb_profile_' + key, JSON.stringify(data)); } catch {}
-        }
-
-        function escapeHTML(str) { if (!str) return ''; const d = document.createElement('div');
-            d.textContent = str; return d.innerHTML; }
-
-        // ========== GET USER DATA BY UID ==========
+        // ========== GET USER DATA ==========
         async function getUserData(uid) {
             try {
+                const cached = getCache('user_' + uid);
+                if (cached && Date.now() - (cached._cacheTime || 0) < 30000) {
+                    return cached;
+                }
                 const doc = await db.collection('users').doc(uid).get();
                 if (doc.exists) {
-                    return { id: uid, ...doc.data() };
+                    const data = { id: uid, ...doc.data(), _cacheTime: Date.now() };
+                    setCache('user_' + uid, data);
+                    return data;
                 }
                 return null;
             } catch (error) {
@@ -1391,156 +1570,121 @@
         // ========== GET MUTUAL FRIENDS ==========
         async function getMutualFriendsCount(currentUid, profileUid) {
             if (currentUid === profileUid) return 0;
-
             try {
-                const currentDoc = await db.collection('users').doc(currentUid).get();
-                const profileDoc = await db.collection('users').doc(profileUid).get();
-
-                if (!currentDoc.exists || !profileDoc.exists) return 0;
-
-                const currentFriends = currentDoc.data().friends || [];
-                const profileFriends = profileDoc.data().friends || [];
-
+                const currentData = await getUserData(currentUid);
+                const profileData = await getUserData(profileUid);
+                if (!currentData || !profileData) return 0;
+                const currentFriends = currentData.friends || [];
+                const profileFriends = profileData.friends || [];
                 const mutual = currentFriends.filter(id => profileFriends.includes(id));
                 return mutual.length;
-            } catch (error) {
-                console.error('Error calculating mutual friends:', error);
-                return 0;
-            }
+            } catch { return 0; }
         }
 
         // ========== CHECK FRIEND STATUS ==========
         async function checkFriendStatus(currentUid, profileUid) {
             if (!currentUid || !profileUid || currentUid === profileUid) return 'self';
             try {
-                const doc = await db.collection('users').doc(currentUid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    const friends = data.friends || [];
-                    if (friends.includes(profileUid)) {
-                        return 'friends';
-                    }
-                    const requests = data.friendRequests || [];
-                    if (requests.includes(profileUid)) {
-                        return 'requested';
-                    }
-                }
+                const data = await getUserData(currentUid);
+                if (!data) return 'none';
+                const friends = data.friends || [];
+                if (friends.includes(profileUid)) return 'friends';
+                const requests = data.friendRequests || [];
+                if (requests.includes(profileUid)) return 'requested';
                 return 'none';
-            } catch (error) {
-                console.error('Error checking friend status:', error);
-                return 'none';
-            }
+            } catch { return 'none'; }
         }
 
-        // ========== MESSENGER FUNCTIONS ==========
-        function openMessenger(recipientId, recipientName) {
-            if (!currentUser) { showToast('Please login to message'); return; }
-            if (recipientId === currentUser.uid) { showToast('You cannot message yourself'); return; }
-            messengerOverlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            loadMessages(recipientId);
+        // ========== UPDATE STATUS ==========
+        function updateUserStatus(uid, status) {
+            if (!uid) return;
+            db.collection('users').doc(uid).set({ status: status }, { merge: true }).catch(() => {});
         }
 
-        function closeMessengerFn() {
-            messengerOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-            if (messengerUnsubscribe) {
-                messengerUnsubscribe();
-                messengerUnsubscribe = null;
-            }
-        }
+        // ========== TELEGRAM UPLOAD ==========
+        function uploadToTelegram(file, callback) {
+            if (isUploading) return;
+            isUploading = true;
+            uploadProgress.classList.add('show');
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
 
-        closeMessenger.addEventListener('click', closeMessengerFn);
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('photo', file);
 
-        async function loadMessages(recipientId) {
-            if (messengerUnsubscribe) {
-                messengerUnsubscribe();
-                messengerUnsubscribe = null;
-            }
-
-            const chatId = [currentUser.uid, recipientId].sort().join('_');
-            const chatRef = db.collection('chats').doc(chatId);
-
-            messengerUnsubscribe = chatRef.onSnapshot((doc) => {
-                messengerMessages.innerHTML = '';
-                if (!doc.exists) {
-                    messengerMessages.innerHTML =
-                        '<div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">No messages yet</div>';
-                    return;
+            const xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    progressFill.style.width = percent + '%';
+                    progressPercent.textContent = percent + '%';
                 }
-                const data = doc.data();
-                const messages = data.messages || [];
-                if (messages.length === 0) {
-                    messengerMessages.innerHTML =
-                        '<div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">No messages yet</div>';
-                    return;
-                }
-                messages.forEach(msg => {
-                    const div = document.createElement('div');
-                    div.className = 'message-bubble ' + (msg.sender === currentUser.uid ? 'sent' : 'received');
-                    div.innerHTML = `${escapeHTML(msg.text)} <span class="msg-time">${msg.time || ''}</span>`;
-                    messengerMessages.appendChild(div);
-                });
-                messengerMessages.scrollTop = messengerMessages.scrollHeight;
-            }, (error) => {
-                console.error('Error loading messages:', error);
-                messengerMessages.innerHTML =
-                    '<div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">Error loading messages</div>';
             });
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.ok) {
+                            const fileId = response.result.photo[response.result.photo.length - 1].file_id;
+                            const fileUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`;
+                            fetch(fileUrl)
+                                .then(res => res.json())
+                                .then(fileData => {
+                                    if (fileData.ok) {
+                                        const imageUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileData.result.file_path}`;
+                                        isUploading = false;
+                                        setTimeout(() => { uploadProgress.classList.remove('show'); }, 500);
+                                        if (callback) callback(imageUrl);
+                                    } else {
+                                        isUploading = false;
+                                        showToast('File path not found');
+                                    }
+                                })
+                                .catch(err => {
+                                    isUploading = false;
+                                    showToast('Error: ' + err.message);
+                                });
+                        } else {
+                            isUploading = false;
+                            showToast('Upload failed');
+                        }
+                    } catch (e) {
+                        isUploading = false;
+                        showToast('Invalid response');
+                    }
+                } else {
+                    isUploading = false;
+                    showToast('Upload failed: ' + xhr.status);
+                }
+            };
+
+            xhr.onerror = function() {
+                isUploading = false;
+                showToast('Network error');
+                uploadProgress.classList.remove('show');
+            };
+
+            xhr.open('POST', `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`);
+            xhr.send(formData);
         }
 
-        async function sendMessage(recipientId) {
-            const text = messengerInput.value.trim();
-            if (!text) return;
-            if (!currentUser) { showToast('Please login'); return; }
-            if (recipientId === currentUser.uid) { showToast('You cannot message yourself'); return; }
-
-            sendMsgBtn.disabled = true;
-            messengerInput.disabled = true;
-
-            try {
-                const chatId = [currentUser.uid, recipientId].sort().join('_');
-                const chatRef = db.collection('chats').doc(chatId);
-
-                // Check if users are friends
-                const friendStatus = await checkFriendStatus(currentUser.uid, recipientId);
-                const isFriend = friendStatus === 'friends';
-
-                // If not friends, mark as message request
-                const isMessageRequest = !isFriend;
-
-                await chatRef.set({
-                    participants: [currentUser.uid, recipientId],
-                    lastMessage: text,
-                    lastUpdated: new Date().toISOString(),
-                    isMessageRequest: isMessageRequest
-                }, { merge: true });
-
-                await chatRef.update({
-                    messages: firebase.firestore.FieldValue.arrayUnion({
-                        sender: currentUser.uid,
-                        text: text,
-                        time: new Date().toLocaleString(),
-                        timestamp: new Date().toISOString()
-                    })
-                });
-
-                messengerInput.value = '';
-                messengerMessages.scrollTop = messengerMessages.scrollHeight;
-
-                if (isMessageRequest) {
-                    showToast('✅ Message sent as request! (User is not your friend)');
-                } else {
-                    showToast('✅ Message sent!');
+        // ========== TRIGGER FILE UPLOAD ==========
+        function triggerFileUpload(type, callback) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('ফাইল খুব বড়। সর্বোচ্চ ১০MB।');
+                    return;
                 }
-            } catch (err) {
-                console.error('Error sending message:', err);
-                showToast('Error: ' + err.message);
-            } finally {
-                sendMsgBtn.disabled = false;
-                messengerInput.disabled = false;
-                messengerInput.focus();
-            }
+                uploadToTelegram(file, callback);
+            };
+            input.click();
         }
 
         // ========== RENDER ACTION BUTTONS ==========
@@ -1551,70 +1695,59 @@
             if (isOwn) {
                 const editBtn = document.createElement('button');
                 editBtn.className = 'action-btn primary';
-                editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Edit profile';
+                editBtn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> প্রোফাইল এডিট';
                 editBtn.onclick = () => openEditProfile();
                 actionBar.appendChild(editBtn);
 
                 const storyBtn = document.createElement('button');
                 storyBtn.className = 'action-btn secondary';
-                storyBtn.innerHTML = '<i class="fa-regular fa-square-plus"></i> Add story';
+                storyBtn.innerHTML = '<i class="fa-regular fa-square-plus"></i> স্টোরি যোগ';
                 storyBtn.onclick = () => {
-                    if (window.parent && window.parent.openIframe) {
-                        window.parent.openIframe('create-story.html', 'Create Story');
-                    } else {
-                        showToast('Opening story creator...');
-                        window.open('create-story.html', '_blank');
-                    }
+                    showToast('স্টোরি ক্রিয়েটর খোলা হচ্ছে...');
+                    window.open('create-story.html', '_blank');
                 };
                 actionBar.appendChild(storyBtn);
 
-                // Message Requests button for own profile
                 const reqBtn = document.createElement('button');
                 reqBtn.className = 'action-btn request-btn';
-                reqBtn.innerHTML = '<i class="fa-regular fa-message"></i> Message Requests';
+                reqBtn.innerHTML = '<i class="fa-regular fa-message"></i> মেসেজ রিকোয়েস্ট';
                 reqBtn.onclick = () => {
-                    if (window.parent && window.parent.location) {
-                        window.parent.location.href = 'message-requests.html';
-                    } else {
-                        window.location.href = 'message-requests.html';
-                    }
+                    window.location.href = 'message-requests.html';
                 };
                 actionBar.appendChild(reqBtn);
             } else {
                 const addBtn = document.createElement('button');
                 addBtn.className = 'action-btn success';
-                addBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add friend';
+                addBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> বন্ধু যোগ';
 
                 if (status === 'friends') {
                     addBtn.className = 'action-btn friend-accepted';
-                    addBtn.innerHTML = '<i class="fa-solid fa-check"></i> Friends';
+                    addBtn.innerHTML = '<i class="fa-solid fa-check"></i> বন্ধু';
                     addBtn.disabled = true;
                 } else if (status === 'requested') {
                     addBtn.className = 'action-btn friend-requested';
-                    addBtn.innerHTML = '<i class="fa-solid fa-clock"></i> Requested';
+                    addBtn.innerHTML = '<i class="fa-solid fa-clock"></i> রিকোয়েস্ট পাঠানো';
                     addBtn.disabled = true;
                 } else {
                     addBtn.onclick = async () => {
                         addBtn.disabled = true;
-                        addBtn.innerHTML = '<span class="spinner"></span> Sending...';
+                        addBtn.innerHTML = '<span class="spinner"></span> পাঠানো হচ্ছে...';
                         try {
                             await db.collection('users').doc(currentUid).set({
                                 friendRequests: firebase.firestore.FieldValue.arrayUnion(profileUid)
                             }, { merge: true });
-
                             await db.collection('users').doc(profileUid).set({
                                 friendRequestsFrom: firebase.firestore.FieldValue.arrayUnion(currentUid)
                             }, { merge: true });
-
                             addBtn.className = 'action-btn friend-requested';
-                            addBtn.innerHTML = '<i class="fa-solid fa-clock"></i> Requested';
-                            showToast('✅ Friend request sent!');
+                            addBtn.innerHTML = '<i class="fa-solid fa-clock"></i> রিকোয়েস্ট পাঠানো';
+                            showToast('✅ বন্ধুর রিকোয়েস্ট পাঠানো হয়েছে!');
                             friendStatus = 'requested';
                         } catch (err) {
                             console.error(err);
                             showToast('Error: ' + err.message);
                             addBtn.disabled = false;
-                            addBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add friend';
+                            addBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> বন্ধু যোগ';
                             addBtn.className = 'action-btn success';
                         }
                     };
@@ -1623,25 +1756,14 @@
 
                 const msgBtn = document.createElement('button');
                 msgBtn.className = 'action-btn primary';
-                msgBtn.innerHTML = '<i class="fa-regular fa-message"></i> Message';
+                msgBtn.innerHTML = '<i class="fa-regular fa-message"></i> মেসেজ';
                 msgBtn.onclick = () => {
-                    if (!currentUser) { showToast('Please login to message'); return; }
-                    const nameEl = document.querySelector('.profile-info .name');
-                    const recipientName = nameEl ? nameEl.textContent.trim() : 'User';
+                    if (!currentUser) { showToast('মেসেজ করতে লগইন করুন'); return; }
+                    const nameEl = document.getElementById('name-text');
+                    const recipientName = nameEl ? nameEl.textContent.trim() : 'ব্যবহারকারী';
                     openMessenger(profileUid, recipientName);
                 };
                 actionBar.appendChild(msgBtn);
-
-                const moreBtn = document.createElement('button');
-                moreBtn.className = 'action-btn secondary';
-                moreBtn.innerHTML = '<i class="fa-solid fa-ellipsis"></i>';
-                moreBtn.onclick = () => {
-                    const choice = prompt('Choose an option:\n1. Report\n2. Block\n3. Unfollow');
-                    if (choice === '1') showToast('Report sent');
-                    else if (choice === '2') showToast('User blocked');
-                    else if (choice === '3') showToast('Unfollowed');
-                };
-                actionBar.appendChild(moreBtn);
             }
 
             const coverEditBtn = $('cover-edit-btn');
@@ -1655,102 +1777,21 @@
             }
         }
 
-        // ========== EDIT PROFILE ==========
-        function openEditProfile() {
-            const user = auth.currentUser;
-            if (!user) { showToast('Please login first'); return; }
-            const data = getCache('user_' + user.uid) || {};
-            editName.value = data.fullName || '';
-            editBio.value = data.bio || '';
-            editLocation.value = data.location || '';
-            editBirthday.value = data.birthday || '';
-            editRelationship.value = data.relationship || '';
-            editLanguage.value = data.language || '';
-            editEmail.value = data.email || user.email || '';
-            editPhone.value = data.phone || '';
-            editWorkTitle.value = data.workTitle || '';
-            editWorkRole.value = data.workRole || '';
-            editProfilePreview.src = data.photoURL || user.photoURL ||
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-            editCoverPreview.src = data.coverPhoto || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=200&q=80';
-            editOverlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeEditProfile() {
-            editOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        async function saveEditProfile(e) {
-            e.preventDefault();
-            const user = auth.currentUser;
-            if (!user) { showToast('Please login'); return; }
-            editSaveBtn.disabled = true;
-            editSaveBtn.innerHTML = '<span class="spinner"></span> Saving...';
-            try {
-                const data = {
-                    fullName: editName.value.trim(),
-                    bio: editBio.value.trim(),
-                    location: editLocation.value.trim(),
-                    birthday: editBirthday.value.trim(),
-                    relationship: editRelationship.value.trim(),
-                    language: editLanguage.value.trim(),
-                    email: editEmail.value.trim(),
-                    phone: editPhone.value.trim(),
-                    workTitle: editWorkTitle.value.trim(),
-                    workRole: editWorkRole.value.trim(),
-                    photoURL: editProfilePreview.src,
-                    coverPhoto: editCoverPreview.src,
-                    updatedAt: new Date().toISOString()
-                };
-                await db.collection('users').doc(user.uid).set(data, { merge: true });
-                const newPass = editPassword.value.trim();
-                if (newPass && newPass.length >= 6) { await user.updatePassword(newPass);
-                    showToast('✅ Password updated!'); }
-                if (data.fullName && data.fullName !== user.displayName) { await user.updateProfile({ displayName: data
-                            .fullName }); }
-                if (data.photoURL) {
-                    try {
-                        const snap = await db.collection('all-user-post').where('userId', '==', user.uid).get();
-                        if (!snap.empty) {
-                            const batch = db.batch();
-                            snap.forEach(d => batch.update(d.ref, { userImage: data.photoURL, userName: data.fullName ||
-                                        user.displayName }));
-                            await batch.commit();
-                        }
-                    } catch {}
-                }
-                setCache('user_' + user.uid, data);
-                applyProfileData(data);
-                showToast('✅ Profile updated!');
-                closeEditProfile();
-                loadFriendsData(user.uid);
-                if (currentProfileUserId === user.uid) {
-                    loadUserPosts(user.uid);
-                }
-            } catch (err) { console.error(err);
-                showToast('Error: ' + err.message); } finally { editSaveBtn.disabled = false;
-                editSaveBtn.innerHTML = 'Save Changes'; }
-        }
-
+        // ========== APPLY PROFILE DATA ==========
         function applyProfileData(data) {
-            const fullName = data.fullName || data.firstName + ' ' + data.lastName || 'User';
-            const statusDot = document.getElementById('status-dot');
-            profileName.innerHTML = escapeHTML(fullName) + ' <span class="online-status ' + (data.status === 'online' ?
-                'active' :
-                'inactive') + '" id="status-dot"></span>';
-            profileBio.textContent = data.bio || '📧 ' + (data.workTitle || 'Freelancer') + ' · 🏠 ' + (data.location ||
-                'Rajshahi');
-            locationText.textContent = data.location || 'Rajshahi';
-            livesIn.textContent = data.location || 'Rajshahi';
-            relationshipStatus.textContent = data.relationship || 'Single';
-            birthday.textContent = data.birthday || '21 March';
-            language.textContent = data.language || 'English';
+            const fullName = data.fullName || data.firstName + ' ' + data.lastName || 'ব্যবহারকারী';
+            nameText.textContent = fullName;
+            statusDot.className = 'online-status ' + (data.status === 'online' ? 'active' : 'inactive');
+            profileBio.textContent = data.bio || 'হ্যালো! আমি SecretIntro ব্যবহার করি';
+            locationText.textContent = data.location || 'রাজশাহী';
+            livesIn.textContent = data.location || 'রাজশাহী';
+            relationshipStatus.textContent = data.relationship || 'একক';
+            birthday.textContent = data.birthday || '২১ মার্চ';
+            language.textContent = data.language || 'বাংলা';
             userEmail.textContent = data.email || 'email@domain.com';
-            userPhone.textContent = data.phone || '+880 1234 567890';
-            workTitle.textContent = data.workTitle || 'Freelancer';
-            workRole.textContent = data.workRole || 'Chief marketing officer (CMO)';
+            userPhone.textContent = data.phone || '+৮৮০ ১২৩৪ ৫৬৭৮৯০';
+            workTitle.textContent = data.workTitle || 'ফ্রিল্যান্সার';
+            workRole.textContent = data.workRole || 'চিফ মার্কেটিং অফিসার (সিএমও)';
             if (data.coverPhoto) coverImage.src = data.coverPhoto;
             if (data.photoURL) profilePic.src = data.photoURL;
         }
@@ -1759,26 +1800,22 @@
         async function loadProfile(userId) {
             try {
                 currentProfileUserId = userId;
-                profileName.innerHTML = 'Loading...';
-                profileBio.textContent = 'Loading...';
+                nameText.textContent = 'লোড হচ্ছে...';
+                profileBio.textContent = 'লোড হচ্ছে...';
 
-                const cached = getCache('user_' + userId);
-                if (cached) applyProfileData(cached);
-
-                const doc = await db.collection('users').doc(userId).get();
-                if (!doc.exists) {
-                    profileName.textContent = 'User not found';
-                    profileBio.textContent = 'This user does not exist';
-                    showToast('User not found');
+                const data = await getUserData(userId);
+                if (!data) {
+                    nameText.textContent = 'ব্যবহারকারী পাওয়া যায়নি';
+                    profileBio.textContent = 'এই ব্যবহারকারী বিদ্যমান নেই';
+                    showToast('ব্যবহারকারী পাওয়া যায়নি');
                     return;
                 }
 
-                const data = doc.data();
-                setCache('user_' + userId, data);
                 applyProfileData(data);
 
                 await loadFriendsData(userId);
                 await loadUserPosts(userId);
+                await loadUserPhotos(userId);
 
                 const user = auth.currentUser;
                 if (user) {
@@ -1787,19 +1824,16 @@
                     renderActionButtons(user.uid, userId, status);
                 } else {
                     actionBar.innerHTML = `
-                        <button class="action-btn primary" onclick="showToast('Please login to message')"><i class="fa-regular fa-message"></i> Message</button>
-                        <button class="action-btn success" onclick="showToast('Please login to add friend')"><i class="fa-solid fa-user-plus"></i> Add friend</button>
+                        <button class="action-btn primary" onclick="showToast('মেসেজ করতে লগইন করুন')"><i class="fa-regular fa-message"></i> মেসেজ</button>
+                        <button class="action-btn success" onclick="showToast('বন্ধু যোগ করতে লগইন করুন')"><i class="fa-solid fa-user-plus"></i> বন্ধু যোগ</button>
                     `;
                 }
-
-                const psnap = await db.collection('all-user-post').where('userId', '==', userId).get();
-                postCount.textContent = psnap.size;
 
                 if (unsubscribeProfile) unsubscribeProfile();
                 unsubscribeProfile = db.collection('users').doc(userId).onSnapshot((snap) => {
                     if (snap.exists) {
                         const d = snap.data();
-                        setCache('user_' + userId, d);
+                        setCache('user_' + userId, { ...d, _cacheTime: Date.now() });
                         applyProfileData(d);
                         if (currentUser && currentUser.uid === userId) {
                             renderActionButtons(currentUser.uid, userId, 'self');
@@ -1815,8 +1849,8 @@
 
             } catch (err) {
                 console.error('Error loading profile:', err);
-                profileName.textContent = 'Error loading profile';
-                showToast('Error loading profile: ' + err.message);
+                nameText.textContent = 'প্রোফাইল লোড করতে সমস্যা';
+                showToast('Error: ' + err.message);
             }
         }
 
@@ -1828,13 +1862,13 @@
                     unsubscribePosts = null;
                 }
 
-                const query = db.collection('all-user-post')
-                    .where('userId', '==', userId);
+                const query = db.collection('all-user-post').where('userId', '==', userId);
 
                 unsubscribePosts = query.onSnapshot((snapshot) => {
                     postsList.innerHTML = '';
                     if (snapshot.empty) {
-                        postsList.innerHTML = '<div class="empty-state">No posts yet</div>';
+                        postsList.innerHTML = '<div class="empty-state">কোনো পোস্ট নেই</div>';
+                        postCount.textContent = '0';
                         return;
                     }
 
@@ -1850,6 +1884,8 @@
                         return timeB - timeA;
                     });
 
+                    postCount.textContent = posts.length;
+
                     posts.forEach(post => {
                         const postId = post.id;
                         const isOwnPost = user && post.userId === user.uid;
@@ -1858,7 +1894,7 @@
                         div.className = 'post-item';
                         div.dataset.postId = postId;
 
-                        let userName = post.userName || 'User';
+                        let userName = post.userName || 'ব্যবহারকারী';
                         let userImage = post.userImage ||
                             'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
 
@@ -1867,9 +1903,8 @@
                             if (user.photoURL) userImage = user.photoURL;
                         }
 
-                        const caption = post.caption || post.fullText || 'No caption';
-                        const time = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() :
-                            'Just now';
+                        const caption = post.caption || post.fullText || 'ক্যাপশন নেই';
+                        const time = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'এখনই';
                         const likes = post.likes || 0;
                         const comments = post.comments ? post.comments.length : 0;
                         const imageUrl = post.imageUrl || '';
@@ -1877,7 +1912,7 @@
 
                         let imageHTML = '';
                         if (imageUrl) {
-                            imageHTML = `<img src="${imageUrl}" class="post-image" alt="Post image" loading="lazy" />`;
+                            imageHTML = `<img src="${imageUrl}" class="post-image" alt="Post image" loading="lazy" onerror="this.style.display='none'" />`;
                         }
 
                         let textClass = 'post-text';
@@ -1893,14 +1928,15 @@
                                 'dark-blue': '#3b5998'
                             };
                             const bg = themes[post.bannerTheme] || '#1877f2';
-                            textStyle = `background: ${bg}; color: #fff; padding: 20px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 18px;`;
+                            textStyle =
+                                `background: ${bg}; color: #fff; padding: 20px; border-radius: 8px; text-align: center; font-weight: 600; font-size: clamp(16px, 2.5vw, 20px);`;
                             textClass = 'post-text banner-style';
                         }
 
                         div.innerHTML = `
                             <div class="post-header">
                                 <div class="post-user" onclick="event.stopPropagation(); window.location.href='profile.html?user=${post.userId}'">
-                                    <img src="${userImage}" alt="User" />
+                                    <img src="${userImage}" alt="User" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'" />
                                     <div class="user-info">
                                         <span class="pname">${escapeHTML(userName)}</span>
                                         <span class="ptime">${time}</span>
@@ -1939,24 +1975,79 @@
                     });
                 }, (error) => {
                     console.error('Error loading posts:', error);
-                    postsList.innerHTML = '<div class="empty-state">Error loading posts. Please refresh.</div>';
+                    postsList.innerHTML = '<div class="empty-state">পোস্ট লোড করতে সমস্যা। রিফ্রেশ করুন।</div>';
                 });
 
             } catch (err) {
                 console.error('Error in loadUserPosts:', err);
-                postsList.innerHTML = '<div class="empty-state">Error loading posts</div>';
+                postsList.innerHTML = '<div class="empty-state">পোস্ট লোড করতে সমস্যা</div>';
+            }
+        }
+
+        // ========== LOAD USER PHOTOS ==========
+        async function loadUserPhotos(userId) {
+            try {
+                const query = db.collection('all-user-post')
+                    .where('userId', '==', userId)
+                    .where('imageUrl', '!=', '');
+
+                const snapshot = await query.get();
+                photosGrid.innerHTML = '';
+
+                if (snapshot.empty) {
+                    photosGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">কোনো ছবি নেই</div>';
+                    return;
+                }
+
+                const photos = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.imageUrl) {
+                        photos.push({ id: doc.id, imageUrl: data.imageUrl, caption: data.caption || '' });
+                    }
+                });
+
+                if (photos.length === 0) {
+                    photosGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">কোনো ছবি নেই</div>';
+                    return;
+                }
+
+                photos.slice(0, 9).forEach(photo => {
+                    const div = document.createElement('div');
+                    div.style.cssText =
+                        'aspect-ratio:1;overflow:hidden;border-radius:4px;background:#f0f2f5;cursor:pointer;';
+                    div.innerHTML =
+                        `<img src="${photo.imageUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'" />`;
+                    div.onclick = () => openPostDetail(photo.id);
+                    photosGrid.appendChild(div);
+                });
+
+                if (photos.length > 9) {
+                    const div = document.createElement('div');
+                    div.style.cssText =
+                        'aspect-ratio:1;overflow:hidden;border-radius:4px;background:#f0f2f5;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1877f2;font-size:18px;';
+                    div.textContent = `+${photos.length - 9}`;
+                    div.onclick = () => {
+                        document.querySelector('.profile-tab[data-tab="posts"]')?.click();
+                    };
+                    photosGrid.appendChild(div);
+                }
+
+            } catch (error) {
+                console.error('Error loading photos:', error);
+                photosGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">ছবি লোড করতে সমস্যা</div>';
             }
         }
 
         // ========== LIKE HANDLER ==========
         async function handleLike(postId, btn) {
             const user = auth.currentUser;
-            if (!user) { showToast('Please login to like'); return; }
+            if (!user) { showToast('লাইক করতে লগইন করুন'); return; }
             btn.disabled = true;
             try {
                 const docRef = db.collection('all-user-post').doc(postId);
                 const doc = await docRef.get();
-                if (!doc.exists) { showToast('Post not found'); return; }
+                if (!doc.exists) { showToast('পোস্ট পাওয়া যায়নি'); return; }
                 const data = doc.data();
                 const likedBy = data.likedBy || [];
                 const isLiked = likedBy.includes(user.uid);
@@ -1984,10 +2075,10 @@
 
         // ========== DELETE POST ==========
         async function deletePost(postId) {
-            if (!confirm('Are you sure you want to delete this post?')) return;
+            if (!confirm('আপনি কি এই পোস্টটি ডিলিট করতে চান?')) return;
             try {
                 await db.collection('all-user-post').doc(postId).delete();
-                showToast('🗑️ Post deleted!');
+                showToast('🗑️ পোস্ট ডিলিট করা হয়েছে!');
                 if (currentProfileUserId) {
                     if (unsubscribePosts) {
                         unsubscribePosts();
@@ -1999,10 +2090,10 @@
                     closePostDetail();
                 }
             } catch (err) { console.error(err);
-                showToast('Error deleting post: ' + err.message); }
+                showToast('Error: ' + err.message); }
         }
 
-        // ========== POST DETAIL WITH COMMENTS ==========
+        // ========== POST DETAIL ==========
         function openPostDetail(postId) {
             detailOverlay.classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -2019,7 +2110,6 @@
         }
 
         detailBackBtn.addEventListener('click', closePostDetail);
-
         window.addEventListener('popstate', function(e) {
             if (detailOverlay.classList.contains('show')) {
                 e.preventDefault();
@@ -2028,11 +2118,13 @@
         });
 
         async function loadPostDetail(postId) {
-            detailBody.innerHTML = '<div style="text-align:center;padding:40px;color:#65676b;"><i class="fa-solid fa-spinner fa-spin"></i> Loading post...</div>';
+            detailBody.innerHTML =
+            '<div style="text-align:center;padding:40px;color:#65676b;"><i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...</div>';
             try {
                 const doc = await db.collection('all-user-post').doc(postId).get();
                 if (!doc.exists) {
-                    detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Post not found</div>';
+                    detailBody.innerHTML =
+                        '<div style="padding:40px;text-align:center;color:#65676b;">পোস্ট পাওয়া যায়নি</div>';
                     return;
                 }
                 const post = { id: doc.id, ...doc.data() };
@@ -2048,7 +2140,8 @@
                 attachDetailListeners(postId);
             } catch (error) {
                 console.error('Error loading post detail:', error);
-                detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Error loading post</div>';
+                detailBody.innerHTML =
+                    '<div style="padding:40px;text-align:center;color:#65676b;">পোস্ট লোড করতে সমস্যা</div>';
             }
         }
 
@@ -2056,7 +2149,7 @@
             const div = document.createElement('div');
 
             const user = auth.currentUser;
-            let userName = post.userName || 'User';
+            let userName = post.userName || 'ব্যবহারকারী';
             let userImage = post.userImage ||
                 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
 
@@ -2065,8 +2158,8 @@
                 if (user.photoURL) userImage = user.photoURL;
             }
 
-            const caption = post.caption || post.fullText || 'No caption';
-            const time = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
+            const caption = post.caption || post.fullText || 'ক্যাপশন নেই';
+            const time = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'এখনই';
             const likes = post.likes || 0;
             const imageUrl = post.imageUrl || '';
             const isLiked = post.likedBy && user && post.likedBy.includes(user.uid);
@@ -2074,7 +2167,8 @@
 
             let imageHTML = '';
             if (imageUrl) {
-                imageHTML = `<img src="${imageUrl}" class="post-image" alt="Post image" loading="lazy" />`;
+                imageHTML =
+                    `<img src="${imageUrl}" class="post-image" alt="Post image" loading="lazy" onerror="this.style.display='none'" />`;
             }
 
             let textClass = 'post-text';
@@ -2090,7 +2184,8 @@
                     'dark-blue': '#3b5998'
                 };
                 const bg = themes[post.bannerTheme] || '#1877f2';
-                textStyle = `background: ${bg}; color: #fff; padding: 20px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 18px;`;
+                textStyle =
+                    `background: ${bg}; color: #fff; padding: 20px; border-radius: 8px; text-align: center; font-weight: 600; font-size: clamp(18px, 3vw, 24px);`;
                 textClass = 'post-text banner-style';
             }
 
@@ -2103,9 +2198,9 @@
                         <div class="comment-item-detail">
                             <img src="${r.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
                             <div class="comment-bubble">
-                                <div class="comment-author">${escapeHTML(r.userName || 'User')}</div>
+                                <div class="comment-author">${escapeHTML(r.userName || 'ব্যবহারকারী')}</div>
                                 <div class="comment-text">${escapeHTML(r.text)}</div>
-                                <div class="comment-time">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'Just now'}</div>
+                                <div class="comment-time">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'এখনই'}</div>
                             </div>
                         </div>
                     `).join('') : '';
@@ -2114,12 +2209,12 @@
                         <div class="comment-item-detail" data-comment-id="${c.id || index}">
                             <img src="${c.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="Avatar" class="comment-avatar">
                             <div class="comment-bubble">
-                                <div class="comment-author">${escapeHTML(c.userName || 'User')}</div>
+                                <div class="comment-author">${escapeHTML(c.userName || 'ব্যবহারকারী')}</div>
                                 <div class="comment-text">${escapeHTML(c.text)}</div>
-                                <div class="comment-time">${c.timestamp ? new Date(c.timestamp).toLocaleString() : 'Just now'}</div>
+                                <div class="comment-time">${c.timestamp ? new Date(c.timestamp).toLocaleString() : 'এখনই'}</div>
                                 <div class="comment-actions">
                                     <span>Like</span>
-                                    <span class="reply-btn" onclick="event.stopPropagation(); setReplyTarget('${escapeHTML(c.userName || 'User')}')">Reply</span>
+                                    <span class="reply-btn" onclick="event.stopPropagation(); setReplyTarget('${escapeHTML(c.userName || 'ব্যবহারকারী')}')">Reply</span>
                                 </div>
                             </div>
                         </div>
@@ -2127,7 +2222,8 @@
                     `;
                 }).join('');
             } else {
-                commentsHTML = '<div style="padding:12px 0;color:#65676b;text-align:center;font-size:14px;">No comments yet. Be the first to comment!</div>';
+                commentsHTML =
+                    '<div style="padding:12px 0;color:#65676b;text-align:center;font-size:14px;">কোনো কমেন্ট নেই। প্রথম কমেন্ট করুন!</div>';
             }
 
             const currentUser = auth.currentUser;
@@ -2138,7 +2234,7 @@
                 <div class="post-item">
                     <div class="post-header">
                         <div class="post-user" onclick="window.location.href='profile.html?user=${post.userId}'">
-                            <img src="${userImage}" alt="User" />
+                            <img src="${userImage}" alt="User" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'" />
                             <div class="user-info">
                                 <span class="pname">${escapeHTML(userName)}</span>
                                 <span class="ptime">${time}</span>
@@ -2175,7 +2271,7 @@
                 </div>
                 <div class="detail-comments-section">
                     <div class="comments-header">
-                        <span>Comments</span>
+                        <span>কমেন্ট</span>
                         <span><i class="fa-regular fa-comment"></i> ${comments.length}</span>
                     </div>
                     <div class="comments-list" id="detail-comments-list">
@@ -2184,7 +2280,7 @@
                     <div class="detail-comment-input-bar">
                         <img src="${currentUserPic}" alt="Your Avatar" class="current-user-avatar">
                         <div class="input-wrapper">
-                            <input type="text" id="detail-comment-input" placeholder="Write a comment..." />
+                            <input type="text" id="detail-comment-input" placeholder="একটি কমেন্ট লিখুন..." />
                             <div class="input-icons">
                                 <i class="fa-regular fa-face-smile"></i>
                                 <i class="fa-regular fa-images"></i>
@@ -2198,8 +2294,6 @@
             return div;
         }
 
-        let replyTarget = null;
-
         function setReplyTarget(userName) {
             replyTarget = userName;
             const input = document.getElementById('detail-comment-input');
@@ -2211,12 +2305,12 @@
 
         async function handleLikeDetail(postId, btn) {
             const user = auth.currentUser;
-            if (!user) { showToast('Please login to like'); return; }
+            if (!user) { showToast('লাইক করতে লগইন করুন'); return; }
             btn.disabled = true;
             try {
                 const docRef = db.collection('all-user-post').doc(postId);
                 const doc = await docRef.get();
-                if (!doc.exists) { showToast('Post not found'); return; }
+                if (!doc.exists) { showToast('পোস্ট পাওয়া যায়নি'); return; }
                 const data = doc.data();
                 const likedBy = data.likedBy || [];
                 const isLiked = likedBy.includes(user.uid);
@@ -2268,15 +2362,15 @@
             const input = document.getElementById('detail-comment-input');
             const text = input.value.trim();
             if (!text) {
-                showToast('Please write a comment');
+                showToast('কমেন্ট লিখুন');
                 return;
             }
             const user = auth.currentUser;
             if (!user) {
-                showToast('Please login to comment');
+                showToast('কমেন্ট করতে লগইন করুন');
                 return;
             }
-            const userName = user.displayName || user.email?.split('@')[0] || 'User';
+            const userName = user.displayName || user.email?.split('@')[0] || 'ব্যবহারকারী';
             const userImage = user.photoURL ||
                 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
 
@@ -2293,7 +2387,7 @@
                 const docRef = db.collection('all-user-post').doc(postId);
                 const doc = await docRef.get();
                 if (!doc.exists) {
-                    showToast('Post not found');
+                    showToast('পোস্ট পাওয়া যায়নি');
                     return;
                 }
                 const data = doc.data();
@@ -2332,7 +2426,7 @@
                     comments.push(newComment);
                     await docRef.update({ comments: comments });
                 }
-                showToast('Comment added!');
+                showToast('কমেন্ট যোগ হয়েছে!');
                 input.value = '';
                 replyTarget = null;
                 setTimeout(() => { loadPostDetail(postId); }, 300);
@@ -2345,78 +2439,287 @@
         // ========== FRIENDS DATA ==========
         async function loadFriendsData(userId) {
             try {
-                const doc = await db.collection('users').doc(userId).get();
-                if (!doc.exists) return;
-                const data = doc.data();
-
-                const friends = data.friends || [];
-
-                const friendPromises = friends.slice(0, 4).map(uid => getUserData(uid));
-                const friendData = await Promise.all(friendPromises);
-
-                const mutual = await getMutualFriendsCount(currentUser?.uid || '', userId);
-                friendCount.textContent = friends.length;
-                mutualCount.textContent = mutual;
-                friendsGrid.innerHTML = '';
-
-                if (friendData.length === 0) {
-                    friendsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No friends to show</div>';
-                    return;
+                if (unsubscribeFriends) {
+                    unsubscribeFriends();
+                    unsubscribeFriends = null;
                 }
 
-                for (const friend of friendData) {
-                    if (!friend) continue;
-                    const card = document.createElement('div');
-                    card.className = 'friend-card';
-                    card.innerHTML = `
-                        <img src="${friend.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" alt="${escapeHTML(friend.fullName || 'Friend')}"/>
-                        <div class="fname">${escapeHTML(friend.fullName || 'Friend')}</div>
-                    `;
-                    card.onclick = () => {
-                        window.location.href = `profile.html?user=${friend.id}`;
-                    };
-                    friendsGrid.appendChild(card);
-                }
+                const userRef = db.collection('users').doc(userId);
+                unsubscribeFriends = userRef.onSnapshot(async (snap) => {
+                    if (!snap.exists) return;
+                    const data = snap.data();
+                    const friends = data.friends || [];
 
-                if (friends.length > 4) {
-                    const card = document.createElement('div');
-                    card.className = 'friend-card';
-                    card.style.justifyContent = 'center';
-                    card.style.display = 'flex';
-                    card.style.alignItems = 'center';
-                    card.style.flexDirection = 'column';
-                    card.innerHTML = `
-                        <div style="width:56px;height:56px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#1877f2;">+${friends.length - 4}</div>
-                        <div class="fname">See all</div>
-                    `;
-                    card.onclick = () => {
-                        document.querySelector('.profile-tab[data-tab="friends"]')?.click();
-                    };
-                    friendsGrid.appendChild(card);
-                }
+                    friendCount.textContent = friends.length;
+
+                    if (currentUser) {
+                        const mutual = await getMutualFriendsCount(currentUser.uid, userId);
+                        mutualCount.textContent = mutual;
+                    }
+
+                    friendsGrid.innerHTML = '';
+
+                    if (friends.length === 0) {
+                        friendsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">কোনো বন্ধু নেই</div>';
+                        return;
+                    }
+
+                    const visibleFriends = friends.slice(0, 4);
+                    for (const uid of visibleFriends) {
+                        const friendData = await getUserData(uid);
+                        if (!friendData) continue;
+                        const card = document.createElement('div');
+                        card.className = 'friend-card';
+                        const photo = friendData.photoURL ||
+                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                        const name = friendData.fullName || friendData.firstName || 'বন্ধু';
+                        card.innerHTML = `
+                            <img src="${photo}" alt="${escapeHTML(name)}" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'" />
+                            <div class="fname">${escapeHTML(name)}</div>
+                        `;
+                        card.onclick = () => {
+                            window.location.href = `profile.html?user=${uid}`;
+                        };
+                        friendsGrid.appendChild(card);
+                    }
+
+                    if (friends.length > 4) {
+                        const card = document.createElement('div');
+                        card.className = 'friend-card';
+                        card.style.cssText =
+                            'display:flex;align-items:center;justify-content:center;flex-direction:column;';
+                        card.innerHTML = `
+                            <div style="width:56px;height:56px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#1877f2;">+${friends.length - 4}</div>
+                            <div class="fname">সব দেখুন</div>
+                        `;
+                        card.onclick = () => {
+                            document.querySelector('.profile-tab[data-tab="friends"]')?.click();
+                        };
+                        friendsGrid.appendChild(card);
+                    }
+                }, (error) => {
+                    console.error('Error loading friends:', error);
+                    friendsGrid.innerHTML = '<div class="empty-state">বন্ধু লোড করতে সমস্যা</div>';
+                });
+
             } catch (error) {
-                console.error('Error loading friends:', error);
-                friendsGrid.innerHTML = '<div class="empty-state">Error loading friends</div>';
+                console.error('Error in loadFriendsData:', error);
+                friendsGrid.innerHTML = '<div class="empty-state">বন্ধু লোড করতে সমস্যা</div>';
             }
         }
 
-        // ========== TABS ==========
-        document.querySelectorAll('.profile-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                const name = this.dataset.tab;
-                ['posts', 'about', 'friends', 'photos', 'reels'].forEach(id => {
-                    const el = document.getElementById(id + '-tab');
-                    if (el) el.style.display = id === name ? 'block' : 'none';
+        // ========== MESSENGER ==========
+        function openMessenger(recipientId, recipientName) {
+            if (!currentUser) { showToast('মেসেজ করতে লগইন করুন'); return; }
+            if (recipientId === currentUser.uid) { showToast('নিজেকে মেসেজ করতে পারবেন না'); return; }
+            messengerOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            loadMessages(recipientId);
+        }
+
+        function closeMessengerFn() {
+            messengerOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            if (messengerUnsubscribe) {
+                messengerUnsubscribe();
+                messengerUnsubscribe = null;
+            }
+        }
+
+        closeMessenger.addEventListener('click', closeMessengerFn);
+
+        async function loadMessages(recipientId) {
+            if (messengerUnsubscribe) {
+                messengerUnsubscribe();
+                messengerUnsubscribe = null;
+            }
+
+            const chatId = [currentUser.uid, recipientId].sort().join('_');
+            const chatRef = db.collection('chats').doc(chatId);
+
+            messengerUnsubscribe = chatRef.onSnapshot((doc) => {
+                messengerMessages.innerHTML = '';
+                if (!doc.exists) {
+                    messengerMessages.innerHTML =
+                        '<div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">কোনো বার্তা নেই</div>';
+                    return;
+                }
+                const data = doc.data();
+                const messages = data.messages || [];
+                if (messages.length === 0) {
+                    messengerMessages.innerHTML =
+                        '<div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">কোনো বার্তা নেই</div>';
+                    return;
+                }
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'message-bubble ' + (msg.sender === currentUser.uid ? 'sent' : 'received');
+                    div.innerHTML =
+                        `${escapeHTML(msg.text)} <span class="msg-time">${msg.time || ''}</span>`;
+                    messengerMessages.appendChild(div);
                 });
+                messengerMessages.scrollTop = messengerMessages.scrollHeight;
+            }, (error) => {
+                console.error('Error loading messages:', error);
+                messengerMessages.innerHTML =
+                    '<div style="color:#65676b;font-size:13px;text-align:center;padding:20px 0;">বার্তা লোড করতে সমস্যা</div>';
             });
+        }
+
+        async function sendMessage(recipientId) {
+            const text = messengerInput.value.trim();
+            if (!text) return;
+            if (!currentUser) { showToast('মেসেজ করতে লগইন করুন'); return; }
+            if (recipientId === currentUser.uid) { showToast('নিজেকে মেসেজ করতে পারবেন না'); return; }
+
+            sendMsgBtn.disabled = true;
+            messengerInput.disabled = true;
+
+            try {
+                const chatId = [currentUser.uid, recipientId].sort().join('_');
+                const chatRef = db.collection('chats').doc(chatId);
+
+                const status = await checkFriendStatus(currentUser.uid, recipientId);
+                const isFriend = status === 'friends';
+                const isMessageRequest = !isFriend;
+
+                await chatRef.set({
+                    participants: [currentUser.uid, recipientId],
+                    lastMessage: text,
+                    lastUpdated: new Date().toISOString(),
+                    isMessageRequest: isMessageRequest
+                }, { merge: true });
+
+                await chatRef.update({
+                    messages: firebase.firestore.FieldValue.arrayUnion({
+                        sender: currentUser.uid,
+                        text: text,
+                        time: new Date().toLocaleString(),
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                messengerInput.value = '';
+                messengerMessages.scrollTop = messengerMessages.scrollHeight;
+
+                if (isMessageRequest) {
+                    showToast('✅ মেসেজ রিকোয়েস্ট হিসেবে পাঠানো হয়েছে!');
+                } else {
+                    showToast('✅ মেসেজ পাঠানো হয়েছে!');
+                }
+            } catch (err) {
+                console.error('Error sending message:', err);
+                showToast('Error: ' + err.message);
+            } finally {
+                sendMsgBtn.disabled = false;
+                messengerInput.disabled = false;
+                messengerInput.focus();
+            }
+        }
+
+        sendMsgBtn.addEventListener('click', () => {
+            if (currentProfileUserId) sendMessage(currentProfileUserId);
         });
 
-        // ========== EVENT LISTENERS ==========
+        messengerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentProfileUserId) sendMessage(currentProfileUserId);
+            }
+        });
+
+        // ========== EDIT PROFILE ==========
+        function openEditProfile() {
+            const user = auth.currentUser;
+            if (!user) { showToast('প্রথমে লগইন করুন'); return; }
+            const data = getCache('user_' + user.uid) || {};
+            editName.value = data.fullName || '';
+            editBio.value = data.bio || '';
+            editLocation.value = data.location || '';
+            editBirthday.value = data.birthday || '';
+            editRelationship.value = data.relationship || '';
+            editLanguage.value = data.language || '';
+            editEmail.value = data.email || user.email || '';
+            editPhone.value = data.phone || '';
+            editWorkTitle.value = data.workTitle || '';
+            editWorkRole.value = data.workRole || '';
+            editProfilePreview.src = data.photoURL || user.photoURL ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+            editCoverPreview.src = data.coverPhoto ||
+                'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=200&q=80';
+            editOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditProfile() {
+            editOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        editCloseBtn.addEventListener('click', closeEditProfile);
+        editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditProfile(); });
+
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) { showToast('লগইন করুন'); return; }
+            editSaveBtn.disabled = true;
+            editSaveBtn.innerHTML = '<span class="spinner"></span> সংরক্ষণ হচ্ছে...';
+            try {
+                const data = {
+                    fullName: editName.value.trim(),
+                    bio: editBio.value.trim(),
+                    location: editLocation.value.trim(),
+                    birthday: editBirthday.value.trim(),
+                    relationship: editRelationship.value.trim(),
+                    language: editLanguage.value.trim(),
+                    email: editEmail.value.trim(),
+                    phone: editPhone.value.trim(),
+                    workTitle: editWorkTitle.value.trim(),
+                    workRole: editWorkRole.value.trim(),
+                    photoURL: editProfilePreview.src,
+                    coverPhoto: editCoverPreview.src,
+                    updatedAt: new Date().toISOString()
+                };
+                await db.collection('users').doc(user.uid).set(data, { merge: true });
+                const newPass = editPassword.value.trim();
+                if (newPass && newPass.length >= 6) {
+                    await user.updatePassword(newPass);
+                    showToast('✅ পাসওয়ার্ড আপডেট হয়েছে!');
+                }
+                if (data.fullName && data.fullName !== user.displayName) {
+                    await user.updateProfile({ displayName: data.fullName });
+                }
+                if (data.photoURL) {
+                    try {
+                        const snap = await db.collection('all-user-post').where('userId', '==', user.uid).get();
+                        if (!snap.empty) {
+                            const batch = db.batch();
+                            snap.forEach(d => batch.update(d.ref, { userImage: data.photoURL, userName: data.fullName ||
+                                        user.displayName }));
+                            await batch.commit();
+                        }
+                    } catch {}
+                }
+                setCache('user_' + user.uid, { ...data, _cacheTime: Date.now() });
+                applyProfileData(data);
+                showToast('✅ প্রোফাইল আপডেট হয়েছে!');
+                closeEditProfile();
+                if (currentProfileUserId === user.uid) {
+                    loadUserPosts(user.uid);
+                    loadUserPhotos(user.uid);
+                }
+            } catch (err) { console.error(err);
+                showToast('Error: ' + err.message); } finally {
+                editSaveBtn.disabled = false;
+                editSaveBtn.innerHTML = 'সংরক্ষণ করুন';
+            }
+        });
+
+        // ===== PHOTO UPLOAD HANDLERS - TELEGRAM =====
         $('profile-pic-edit').addEventListener('click', (e) => {
             e.stopPropagation();
-            openCloudinaryUpload('profile', (url) => {
+            triggerFileUpload('profile', (url) => {
                 profilePic.src = url;
                 const user = auth.currentUser;
                 if (user) {
@@ -2424,41 +2727,38 @@
                     updateAllPostsPhoto(user.uid, url);
                     setCache('user_' + user.uid, { ...getCache('user_' + user.uid), photoURL: url });
                 }
-                showToast('✅ Profile photo updated!');
+                showToast('✅ প্রোফাইল ছবি আপডেট হয়েছে!');
             });
         });
 
         $('cover-edit-btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            openCloudinaryUpload('cover', (url) => {
+            triggerFileUpload('cover', (url) => {
                 coverImage.src = url;
                 const user = auth.currentUser;
                 if (user) {
                     db.collection('users').doc(user.uid).set({ coverPhoto: url }, { merge: true });
                     setCache('user_' + user.uid, { ...getCache('user_' + user.uid), coverPhoto: url });
                 }
-                showToast('✅ Cover photo updated!');
+                showToast('✅ কভার ছবি আপডেট হয়েছে!');
+            });
+        });
+
+        $('edit-upload-profile').addEventListener('click', () => {
+            triggerFileUpload('profile', (url) => {
+                editProfilePreview.src = url;
+                showToast('✅ ছবি সিলেক্ট করা হয়েছে');
+            });
+        });
+
+        $('edit-upload-cover').addEventListener('click', () => {
+            triggerFileUpload('cover', (url) => {
+                editCoverPreview.src = url;
+                showToast('✅ কভার সিলেক্ট করা হয়েছে');
             });
         });
 
         $('edit-profile-btn').addEventListener('click', openEditProfile);
-        editCloseBtn.addEventListener('click', closeEditProfile);
-        editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditProfile(); });
-        editForm.addEventListener('submit', saveEditProfile);
-
-        $('edit-upload-profile').addEventListener('click', () => {
-            openCloudinaryUpload('profile', (url) => { editProfilePreview.src = url;
-                showToast('✅ Photo selected'); });
-        });
-        $('edit-upload-cover').addEventListener('click', () => {
-            openCloudinaryUpload('cover', (url) => { editCoverPreview.src = url;
-                showToast('✅ Cover selected'); });
-        });
-
-        $('see-all-friends')?.addEventListener('click', () => {
-            document.querySelector('.profile-tab[data-tab="friends"]')?.click();
-        });
-        $('see-more-work')?.addEventListener('click', () => showToast('View all work experience'));
 
         async function updateAllPostsPhoto(userId, url) {
             try {
@@ -2471,58 +2771,39 @@
             } catch {}
         }
 
-        function openCloudinaryUpload(type, callback) {
-            const user = auth.currentUser;
-            if (!user) { showToast('Please login first'); return; }
-            const isCover = type === 'cover';
-            const widget = cloudinary.createUploadWidget({
-                cloudName: CLOUD_NAME,
-                uploadPreset: UPLOAD_PRESET,
-                sources: ['local', 'url', 'camera', 'google_drive', 'dropbox'],
-                multiple: false,
-                cropping: isCover ? false : true,
-                croppingAspectRatio: 1,
-                croppingDefaultSelectionRatio: 1,
-                styles: {
-                    palette: {
-                        window: '#FFFFFF',
-                        sourceBg: '#f0f2f5',
-                        windowBorder: '#ccd0d5',
-                        tabIcon: '#1877f2',
-                        inactiveTabIcon: '#65676b',
-                        menuIcons: '#1877f2',
-                        link: '#1877f2',
-                        action: '#1877f2',
-                        inProgress: '#1877f2',
-                        complete: '#42b72a',
-                        error: '#e41e3f',
-                        textDark: '#1c1e21',
-                        textLight: '#65676b'
-                    }
-                }
-            }, function(error, result) {
-                if (error) { showToast('Upload failed: ' + error.message); return; }
-                if (result && result.event === 'success') {
-                    const url = result.info.secure_url;
-                    if (callback) callback(url, isCover);
-                }
+        // ===== TABS =====
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const name = this.dataset.tab;
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById(name + '-tab');
+                if (target) target.classList.add('active');
             });
-            widget.open();
-        }
-
-        // ========== MESSENGER SEND ==========
-        sendMsgBtn.addEventListener('click', () => {
-            if (currentProfileUserId) sendMessage(currentProfileUserId);
         });
 
-        messengerInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (currentProfileUserId) sendMessage(currentProfileUserId);
+        $('see-all-friends')?.addEventListener('click', () => {
+            document.querySelector('.profile-tab[data-tab="friends"]')?.click();
+        });
+
+        // ===== STATUS HANDLING =====
+        document.addEventListener('visibilitychange', () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            if (document.hidden) {
+                updateUserStatus(user.uid, 'offline');
+            } else {
+                updateUserStatus(user.uid, 'online');
             }
         });
 
-        // ========== AUTH STATE ==========
+        window.addEventListener('beforeunload', () => {
+            const user = auth.currentUser;
+            if (user) updateUserStatus(user.uid, 'offline');
+        });
+
+        // ===== AUTH STATE =====
         auth.onAuthStateChanged((user) => {
             currentUser = user;
             const uid = getUserIdFromUrl();
@@ -2530,18 +2811,11 @@
             if (!uid) {
                 if (user) {
                     loadProfile(user.uid);
-                    db.collection('users').doc(user.uid).set({ status: 'online' }, { merge: true });
-                    window.addEventListener('beforeunload', () => {
-                        db.collection('users').doc(user.uid).set({ status: 'offline' }, { merge: true });
-                    });
+                    updateUserStatus(user.uid, 'online');
                 } else {
-                    showToast('Please login');
+                    showToast('লগইন করুন');
                     setTimeout(() => {
-                        if (window.parent && window.parent.location) {
-                            window.parent.location.href = 'index.html';
-                        } else {
-                            window.location.href = 'index.html';
-                        }
+                        window.location.href = 'index.html';
                     }, 1500);
                 }
                 return;
@@ -2550,35 +2824,26 @@
             loadProfile(uid);
 
             if (user && user.uid === uid) {
-                db.collection('users').doc(uid).set({ status: 'online' }, { merge: true });
-                window.addEventListener('beforeunload', () => {
-                    db.collection('users').doc(uid).set({ status: 'offline' }, { merge: true });
-                });
+                updateUserStatus(uid, 'online');
             }
         });
 
-        // Listen for messages from parent
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'openProfile') {
-                const userName = event.data.userName;
-                db.collection('users').where('fullName', '==', userName).get()
-                    .then((snapshot) => {
-                        if (!snapshot.empty) {
-                            const userId = snapshot.docs[0].id;
-                            window.location.href = `profile.html?user=${userId}`;
-                        } else {
-                            showToast('User not found');
-                        }
-                    })
-                    .catch(() => showToast('Error finding user'));
-            }
+        // ===== CLEANUP =====
+        window.addEventListener('unload', () => {
+            if (unsubscribePosts) unsubscribePosts();
+            if (unsubscribeProfile) unsubscribeProfile();
+            if (unsubscribeFriends) unsubscribeFriends();
+            if (messengerUnsubscribe) messengerUnsubscribe();
         });
 
-        console.log('🔥 Profile Page with Messenger & Message Requests!');
-        console.log('📌 Click Message to open chat overlay');
-        console.log('💬 If not friends, message goes as a request');
-        console.log('✅ Messages are stored in "chats" collection');
-        console.log('🔹 Message Requests button added to own profile');
+        console.log('🔥 প্রোফাইল পেজ - সম্পূর্ণ পেজ স্ক্রল');
+        console.log('📱 ফাস্ট লোডিং - ক্যাশিং সিস্টেম সহ');
+        console.log('👥 বন্ধু সংখ্যা রিয়েল-টাইম আপডেট');
+        console.log('🖼️ ছবি গ্যালারি দেখায়');
+        console.log('💬 মেসেঞ্জার ইন্টিগ্রেশন');
+        console.log('🎨 সম্পূর্ণ রেসপনসিভ ডিজাইন');
+        console.log('📜 সম্পূর্ণ পেজ স্ক্রল - স্টিকি ট্যাব');
+        console.log('🖼️ টেলিগ্রাম ইমেজ আপলোড সিস্টেম');
     </script>
 
 </body>
