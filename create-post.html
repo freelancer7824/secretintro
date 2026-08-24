@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Create Post - Facebook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>পোস্ট তৈরি করুন - SecretIntro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js">
     </script>
     <style>
         * {
@@ -24,6 +26,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         .toast-msg {
             background: #333;
@@ -40,6 +43,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             max-width: 90%;
             text-align: center;
+            pointer-events: none;
         }
         .top-nav {
             display: flex;
@@ -51,42 +55,45 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            min-height: 56px;
         }
         .nav-left {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
         .nav-left i {
             font-size: 20px;
             color: #050505;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 8px;
             border-radius: 50%;
             transition: 0.2s;
+            min-width: 40px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .nav-left i:hover {
-            background: #f0f2f5;
-        }
+        .nav-left i:active { background: #f0f2f5; }
         .nav-title {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: clamp(16px, 3vw, 20px);
+            font-weight: 700;
             color: #050505;
         }
         .post-top-btn {
             background: none;
             border: none;
             color: #1877f2;
-            font-size: 16px;
+            font-size: clamp(14px, 2vw, 16px);
             font-weight: 700;
             cursor: pointer;
             padding: 8px 16px;
             border-radius: 6px;
-            transition: background 0.2s;
+            transition: 0.2s;
+            min-height: 40px;
         }
-        .post-top-btn:hover {
-            background: #f0f2f5;
-        }
+        .post-top-btn:active { background: #f0f2f5; }
         .post-top-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -105,67 +112,64 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #e4e6eb;
+            flex-shrink: 0;
         }
         .user-details h4 {
-            font-size: 15px;
+            font-size: clamp(14px, 2vw, 16px);
             font-weight: 700;
             color: #050505;
-            margin-bottom: 2px;
         }
         .privacy-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
             background-color: #e4e6eb;
-            padding: 3px 8px;
+            padding: 2px 10px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
             color: #050505;
             cursor: pointer;
+            margin-top: 2px;
         }
-        .privacy-badge i {
-            font-size: 11px;
-        }
+        .privacy-badge:active { background: #d8dadf; }
         .text-input-container {
             padding: 16px;
             flex-grow: 1;
-            min-height: 120px;
+            min-height: 100px;
             transition: all 0.3s ease;
         }
         .text-input-container textarea {
             width: 100%;
             border: none;
             outline: none;
-            font-size: 18px;
+            font-size: clamp(16px, 2.5vw, 20px);
             resize: none;
             background: transparent;
             color: #050505;
             font-family: inherit;
             transition: all 0.3s ease;
+            line-height: 1.6;
+            min-height: 80px;
         }
         .text-input-container textarea::placeholder {
             color: #65676b;
-            font-style: italic;
         }
         .text-input-container.banner-mode {
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 200px;
+            min-height: 180px;
             padding: 20px;
             border-radius: 12px;
             margin: 8px 16px;
         }
         .text-input-container.banner-mode textarea {
             text-align: center;
-            font-size: 24px;
+            font-size: clamp(20px, 4vw, 28px);
             font-weight: 600;
             color: #fff;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            min-height: 80px;
         }
         .text-input-container.banner-mode textarea::placeholder {
             color: rgba(255, 255, 255, 0.7);
@@ -175,9 +179,7 @@
             padding: 0 16px 16px 16px;
             display: none;
         }
-        .photo-preview-container.show {
-            display: block;
-        }
+        .photo-preview-container.show { display: block; }
         .photo-preview-wrapper {
             position: relative;
             border-radius: 12px;
@@ -191,6 +193,12 @@
             object-fit: contain;
             display: block;
             background: #fff;
+        }
+        .photo-preview-wrapper video {
+            width: 100%;
+            max-height: 400px;
+            display: block;
+            background: #000;
         }
         .remove-photo-btn {
             position: absolute;
@@ -207,20 +215,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: 0.2s;
         }
-        .remove-photo-btn:hover {
-            background: rgba(0, 0, 0, 0.8);
-        }
+        .remove-photo-btn:active { background: rgba(0, 0, 0, 0.8); }
         .upload-progress {
             display: none;
             padding: 8px 16px;
             align-items: center;
             gap: 12px;
         }
-        .upload-progress.show {
-            display: flex;
-        }
+        .upload-progress.show { display: flex; }
         .upload-progress .progress-bar {
             flex: 1;
             height: 4px;
@@ -239,6 +243,13 @@
             color: #65676b;
             font-weight: 500;
         }
+        .selected-theme-label {
+            font-size: 12px;
+            color: #65676b;
+            padding: 0 16px 8px 16px;
+            display: none;
+        }
+        .selected-theme-label.show { display: block; }
         .theme-picker {
             display: flex;
             align-items: center;
@@ -249,22 +260,20 @@
             border-bottom: 1px solid #f0f2f5;
             background: #ffffff;
             white-space: nowrap;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
-        .theme-picker::-webkit-scrollbar {
-            display: none;
-        }
+        .theme-picker::-webkit-scrollbar { display: none; }
         .theme-btn {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 2px solid transparent;
             cursor: pointer;
             flex-shrink: 0;
             transition: all 0.2s;
         }
-        .theme-btn:hover {
-            transform: scale(1.1);
-        }
+        .theme-btn:active { transform: scale(0.9); }
         .theme-btn.active {
             border-color: #1877f2;
             box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.3);
@@ -285,7 +294,16 @@
         .theme-gradient-2 { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
         .theme-gradient-3 { background: linear-gradient(135deg, #f2994a, #f2c94c); }
         .theme-dark-blue { background: #3b5998; }
-        .theme-mention { background: #f0f2f5; color: #050505; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
+        .theme-mention {
+            background: #f0f2f5;
+            color: #050505;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            border: 1px solid #ccd0d5;
+        }
         .options-list {
             padding: 4px 0;
             border-top: 1px solid #f0f2f5;
@@ -295,19 +313,19 @@
             align-items: center;
             gap: 16px;
             padding: 12px 16px;
-            font-size: 15px;
+            font-size: clamp(14px, 2vw, 15px);
             font-weight: 600;
             color: #050505;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: 0.2s;
+            min-height: 48px;
         }
-        .option-item:active {
-            background-color: #f0f2f5;
-        }
+        .option-item:active { background-color: #f0f2f5; }
         .option-item i {
             font-size: 20px;
             width: 24px;
             text-align: center;
+            flex-shrink: 0;
         }
         .fa-images { color: #45bd62; }
         .fa-music { color: #f02849; }
@@ -317,12 +335,25 @@
         .fa-facebook-messenger { color: #0084ff; }
         .fa-calendar-days { color: #f02849; }
         .fa-video { color: #f02849; }
+        .option-item .upload-indicator {
+            margin-left: auto;
+            font-size: 12px;
+            color: #1877f2;
+            white-space: nowrap;
+        }
+        .option-item .upload-indicator i {
+            font-size: 14px;
+            color: #1877f2;
+            width: auto;
+        }
         #photoInput { display: none; }
         .bottom-action-container {
             padding: 12px 16px;
             background: #ffffff;
             border-top: 1px solid #e4e6eb;
             margin-top: auto;
+            position: sticky;
+            bottom: 0;
         }
         .post-main-btn {
             width: 100%;
@@ -330,50 +361,52 @@
             color: white;
             border: none;
             padding: 12px;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: clamp(16px, 2.5vw, 18px);
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            transition: background 0.2s;
+            transition: 0.2s;
+            min-height: 48px;
         }
-        .post-main-btn:hover {
-            background-color: #166fe5;
-        }
-        .post-main-btn:active {
-            background-color: #0d5fb8;
-        }
+        .post-main-btn:active { background-color: #0d5fb8; transform: scale(0.98); }
         .post-main-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
-        .selected-theme-label {
-            font-size: 12px;
-            color: #65676b;
-            padding: 0 16px 8px 16px;
-            display: none;
+        @media (max-width: 480px) {
+            .top-nav { padding: 8px 12px; min-height: 48px; }
+            .nav-left i { font-size: 18px; min-width: 36px; min-height: 36px; padding: 6px; }
+            .post-top-btn { font-size: 14px; padding: 6px 12px; min-height: 36px; }
+            .user-info-section { padding: 10px 12px; }
+            .profile-pic { width: 36px; height: 36px; }
+            .text-input-container { padding: 12px; min-height: 80px; }
+            .text-input-container textarea { font-size: 16px; min-height: 60px; }
+            .text-input-container.banner-mode { min-height: 140px; padding: 16px; margin: 4px 12px; }
+            .text-input-container.banner-mode textarea { font-size: 18px; }
+            .option-item { padding: 10px 12px; min-height: 44px; font-size: 14px; }
+            .option-item i { font-size: 18px; width: 20px; }
+            .theme-btn { width: 28px; height: 28px; }
+            .theme-picker { padding: 8px 12px; gap: 6px; }
+            .bottom-action-container { padding: 8px 12px; }
+            .post-main-btn { padding: 10px; font-size: 15px; min-height: 44px; }
+            .photo-preview-wrapper img { max-height: 250px; }
+            .upload-progress { padding: 6px 12px; gap: 8px; }
+            .upload-progress .progress-text { font-size: 12px; }
         }
-        .selected-theme-label.show {
-            display: block;
+        @media (max-width: 380px) {
+            .nav-title { font-size: 14px; }
+            .post-top-btn { font-size: 12px; padding: 4px 10px; }
+            .text-input-container textarea { font-size: 14px; }
+            .text-input-container.banner-mode textarea { font-size: 16px; }
+            .option-item { font-size: 13px; padding: 8px 10px; min-height: 40px; }
+            .option-item i { font-size: 16px; width: 18px; }
+            .theme-btn { width: 24px; height: 24px; }
         }
-        .option-item .upload-indicator {
-            margin-left: auto;
-            font-size: 12px;
-            color: #1877f2;
-        }
-        .option-item .upload-indicator i {
-            font-size: 14px;
-            color: #1877f2;
-            width: auto;
-        }
-        @media (max-width: 500px) {
-            .text-input-container.banner-mode {
-                min-height: 160px;
-                margin: 8px 12px;
-            }
-            .text-input-container.banner-mode textarea {
-                font-size: 20px;
-            }
+        @media (min-width: 768px) {
+            .text-input-container.banner-mode { min-height: 220px; }
+            .photo-preview-wrapper img { max-height: 500px; }
         }
     </style>
 </head>
@@ -384,23 +417,23 @@
     <div class="top-nav">
         <div class="nav-left">
             <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
-            <div class="nav-title">Create post</div>
+            <span class="nav-title">পোস্ট তৈরি করুন</span>
         </div>
-        <button class="post-top-btn" id="postTopBtn" onclick="handlePost()">POST</button>
+        <button class="post-top-btn" id="postTopBtn" onclick="handlePost()">পোস্ট করুন</button>
     </div>
 
     <div class="user-info-section">
-        <img id="userProfilePic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="Profile Picture" class="profile-pic">
+        <img id="userProfilePic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60" alt="Profile" class="profile-pic">
         <div class="user-details">
-            <h4 id="userDisplayName">Loading...</h4>
-            <div class="privacy-badge" onclick="showToast('Privacy: Public')">
-                <i class="fa-solid fa-earth-americas"></i> Public <i class="fa-solid fa-caret-down"></i>
+            <h4 id="userDisplayName">লোড হচ্ছে...</h4>
+            <div class="privacy-badge" onclick="showToast('গোপনীয়তা: পাবলিক')">
+                <i class="fa-solid fa-earth-americas"></i> পাবলিক <i class="fa-solid fa-caret-down"></i>
             </div>
         </div>
     </div>
 
     <div class="text-input-container" id="textContainer">
-        <textarea id="postText" rows="4" placeholder="What's on your mind?"></textarea>
+        <textarea id="postText" rows="4" placeholder="আপনার মনের কথা লিখুন..."></textarea>
     </div>
 
     <div class="photo-preview-container" id="photoPreviewContainer">
@@ -413,80 +446,64 @@
     </div>
 
     <div class="upload-progress" id="uploadProgress">
-        <span class="progress-text">Uploading...</span>
+        <span class="progress-text">আপলোড হচ্ছে...</span>
         <div class="progress-bar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
         <span class="progress-text" id="progressPercent">0%</span>
     </div>
 
-    <div class="selected-theme-label" id="themeLabel">Banner mode active</div>
+    <div class="selected-theme-label" id="themeLabel">🎨 ব্যানার মোড সক্রিয়</div>
 
     <div class="theme-picker">
-        <div class="theme-btn theme-back-btn" onclick="scrollToLeft()"><i class="fa-solid fa-chevron-left" style="font-size: 12px;"></i></div>
-        <div class="theme-btn theme-white active" onclick="setTheme('white', this)" data-theme="white"></div>
-        <div class="theme-btn theme-purple" onclick="setTheme('purple', this)" data-theme="purple"></div>
-        <div class="theme-btn theme-red" onclick="setTheme('red', this)" data-theme="red"></div>
-        <div class="theme-btn theme-dark" onclick="setTheme('dark', this)" data-theme="dark"></div>
-        <div class="theme-btn theme-gradient-1" onclick="setTheme('gradient-1', this)" data-theme="gradient-1"></div>
-        <div class="theme-btn theme-gradient-2" onclick="setTheme('gradient-2', this)" data-theme="gradient-2"></div>
-        <div class="theme-btn theme-gradient-3" onclick="setTheme('gradient-3', this)" data-theme="gradient-3"></div>
-        <div class="theme-btn theme-dark-blue" onclick="setTheme('dark-blue', this)" data-theme="dark-blue"></div>
-        <div class="theme-btn theme-mention" onclick="showToast('@mention coming soon')"><i class="fa-solid fa-at"></i></div>
+        <div class="theme-btn theme-back-btn" onclick="scrollToLeft()"><i class="fa-solid fa-chevron-left" style="font-size:12px;"></i></div>
+        <div class="theme-btn theme-white active" onclick="setTheme('white', this)" data-theme="white" title="সাদা"></div>
+        <div class="theme-btn theme-purple" onclick="setTheme('purple', this)" data-theme="purple" title="বেগুনি"></div>
+        <div class="theme-btn theme-red" onclick="setTheme('red', this)" data-theme="red" title="লাল"></div>
+        <div class="theme-btn theme-dark" onclick="setTheme('dark', this)" data-theme="dark" title="কালো"></div>
+        <div class="theme-btn theme-gradient-1" onclick="setTheme('gradient-1', this)" data-theme="gradient-1" title="গ্রেডিয়েন্ট ১"></div>
+        <div class="theme-btn theme-gradient-2" onclick="setTheme('gradient-2', this)" data-theme="gradient-2" title="গ্রেডিয়েন্ট ২"></div>
+        <div class="theme-btn theme-gradient-3" onclick="setTheme('gradient-3', this)" data-theme="gradient-3" title="গ্রেডিয়েন্ট ৩"></div>
+        <div class="theme-btn theme-dark-blue" onclick="setTheme('dark-blue', this)" data-theme="dark-blue" title="গাঢ় নীল"></div>
+        <div class="theme-btn theme-mention" onclick="showToast('@মেনশন শীঘ্রই আসছে')"><i class="fa-solid fa-at"></i></div>
     </div>
 
     <div class="options-list">
         <div class="option-item" onclick="triggerPhotoUpload()">
-            <i class="fa-solid fa-images"></i> Photos/Videos
-            <span class="upload-indicator" id="photoIndicator"><i class="fa-solid fa-plus"></i> Add</span>
+            <i class="fa-solid fa-images"></i> ছবি/ভিডিও
+            <span class="upload-indicator" id="photoIndicator"><i class="fa-solid fa-plus"></i> যোগ করুন</span>
         </div>
-        <div class="option-item" onclick="triggerAction('Music')">
-            <i class="fa-solid fa-music"></i> Music
+        <div class="option-item" onclick="triggerAction('সঙ্গীত')">
+            <i class="fa-solid fa-music"></i> সঙ্গীত
         </div>
-        <div class="option-item" onclick="triggerAction('Tag people')">
-            <i class="fa-solid fa-user-tag"></i> Tag people
+        <div class="option-item" onclick="triggerAction('ব্যাক্তি ট্যাগ')">
+            <i class="fa-solid fa-user-tag"></i> ব্যাক্তি ট্যাগ করুন
         </div>
-        <div class="option-item" onclick="triggerAction('Add location')">
-            <i class="fa-solid fa-location-dot"></i> Add location
+        <div class="option-item" onclick="triggerAction('লোকেশন যোগ')">
+            <i class="fa-solid fa-location-dot"></i> লোকেশন যোগ করুন
         </div>
-        <div class="option-item" onclick="triggerAction('Feeling/activity')">
-            <i class="fa-solid fa-face-smile"></i> Feeling/activity
+        <div class="option-item" onclick="triggerAction('অনুভূতি/কার্যকলাপ')">
+            <i class="fa-solid fa-face-smile"></i> অনুভূতি/কার্যকলাপ
         </div>
-        <div class="option-item" onclick="triggerAction('Get messages')">
-            <i class="fa-brands fa-facebook-messenger"></i> Get messages
+        <div class="option-item" onclick="triggerAction('বার্তা পান')">
+            <i class="fa-brands fa-facebook-messenger"></i> বার্তা পান
         </div>
-        <div class="option-item" onclick="triggerAction('Create Event')">
-            <i class="fa-solid fa-calendar-days"></i> Create Event
+        <div class="option-item" onclick="triggerAction('ইভেন্ট তৈরি')">
+            <i class="fa-solid fa-calendar-days"></i> ইভেন্ট তৈরি করুন
         </div>
-        <div class="option-item" onclick="triggerAction('Go live')">
-            <i class="fa-solid fa-video"></i> Go live
+        <div class="option-item" onclick="triggerAction('লাইভ যান')">
+            <i class="fa-solid fa-video"></i> লাইভ যান
         </div>
     </div>
 
     <input type="file" id="photoInput" accept="image/*,video/*">
 
     <div class="bottom-action-container">
-        <button class="post-main-btn" id="postMainBtn" onclick="handlePost()">POST</button>
+        <button class="post-main-btn" id="postMainBtn" onclick="handlePost()">পোস্ট করুন</button>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
-            authDomain: "money-generate-dbab3.firebaseapp.com",
-            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
-            projectId: "money-generate-dbab3",
-            storageBucket: "money-generate-dbab3.firebasestorage.app",
-            messagingSenderId: "579756089926",
-            appId: "1:579756089926:web:abbe35377e3657889be047"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dhvtgzy5x/image/upload';
-        const CLOUDINARY_UPLOAD_PRESET = 'Rosenews';
-
+        // ========== DOM REFS ==========
         const toast = document.getElementById('toast');
         const postText = document.getElementById('postText');
         const postTopBtn = document.getElementById('postTopBtn');
@@ -503,15 +520,36 @@
         const progressFill = document.getElementById('progressFill');
         const progressPercent = document.getElementById('progressPercent');
 
+        // ========== FIREBASE ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // ========== TELEGRAM ==========
+        const TELEGRAM_BOT_TOKEN = '8753538115:AAG5e4VI6JnHFERJVzEYMN4SguQLgBu79ts';
+        const TELEGRAM_CHAT_ID = '-5338253351';
+
+        // ========== STATE ==========
         let toastTimer;
         let selectedTheme = 'white';
         let isBannerMode = false;
-        let selectedImageFile = null;
         let uploadedImageUrl = '';
         let isUploading = false;
         let currentUser = null;
         let currentUserData = {};
 
+        // ========== TOAST ==========
         function showToast(msg) {
             toast.textContent = msg;
             toast.style.display = 'block';
@@ -519,6 +557,7 @@
             toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
+        // ========== GO BACK ==========
         function goBack() {
             window.location.href = 'index.html';
         }
@@ -530,7 +569,7 @@
                 if (doc.exists) {
                     const data = doc.data();
                     currentUserData = data;
-                    const fullName = data.fullName || data.firstName + ' ' + data.lastName || user.displayName || user.email?.split('@')[0] || 'User';
+                    const fullName = data.fullName || data.firstName + ' ' + data.lastName || user.displayName || user.email?.split('@')[0] || 'ব্যবহারকারী';
                     userDisplayName.textContent = fullName;
                     if (data.photoURL) {
                         userProfilePic.src = data.photoURL;
@@ -538,12 +577,12 @@
                         userProfilePic.src = user.photoURL;
                     }
                 } else {
-                    userDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'User';
+                    userDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'ব্যবহারকারী';
                     if (user.photoURL) userProfilePic.src = user.photoURL;
                 }
             } catch (error) {
-                console.error('Error loading profile:', error);
-                userDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'User';
+                console.error('প্রোফাইল লোড করতে সমস্যা:', error);
+                userDisplayName.textContent = user.displayName || user.email?.split('@')[0] || 'ব্যবহারকারী';
             }
         }
 
@@ -552,7 +591,6 @@
             if (user) {
                 currentUser = user;
                 loadUserProfile(user);
-                // Real-time update
                 db.collection('users').doc(user.uid).onSnapshot((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
@@ -563,40 +601,14 @@
                     }
                 });
             } else {
-                userDisplayName.textContent = 'Guest User';
-                showToast('Please login to create posts');
+                userDisplayName.textContent = 'অতিথি';
+                showToast('পোস্ট করতে লগইন করুন');
                 setTimeout(() => { window.location.href = 'index.html'; }, 1500);
             }
         });
 
-        // ========== PHOTO UPLOAD ==========
-        function triggerPhotoUpload() {
-            photoInput.click();
-        }
-
-        photoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (file.size > 10 * 1024 * 1024) {
-                showToast('File too large. Max 10MB.');
-                return;
-            }
-            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                showToast('Please select an image or video.');
-                return;
-            }
-            selectedImageFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                photoPreview.src = e.target.result;
-                photoPreviewContainer.classList.add('show');
-                photoIndicator.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#31a24c;"></i> Selected';
-            };
-            reader.readAsDataURL(file);
-            uploadToCloudinary(file);
-        });
-
-        async function uploadToCloudinary(file) {
+        // ========== TELEGRAM IMAGE UPLOAD ==========
+        async function uploadToTelegram(file) {
             if (isUploading) return;
             isUploading = true;
             uploadedImageUrl = '';
@@ -604,11 +616,11 @@
             progressFill.style.width = '0%';
             progressPercent.textContent = '0%';
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
             try {
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('photo', file);
+
                 const xhr = new XMLHttpRequest();
                 xhr.upload.addEventListener('progress', (event) => {
                     if (event.lengthComputable) {
@@ -620,28 +632,60 @@
 
                 const uploadPromise = new Promise((resolve, reject) => {
                     xhr.onload = function() {
+                        console.log('Telegram Response Status:', xhr.status);
+                        console.log('Telegram Response:', xhr.responseText);
+                        
                         if (xhr.status === 200) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
-                        } else { reject(new Error('Upload failed: ' + xhr.status)); }
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                if (response.ok) {
+                                    resolve(response);
+                                } else {
+                                    reject(new Error('Telegram API Error: ' + JSON.stringify(response)));
+                                }
+                            } catch (e) {
+                                reject(new Error('Invalid Response: ' + xhr.responseText));
+                            }
+                        } else {
+                            reject(new Error('Upload Failed: ' + xhr.status + ' - ' + xhr.statusText));
+                        }
                     };
-                    xhr.onerror = function() { reject(new Error('Network error')); };
+                    xhr.onerror = function() {
+                        reject(new Error('Network Error - Check Internet Connection'));
+                    };
+                    xhr.ontimeout = function() {
+                        reject(new Error('Timeout - Please try again'));
+                    };
+                    xhr.timeout = 60000;
                 });
 
-                xhr.open('POST', CLOUDINARY_URL);
+                xhr.open('POST', `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`);
                 xhr.send(formData);
 
                 const response = await uploadPromise;
-                uploadedImageUrl = response.secure_url || response.url;
-                if (uploadedImageUrl) {
-                    photoPreview.src = uploadedImageUrl;
-                    photoIndicator.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#31a24c;"></i> Uploaded';
-                    showToast('✅ Photo uploaded!');
+
+                if (response.ok && response.result) {
+                    const fileId = response.result.photo[response.result.photo.length - 1].file_id;
+                    
+                    const fileUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`;
+                    const fileResponse = await fetch(fileUrl);
+                    const fileData = await fileResponse.json();
+
+                    if (fileData.ok && fileData.result.file_path) {
+                        uploadedImageUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileData.result.file_path}`;
+                        photoPreview.src = uploadedImageUrl;
+                        photoPreviewContainer.classList.add('show');
+                        photoIndicator.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#31a24c;"></i> আপলোড হয়েছে';
+                        showToast('✅ ছবি আপলোড হয়েছে!');
+                    } else {
+                        throw new Error('File path not found');
+                    }
                 } else {
-                    showToast('Failed to get uploaded URL');
+                    throw new Error('Telegram upload failed');
                 }
             } catch (error) {
-                console.error('Upload error:', error);
-                showToast('Failed to upload: ' + error.message);
+                console.error('Upload Error:', error);
+                showToast('আপলোড ব্যর্থ: ' + error.message);
                 removePhoto();
             } finally {
                 isUploading = false;
@@ -649,13 +693,40 @@
             }
         }
 
+        // ========== PHOTO UPLOAD ==========
+        function triggerPhotoUpload() {
+            photoInput.click();
+        }
+
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('ফাইল খুব বড়। সর্বোচ্চ ১০MB।');
+                return;
+            }
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                showToast('ছবি বা ভিডিও সিলেক্ট করুন।');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.src = e.target.result;
+                photoPreviewContainer.classList.add('show');
+                photoIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...';
+            };
+            reader.readAsDataURL(file);
+
+            uploadToTelegram(file);
+        });
+
         function removePhoto() {
-            selectedImageFile = null;
             uploadedImageUrl = '';
             photoPreviewContainer.classList.remove('show');
             photoPreview.src = '';
             photoInput.value = '';
-            photoIndicator.innerHTML = '<i class="fa-solid fa-plus"></i> Add';
+            photoIndicator.innerHTML = '<i class="fa-solid fa-plus"></i> যোগ করুন';
             uploadProgress.classList.remove('show');
             progressFill.style.width = '0%';
             progressPercent.textContent = '0%';
@@ -674,7 +745,7 @@
             container.style.color = '#050505';
             textarea.style.color = '#050505';
             textarea.style.textAlign = 'left';
-            textarea.style.fontSize = '18px';
+            textarea.style.fontSize = 'clamp(16px, 2.5vw, 20px)';
             textarea.style.fontWeight = '400';
             themeLabel.classList.remove('show');
 
@@ -683,7 +754,7 @@
                 container.classList.add('banner-mode');
                 isBannerMode = true;
                 themeLabel.classList.add('show');
-                themeLabel.textContent = '🎨 Banner mode active';
+                themeLabel.textContent = '🎨 ব্যানার মোড সক্রিয়';
                 const themes = {
                     'purple': '#8a2be2',
                     'red': '#e41e3f',
@@ -697,16 +768,16 @@
                 container.style.color = '#fff';
                 textarea.style.color = '#fff';
                 textarea.style.textAlign = 'center';
-                textarea.style.fontSize = '24px';
+                textarea.style.fontSize = 'clamp(20px, 4vw, 28px)';
                 textarea.style.fontWeight = '600';
-                textarea.style.minHeight = '100px';
+                textarea.style.minHeight = '80px';
             } else {
                 isBannerMode = false;
                 container.style.background = 'transparent';
                 container.style.color = '#050505';
                 textarea.style.color = '#050505';
                 textarea.style.textAlign = 'left';
-                textarea.style.fontSize = '18px';
+                textarea.style.fontSize = 'clamp(16px, 2.5vw, 20px)';
                 textarea.style.fontWeight = '400';
                 textarea.style.minHeight = 'auto';
             }
@@ -716,13 +787,13 @@
         async function handlePost() {
             const text = postText.value.trim();
             if (!text && !uploadedImageUrl) {
-                showToast('Please write something or add a photo!');
+                showToast('কিছু লিখুন বা ছবি যোগ করুন!');
                 return;
             }
 
             const user = auth.currentUser;
             if (!user) {
-                showToast('Please login first!');
+                showToast('প্রথমে লগইন করুন!');
                 window.location.href = 'index.html';
                 return;
             }
@@ -730,54 +801,65 @@
             postTopBtn.disabled = true;
             postMainBtn.disabled = true;
             postTopBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            postMainBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+            postMainBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পোস্ট হচ্ছে...';
 
             try {
-                const userName = currentUserData.fullName || user.displayName || user.email?.split('@')[0] || 'User';
+                const userName = currentUserData.fullName || user.displayName || user.email?.split('@')[0] || 'ব্যবহারকারী';
                 const userImage = currentUserData.photoURL || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60';
                 const isBanner = isBannerMode && selectedTheme !== 'white';
 
+                // Generate a unique post ID
+                const postId = db.collection('all-user-post').doc().id;
+
                 const postData = {
+                    postId: postId,
                     userName: userName,
                     userId: user.uid,
                     userImage: userImage,
-                    caption: text || '📷 Photo post',
-                    fullText: text || '📷 Photo post',
+                    caption: text || '📷 ছবি পোস্ট',
+                    fullText: text || '📷 ছবি পোস্ট',
                     imageUrl: uploadedImageUrl || '',
                     likes: 0,
                     likedBy: [],
                     comments: [],
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: new Date().toISOString(),
                     isBanner: isBanner,
-                    bannerTheme: isBanner ? selectedTheme : null
+                    bannerTheme: isBanner ? selectedTheme : null,
+                    postType: uploadedImageUrl ? (uploadedImageUrl.includes('video') ? 'video' : 'image') : 'text'
                 };
 
-                const docRef = await db.collection('all-user-post').add(postData);
-                showToast('🎉 Post created successfully!');
+                // Save to Firestore
+                await db.collection('all-user-post').doc(postId).set(postData);
 
-                // Reset form
+                // Also save to a 'posts' collection for better organization
+                await db.collection('posts').doc(postId).set(postData);
+
+                showToast('🎉 পোস্ট তৈরি হয়েছে!');
+
+                // Clear form
                 postText.value = '';
                 removePhoto();
                 setTheme('white', document.querySelector('.theme-white'));
-                textContainer.style.background = 'transparent';
-                textContainer.classList.remove('banner-mode');
 
-                // Navigate back to feed
-                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                // Redirect to home page after short delay
+                setTimeout(() => { 
+                    window.location.href = 'index.html';
+                }, 1500);
 
             } catch (error) {
-                console.error('Error creating post:', error);
-                showToast('Error: ' + error.message);
+                console.error('পোস্ট তৈরি করতে সমস্যা:', error);
+                showToast('সমস্যা: ' + error.message);
             } finally {
                 postTopBtn.disabled = false;
                 postMainBtn.disabled = false;
-                postTopBtn.innerHTML = 'POST';
-                postMainBtn.innerHTML = 'POST';
+                postTopBtn.innerHTML = 'পোস্ট করুন';
+                postMainBtn.innerHTML = 'পোস্ট করুন';
             }
         }
 
         function triggerAction(actionName) {
-            showToast('Opening ' + actionName + ' selector...');
+            showToast(actionName + ' সিলেক্টর খোলা হচ্ছে...');
         }
 
         function scrollToLeft() {
@@ -796,7 +878,9 @@
             this.style.height = this.scrollHeight + 'px';
         });
 
-        console.log('🔥 Create Post: Posts will appear on user profile with real name & photo!');
+        console.log('🔥 পোস্ট তৈরি পেজ লোড হয়েছে');
+        console.log('📝 পোস্ট Firestore-এ সংরক্ষণ করা হবে');
+        console.log('📱 index.html পেজে পোস্ট দেখাবে');
     </script>
 </body>
 </html>
