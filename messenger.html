@@ -18,7 +18,8 @@
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        html, body {
+        html,
+        body {
             height: 100%;
             overflow: hidden;
         }
@@ -41,7 +42,7 @@
             transform: translateX(-50%);
             z-index: 9999;
             display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             max-width: 90%;
             text-align: center;
         }
@@ -98,7 +99,7 @@
             justify-content: center;
         }
         .nav-right i:active { background: #f0f2f5; }
-        
+
         /* Story / Note Section */
         .stories-container {
             display: flex;
@@ -152,7 +153,7 @@
             color: #65676b;
             margin-bottom: 4px;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             max-width: 60px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -275,9 +276,16 @@
             padding: 60px 20px;
             color: #65676b;
         }
-        .empty-state i { font-size: 48px; color: #ccd0d5; margin-bottom: 16px; display: block; }
-        .empty-state h3 { font-size: 18px; font-weight: 600; color: #1c1e21; margin-bottom: 6px; }
-        .empty-state p { font-size: 14px; color: #65676b; }
+        .empty-state i { font-size: 48px;
+            color: #ccd0d5;
+            margin-bottom: 16px;
+            display: block; }
+        .empty-state h3 { font-size: 18px;
+            font-weight: 600;
+            color: #1c1e21;
+            margin-bottom: 6px; }
+        .empty-state p { font-size: 14px;
+            color: #65676b; }
 
         .fab-ai {
             position: fixed;
@@ -290,7 +298,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             cursor: pointer;
             z-index: 999;
         }
@@ -328,7 +336,7 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0,132,255,0.3);
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3);
             cursor: pointer;
             z-index: 999;
         }
@@ -441,7 +449,8 @@
             flex-shrink: 0;
         }
         .message-row.incoming { align-self: flex-start; }
-        .message-row.outgoing { align-self: flex-end; flex-direction: row-reverse; }
+        .message-row.outgoing { align-self: flex-end;
+            flex-direction: row-reverse; }
         .message-avatar {
             width: 28px;
             height: 28px;
@@ -493,7 +502,8 @@
             max-width: 100%;
             margin: 4px 0;
         }
-        .bubble a { color: #0084ff; word-break: break-all; }
+        .bubble a { color: #0084ff;
+            word-break: break-all; }
         .message-seen {
             font-size: 11px;
             color: #65676b;
@@ -514,8 +524,12 @@
             max-width: 100%;
             overflow: hidden;
         }
-        .reply-indicator i { font-size: 14px; color: #0084ff; flex-shrink: 0; }
-        .reply-indicator span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .reply-indicator i { font-size: 14px;
+            color: #0084ff;
+            flex-shrink: 0; }
+        .reply-indicator span { white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; }
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -538,7 +552,9 @@
         .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typingBounce {
-            0%,60%,100% { transform: translateY(0); }
+            0%,
+            60%,
+            100% { transform: translateY(0); }
             30% { transform: translateY(-6px); }
         }
 
@@ -602,7 +618,8 @@
             flex-shrink: 0;
         }
         .chat-input-footer .send-btn:active { transform: scale(0.95); }
-        .chat-input-footer .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chat-input-footer .send-btn:disabled { opacity: 0.5;
+            cursor: not-allowed; }
 
         .image-preview-overlay {
             display: none;
@@ -611,7 +628,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -638,7 +655,7 @@
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: #fff;
             border: none;
             padding: 10px 24px;
@@ -656,7 +673,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 9998;
             justify-content: center;
             align-items: center;
@@ -686,7 +703,7 @@
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
             padding: 10px 20px;
             border-radius: 30px;
@@ -713,7 +730,7 @@
             position: fixed;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
             padding: 8px 0;
             z-index: 10001;
             min-width: 180px;
@@ -730,7 +747,8 @@
         }
         .message-context-menu .menu-item:hover { background: #f0f2f5; }
         .message-context-menu .menu-item.danger { color: #e74c3c; }
-        .message-context-menu .menu-item i { width: 20px; text-align: center; }
+        .message-context-menu .menu-item i { width: 20px;
+            text-align: center; }
 
         .offline-indicator {
             display: none;
@@ -804,8 +822,11 @@
             margin-top: 4px;
             max-width: 300px;
         }
-        .link-preview a { color: #0084ff; text-decoration: none; font-weight: 500; }
-        .link-preview .link-desc { font-size: 12px; color: #65676b; }
+        .link-preview a { color: #0084ff;
+            text-decoration: none;
+            font-weight: 500; }
+        .link-preview .link-desc { font-size: 12px;
+            color: #65676b; }
 
         .time-divider {
             text-align: center;
@@ -832,39 +853,103 @@
             padding: 10px 16px;
             gap: 12px;
         }
-        .skeleton-avatar { width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; }
-        .skeleton-text { flex: 1; height: 16px; margin: 4px 0; }
+        .skeleton-avatar { width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            flex-shrink: 0; }
+        .skeleton-text { flex: 1;
+            height: 16px;
+            margin: 4px 0; }
         .skeleton-text.short { width: 60%; }
 
         @media (max-width: 500px) {
-            .chat-item { padding: 8px 12px; min-height: 60px; }
-            .chat-avatar-container { width: 48px; height: 48px; }
+            .chat-item { padding: 8px 12px;
+                min-height: 60px; }
+            .chat-avatar-container { width: 48px;
+                height: 48px; }
             .chat-name { font-size: 14px; }
             .chat-snippet { font-size: 13px; }
             .nav-title { font-size: 22px; }
             .message-row { max-width: 90%; }
-            .bubble img, .bubble video { max-width: 200px; max-height: 250px; }
+            .bubble img,
+            .bubble video { max-width: 200px;
+                max-height: 250px; }
             .chat-input-footer .input-wrapper { padding: 2px 10px; }
-            .chat-input-footer .send-btn { width: 38px; height: 38px; font-size: 16px; }
-            .chat-item .delete-chat-btn { width: 28px; height: 28px; font-size: 12px; right: 5px; }
-            .top-nav { padding: 8px 12px; min-height: 50px; }
-            .chat-room-header { padding: 8px 12px; min-height: 50px; }
-            .chat-input-footer { padding: 6px 8px; min-height: 50px; }
+            .chat-input-footer .send-btn { width: 38px;
+                height: 38px;
+                font-size: 16px; }
+            .chat-item .delete-chat-btn { width: 28px;
+                height: 28px;
+                font-size: 12px;
+                right: 5px; }
+            .top-nav { padding: 8px 12px;
+                min-height: 50px; }
+            .chat-room-header { padding: 8px 12px;
+                min-height: 50px; }
+            .chat-input-footer { padding: 6px 8px;
+                min-height: 50px; }
             .chat-messages-body { padding: 12px; }
             .stories-container { padding: 6px 12px 12px 12px; }
-            .fab-ai { width: 40px; height: 40px; bottom: 65px; right: 15px; }
-            .fab-add { width: 48px; height: 48px; font-size: 20px; bottom: 15px; right: 15px; }
+            .fab-ai { width: 40px;
+                height: 40px;
+                bottom: 65px;
+                right: 15px; }
+            .fab-add { width: 48px;
+                height: 48px;
+                font-size: 20px;
+                bottom: 15px;
+                right: 15px; }
         }
         @media (max-width: 380px) {
-            .bubble img, .bubble video { max-width: 150px; max-height: 200px; }
-            .chat-input-footer { gap: 6px; padding: 4px 6px; }
+            .bubble img,
+            .bubble video { max-width: 150px;
+                max-height: 200px; }
+            .chat-input-footer { gap: 6px;
+                padding: 4px 6px; }
             .chat-input-footer .input-wrapper .input-actions i { font-size: 16px; }
-            .chat-input-footer .send-btn { width: 34px; height: 34px; font-size: 14px; }
+            .chat-input-footer .send-btn { width: 34px;
+                height: 34px;
+                font-size: 14px; }
             .chat-room-title-group .name { font-size: 14px; }
             .chat-room-title-group .status { font-size: 10px; }
             .nav-title { font-size: 18px; }
             .message-row { max-width: 95%; }
-            .bubble { font-size: 14px; padding: 6px 10px; }
+            .bubble { font-size: 14px;
+                padding: 6px 10px; }
+        }
+
+        /* Swipe Refresh */
+        .pull-refresh-wrapper {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+        .pull-refresh-indicator {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            font-size: 14px;
+            transition: top 0.3s;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .pull-refresh-indicator i {
+            font-size: 24px;
+            margin-right: 8px;
+            transition: transform 0.3s;
+        }
+        .pull-refresh-indicator.spinning i {
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -894,7 +979,10 @@
         <div class="menu-item danger" onclick="deleteMessage()"><i class="fa-solid fa-trash"></i> Delete</div>
     </div>
 
-    <div id="inbox-page">
+    <div id="inbox-page" class="pull-refresh-wrapper">
+        <div class="pull-refresh-indicator" id="pull-refresh-indicator">
+            <i class="fa-solid fa-arrow-down"></i> <span>Pull to refresh</span>
+        </div>
         <div class="top-nav">
             <div class="nav-left">
                 <i class="fa-solid fa-arrow-left" onclick="goBack()"></i>
@@ -1020,6 +1108,7 @@
         const offlineIndicator = document.getElementById('offline-indicator');
         const syncIndicator = document.getElementById('sync-indicator');
         const storiesContainer = document.getElementById('stories-container');
+        const pullIndicator = document.getElementById('pull-refresh-indicator');
 
         let currentUser = null;
         let currentChatId = null;
@@ -1058,15 +1147,25 @@
             toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
-        function escapeHTML(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+        function escapeHTML(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d
+                .innerHTML; }
 
         // ========== TELEGRAM UPLOAD ==========
         async function uploadToTelegram(file, isVideo) {
             return new Promise((resolve, reject) => {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
-                formData.append(isVideo ? 'video' : 'photo', file);
-                const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${isVideo ? 'sendVideo' : 'sendPhoto'}`;
+                // For audio, send as 'document' or 'audio' — using 'document' for broader support, but we use 'audio' type
+                const isAudio = file.type.startsWith('audio/');
+                const sendType = isVideo ? 'video' : (isAudio ? 'audio' : 'photo');
+                formData.append(sendType, file);
+
+                let url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/send${sendType.charAt(0).toUpperCase() + sendType.slice(1)}`;
+                // For audio, use sendAudio
+                if (isAudio) {
+                    url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`;
+                }
+
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', url, true);
                 xhr.upload.onprogress = (e) => {
@@ -1083,6 +1182,7 @@
                             if (res.ok && res.result) {
                                 let fileId;
                                 if (isVideo) fileId = res.result.video.file_id;
+                                else if (isAudio) fileId = res.result.audio.file_id;
                                 else fileId = res.result.photo[res.result.photo.length - 1].file_id;
                                 resolve(fileId);
                             } else reject(new Error('Telegram error'));
@@ -1125,6 +1225,7 @@
                 uploadText.textContent = 'Uploading...';
 
                 const isVideo = type === 'video';
+                const isAudio = type === 'audio';
                 const fileId = await uploadToTelegram(file, isVideo);
                 const fileUrl = await getTelegramFileUrl(fileId);
 
@@ -1162,10 +1263,10 @@
                             uploadProgress.style.display = 'block';
                             progressFill.style.width = '0%';
                             uploadText.textContent = 'Uploading voice...';
-                            
+
                             const fileId = await uploadToTelegram(audioFile, false);
                             const fileUrl = await getTelegramFileUrl(fileId);
-                            
+
                             uploadProgress.style.display = 'none';
 
                             window._pendingFile = {
@@ -1250,7 +1351,8 @@
 
         // ========== GENERATE MESSAGE HASH ==========
         function generateMessageHash(msg) {
-            const str = msg.sender + msg.timestamp + (msg.text || '') + (msg.imageUrl || '') + (msg.videoUrl || '') + (msg.audioUrl || '');
+            const str = msg.sender + msg.timestamp + (msg.text || '') + (msg.imageUrl || '') + (msg.videoUrl || '') + (msg
+                .audioUrl || '');
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
                 const char = str.charCodeAt(i);
@@ -1366,8 +1468,7 @@
                             const data = change.doc.data();
                             const uid = change.doc.id;
                             const status = data.status || 'offline';
-                            
-                            // Update user cache
+
                             if (userCache.has(uid)) {
                                 const cached = userCache.get(uid);
                                 cached.status = status;
@@ -1375,32 +1476,30 @@
                                 userCache.set(uid, cached);
                             }
 
-                            // Update chat list items
                             const chatItems = document.querySelectorAll('.chat-item');
                             chatItems.forEach(item => {
                                 if (item.dataset.otherId === uid) {
                                     const indicator = item.querySelector('.online-indicator');
                                     if (indicator) {
-                                        indicator.className = 'online-indicator' + (status === 'online' ? ' online' : '');
+                                        indicator.className = 'online-indicator' + (status === 'online' ?
+                                            ' online' : '');
                                     }
                                 }
                             });
 
-                            // Update chat room if open
                             if (currentRecipientId === uid) {
                                 const isOnline = status === 'online';
                                 roomOnlineIndicator.className = 'online-indicator' + (isOnline ? ' online' : '');
-                                roomStatus.textContent = isOnline ? 'Online' : 'Last seen ' + (data.lastSeen ? new Date(data.lastSeen).toLocaleString() : 'recently');
+                                roomStatus.textContent = isOnline ? 'Online' : 'Last seen ' + (data.lastSeen ?
+                                    new Date(data.lastSeen).toLocaleString() : 'recently');
                             }
 
-                            // Collect online friends for stories
                             if (status === 'online' && uid !== currentUser?.uid) {
                                 onlineFriends.push({ uid, ...data });
                             }
                         }
                     });
 
-                    // Update stories with online friends
                     updateStories(onlineFriends);
                 }, (error) => {
                     console.error('Error listening to all users status:', error);
@@ -1408,16 +1507,15 @@
         }
 
         function updateStories(onlineFriends) {
-            // Remove existing friend stories (keep only "Your note")
             const existingFriendStories = storiesContainer.querySelectorAll('.story-item:not(#my-story)');
             existingFriendStories.forEach(el => el.remove());
 
-            // Add online friends as stories
             onlineFriends.forEach(friend => {
                 const storyItem = document.createElement('div');
                 storyItem.className = 'story-item';
                 const name = friend.fullName || friend.firstName || 'User';
-                const photo = friend.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                const photo = friend.photoURL ||
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
                 storyItem.innerHTML = `
                     <div class="note-bubble-top">${escapeHTML(name)}</div>
                     <div class="story-avatar-wrapper">
@@ -1981,7 +2079,8 @@
 
                 await chatRef.update({ messages: messages });
 
-                const filteredMessages = messages.filter(msg => !msg.deletedFor || !msg.deletedFor.includes(currentUser.uid));
+                const filteredMessages = messages.filter(msg => !msg.deletedFor || !msg.deletedFor.includes(currentUser
+                    .uid));
                 localCache.messages[currentChatId] = filteredMessages;
                 saveCache();
                 renderMessages(filteredMessages);
@@ -2039,35 +2138,41 @@
                 const chatRef = db.collection('chats').doc(currentChatId);
                 const lastMsg = text || (pendingFile ? '📎 ' + pendingFile.type : '');
 
-                if (isOffline) {
-                    const currentMessages = localCache.messages[currentChatId] || [];
-                    currentMessages.push(messageData);
-                    localCache.messages[currentChatId] = currentMessages;
-                    saveCache();
-                    renderMessages(currentMessages);
-                    showToast('Message saved locally (offline)');
-                    sendBtn.disabled = false;
-                    chatInput.value = '';
+                // Optimistic update: add to local cache and render immediately
+                const currentMessages = localCache.messages[currentChatId] || [];
+                currentMessages.push(messageData);
+                localCache.messages[currentChatId] = currentMessages;
+                saveCache();
+                renderMessages(currentMessages);
+                chatInput.value = '';
+                messagesBody.scrollTop = messagesBody.scrollHeight;
+                await setTypingStatus(currentChatId, false);
 
+                if (isOffline) {
                     const pending = JSON.parse(localStorage.getItem('messenger_pending_messages') || '[]');
                     pending.push({ chatId: currentChatId, messageData: messageData, lastMsg: lastMsg });
                     localStorage.setItem('messenger_pending_messages', JSON.stringify(pending));
+                    showToast('Message saved locally (offline)');
+                    sendBtn.disabled = false;
                     return;
                 }
 
+                // Update Firestore
                 await chatRef.update({
                     messages: firebase.firestore.FieldValue.arrayUnion(messageData),
                     lastMessage: lastMsg,
                     lastUpdated: new Date().toISOString()
                 });
 
-                chatInput.value = '';
-                messagesBody.scrollTop = messagesBody.scrollHeight;
-                await setTypingStatus(currentChatId, false);
-
             } catch (error) {
                 console.error('Error sending message:', error);
                 showToast('Error: ' + error.message);
+                // Rollback optimistic update
+                const currentMessages = localCache.messages[currentChatId] || [];
+                currentMessages.pop();
+                localCache.messages[currentChatId] = currentMessages;
+                saveCache();
+                renderMessages(currentMessages);
             } finally {
                 sendBtn.disabled = false;
                 chatInput.focus();
@@ -2123,6 +2228,7 @@
             if (chatRoom.style.display === 'flex') {
                 closeChat();
             } else {
+                // Use history.back() for instant back without reload
                 if (window.parent && window.parent.location) {
                     window.parent.history.back();
                 } else {
@@ -2158,6 +2264,110 @@
                 sendMessage();
             }
         });
+
+        // ========== SWIPE REFRESH ==========
+        let startY = 0;
+        let pullY = 0;
+        let isPulling = false;
+        const pullThreshold = 80;
+        let refreshCooldown = false;
+
+        const inboxPage = document.getElementById('inbox-page');
+        const chatListContainer = document.getElementById('chat-list-container');
+
+        inboxPage.addEventListener('touchstart', function(e) {
+            if (chatListContainer.scrollTop === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+                pullY = 0;
+                pullIndicator.style.transition = 'none';
+            }
+        }, { passive: true });
+
+        inboxPage.addEventListener('touchmove', function(e) {
+            if (!isPulling) return;
+            const currentY = e.touches[0].clientY;
+            pullY = currentY - startY;
+            if (pullY > 0 && chatListContainer.scrollTop === 0) {
+                e.preventDefault();
+                const progress = Math.min(pullY / pullThreshold, 1);
+                pullIndicator.style.top = Math.min(pullY - 60, 0) + 'px';
+                const icon = pullIndicator.querySelector('i');
+                if (progress >= 1) {
+                    icon.style.transform = 'rotate(180deg)';
+                    pullIndicator.querySelector('span').textContent = 'Release to refresh';
+                } else {
+                    icon.style.transform = `rotate(${progress * 180}deg)`;
+                    pullIndicator.querySelector('span').textContent = 'Pull to refresh';
+                }
+            }
+        }, { passive: false });
+
+        inboxPage.addEventListener('touchend', function(e) {
+            if (!isPulling) return;
+            isPulling = false;
+            pullIndicator.style.transition = 'top 0.3s';
+            pullIndicator.style.top = '-60px';
+            const icon = pullIndicator.querySelector('i');
+            icon.style.transform = 'rotate(0deg)';
+            pullIndicator.querySelector('span').textContent = 'Pull to refresh';
+
+            if (pullY >= pullThreshold && !refreshCooldown) {
+                refreshCooldown = true;
+                pullIndicator.classList.add('spinning');
+                pullIndicator.querySelector('span').textContent = 'Refreshing...';
+                pullIndicator.style.top = '0px';
+
+                // Perform refresh
+                setTimeout(() => {
+                    refreshChats();
+                    pullIndicator.classList.remove('spinning');
+                    pullIndicator.style.top = '-60px';
+                    pullIndicator.querySelector('span').textContent = 'Pull to refresh';
+                    setTimeout(() => { refreshCooldown = false; }, 1000);
+                }, 800);
+            }
+            pullY = 0;
+        }, { passive: true });
+
+        async function refreshChats() {
+            if (!currentUser) return;
+            showToast('Refreshing...');
+            try {
+                // Force refetch by clearing cache and reloading
+                const query = db.collection('chats').where('participants', 'array-contains', currentUser.uid);
+                const snapshot = await query.get();
+                const chats = [];
+                const promises = [];
+                for (const doc of snapshot.docs) {
+                    const data = doc.data();
+                    if (data.isMessageRequest === true) continue;
+                    const participants = data.participants || [];
+                    const otherId = participants.find(id => id !== currentUser.uid);
+                    if (!otherId) continue;
+                    promises.push((async () => {
+                        const userData = await getUserData(otherId);
+                        if (!userData) return;
+                        chats.push({
+                            id: doc.id,
+                            otherId: otherId,
+                            userData: userData,
+                            lastMessage: data.lastMessage || 'No messages yet',
+                            lastUpdated: data.lastUpdated || data.createdAt || new Date().toISOString()
+                        });
+                    })());
+                }
+                await Promise.all(promises);
+                chats.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+                localCache.chats = chats;
+                saveCache();
+                renderChats(chats);
+                showToast('Refreshed!');
+            } catch (e) {
+                console.error('Refresh error:', e);
+                showToast('Refresh failed');
+            }
+        }
 
         // ========== AUTH STATE ==========
         auth.onAuthStateChanged(async function(user) {
@@ -2199,11 +2409,26 @@
             }
         });
 
+        // Handle back button for chat close
+        window.addEventListener('popstate', function(e) {
+            if (chatRoom.style.display === 'flex') {
+                closeChat();
+                // Push state to prevent reload
+                history.pushState(null, '', window.location.href);
+            }
+        });
+
+        // Push initial state for back button handling
+        history.pushState(null, '', window.location.href);
+
         console.log('🚀 Messenger with Telegram uploads, Note section for online friends!');
         console.log('✅ Image, Video, Voice sent via Telegram Bot API');
         console.log('✅ Online friends appear in Note/Stories section');
         console.log('✅ Messages cached in localStorage');
         console.log('✅ Offline support with auto-sync');
+        console.log('✅ Swipe refresh added');
+        console.log('✅ Optimistic message sending');
+        console.log('✅ Back button closes chat instantly');
     </script>
 </body>
 </html>
