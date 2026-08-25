@@ -187,7 +187,8 @@
             background: #f0f2f5;
             border: 1px solid #e4e6eb;
         }
-        .photo-preview-wrapper img {
+        .photo-preview-wrapper img,
+        .photo-preview-wrapper video {
             width: 100%;
             max-height: 400px;
             object-fit: contain;
@@ -195,9 +196,6 @@
             background: #fff;
         }
         .photo-preview-wrapper video {
-            width: 100%;
-            max-height: 400px;
-            display: block;
             background: #000;
         }
         .remove-photo-btn {
@@ -391,7 +389,8 @@
             .theme-picker { padding: 8px 12px; gap: 6px; }
             .bottom-action-container { padding: 8px 12px; }
             .post-main-btn { padding: 10px; font-size: 15px; min-height: 44px; }
-            .photo-preview-wrapper img { max-height: 250px; }
+            .photo-preview-wrapper img,
+            .photo-preview-wrapper video { max-height: 250px; }
             .upload-progress { padding: 6px 12px; gap: 8px; }
             .upload-progress .progress-text { font-size: 12px; }
         }
@@ -406,7 +405,8 @@
         }
         @media (min-width: 768px) {
             .text-input-container.banner-mode { min-height: 220px; }
-            .photo-preview-wrapper img { max-height: 500px; }
+            .photo-preview-wrapper img,
+            .photo-preview-wrapper video { max-height: 500px; }
         }
     </style>
 </head>
@@ -438,7 +438,9 @@
 
     <div class="photo-preview-container" id="photoPreviewContainer">
         <div class="photo-preview-wrapper">
-            <img id="photoPreview" src="" alt="Selected photo">
+            <!-- dynamic img or video -->
+            <img id="photoPreviewImg" src="" alt="Selected photo" style="display:none;">
+            <video id="photoPreviewVideo" controls style="display:none; width:100%; max-height:400px;"></video>
             <button class="remove-photo-btn" onclick="removePhoto()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -514,7 +516,8 @@
         const themeLabel = document.getElementById('themeLabel');
         const photoInput = document.getElementById('photoInput');
         const photoPreviewContainer = document.getElementById('photoPreviewContainer');
-        const photoPreview = document.getElementById('photoPreview');
+        const photoPreviewImg = document.getElementById('photoPreviewImg');
+        const photoPreviewVideo = document.getElementById('photoPreviewVideo');
         const photoIndicator = document.getElementById('photoIndicator');
         const uploadProgress = document.getElementById('uploadProgress');
         const progressFill = document.getElementById('progressFill');
@@ -544,7 +547,8 @@
         let toastTimer;
         let selectedTheme = 'white';
         let isBannerMode = false;
-        let uploadedImageUrl = '';
+        let uploadedMediaUrl = '';  // image or video url
+        let mediaType = ''; // 'image' or 'video'
         let isUploading = false;
         let currentUser = null;
         let currentUserData = {};
@@ -607,19 +611,23 @@
             }
         });
 
-        // ========== TELEGRAM IMAGE UPLOAD ==========
-        async function uploadToTelegram(file) {
-            if (isUploading) return;
-            isUploading = true;
-            uploadedImageUrl = '';
-            uploadProgress.classList.add('show');
-            progressFill.style.width = '0%';
-            progressPercent.textContent = '0%';
+        // ========== TELEGRAM MEDIA UPLOAD (image/video) ==========
+        function uploadToTelegram(file) {
+            return new Promise((resolve, reject) => {
+                if (isUploading) return reject('Upload in progress');
+                isUploading = true;
+                uploadedMediaUrl = '';
+                mediaType = '';
+                uploadProgress.classList.add('show');
+                progressFill.style.width = '0%';
+                progressPercent.textContent = '0%';
 
-            try {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
-                formData.append('photo', file);
+
+                const isVideo = file.type.startsWith('video/');
+                const endpoint = isVideo ? 'sendVideo' : 'sendPhoto';
+                formData.append(isVideo ? 'video' : 'photo', file);
 
                 const xhr = new XMLHttpRequest();
                 xhr.upload.addEventListener('progress', (event) => {
@@ -630,53 +638,102 @@
                     }
                 });
 
-                const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.onload = function() {
-                        console.log('Telegram Response Status:', xhr.status);
-                        console.log('Telegram Response:', xhr.responseText);
-                        
-                        if (xhr.status === 200) {
-                            try {
-                                const response = JSON.parse(xhr.responseText);
-                                if (response.ok) {
-                                    resolve(response);
-                                } else {
-                                    reject(new Error('Telegram API Error: ' + JSON.stringify(response)));
-                                }
-                            } catch (e) {
-                                reject(new Error('Invalid Response: ' + xhr.responseText));
+                xhr.onload = function() {
+                    console.log('Telegram Response Status:', xhr.status);
+                    console.log('Telegram Response:', xhr.responseText);
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.ok) {
+                                resolve(response);
+                            } else {
+                                reject(new Error('Telegram API Error: ' + JSON.stringify(response)));
                             }
-                        } else {
-                            reject(new Error('Upload Failed: ' + xhr.status + ' - ' + xhr.statusText));
+                        } catch (e) {
+                            reject(new Error('Invalid Response: ' + xhr.responseText));
                         }
-                    };
-                    xhr.onerror = function() {
-                        reject(new Error('Network Error - Check Internet Connection'));
-                    };
-                    xhr.ontimeout = function() {
-                        reject(new Error('Timeout - Please try again'));
-                    };
-                    xhr.timeout = 60000;
-                });
+                    } else {
+                        reject(new Error('Upload Failed: ' + xhr.status + ' - ' + xhr.statusText));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network Error - Check Internet Connection'));
+                };
+                xhr.ontimeout = function() {
+                    reject(new Error('Timeout - Please try again'));
+                };
+                xhr.timeout = 120000;
 
-                xhr.open('POST', `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`);
+                xhr.open('POST', `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${endpoint}`);
                 xhr.send(formData);
+            });
+        }
 
-                const response = await uploadPromise;
+        // ========== PHOTO/VIDEO UPLOAD HANDLER ==========
+        function triggerPhotoUpload() {
+            photoInput.click();
+        }
 
+        photoInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // 50MB limit for videos, 10MB for images
+            const isVideo = file.type.startsWith('video/');
+            const limit = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+            if (file.size > limit) {
+                showToast(`ফাইল খুব বড়। সর্বোচ্চ ${isVideo ? '৫০MB' : '১০MB'}।`);
+                return;
+            }
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                showToast('ছবি বা ভিডিও সিলেক্ট করুন।');
+                return;
+            }
+
+            // Show local preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (isVideo) {
+                    photoPreviewImg.style.display = 'none';
+                    photoPreviewVideo.style.display = 'block';
+                    photoPreviewVideo.src = e.target.result;
+                    photoPreviewVideo.load();
+                } else {
+                    photoPreviewImg.style.display = 'block';
+                    photoPreviewVideo.style.display = 'none';
+                    photoPreviewImg.src = e.target.result;
+                }
+                photoPreviewContainer.classList.add('show');
+                photoIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...';
+            };
+            reader.readAsDataURL(file);
+
+            try {
+                const response = await uploadToTelegram(file);
                 if (response.ok && response.result) {
-                    const fileId = response.result.photo[response.result.photo.length - 1].file_id;
-                    
+                    let fileId, filePath;
+                    const isVideo = file.type.startsWith('video/');
+                    if (isVideo) {
+                        fileId = response.result.video.file_id;
+                    } else {
+                        const photos = response.result.photo;
+                        fileId = photos[photos.length - 1].file_id;
+                    }
                     const fileUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`;
                     const fileResponse = await fetch(fileUrl);
                     const fileData = await fileResponse.json();
-
                     if (fileData.ok && fileData.result.file_path) {
-                        uploadedImageUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileData.result.file_path}`;
-                        photoPreview.src = uploadedImageUrl;
-                        photoPreviewContainer.classList.add('show');
+                        uploadedMediaUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileData.result.file_path}`;
+                        mediaType = isVideo ? 'video' : 'image';
+                        // Update preview with final URL
+                        if (isVideo) {
+                            photoPreviewVideo.src = uploadedMediaUrl;
+                            photoPreviewVideo.load();
+                        } else {
+                            photoPreviewImg.src = uploadedMediaUrl;
+                        }
                         photoIndicator.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#31a24c;"></i> আপলোড হয়েছে';
-                        showToast('✅ ছবি আপলোড হয়েছে!');
+                        showToast('✅ মিডিয়া আপলোড হয়েছে!');
                     } else {
                         throw new Error('File path not found');
                     }
@@ -691,40 +748,16 @@
                 isUploading = false;
                 setTimeout(() => { uploadProgress.classList.remove('show'); }, 1500);
             }
-        }
-
-        // ========== PHOTO UPLOAD ==========
-        function triggerPhotoUpload() {
-            photoInput.click();
-        }
-
-        photoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (file.size > 10 * 1024 * 1024) {
-                showToast('ফাইল খুব বড়। সর্বোচ্চ ১০MB।');
-                return;
-            }
-            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                showToast('ছবি বা ভিডিও সিলেক্ট করুন।');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                photoPreview.src = e.target.result;
-                photoPreviewContainer.classList.add('show');
-                photoIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে...';
-            };
-            reader.readAsDataURL(file);
-
-            uploadToTelegram(file);
         });
 
         function removePhoto() {
-            uploadedImageUrl = '';
+            uploadedMediaUrl = '';
+            mediaType = '';
             photoPreviewContainer.classList.remove('show');
-            photoPreview.src = '';
+            photoPreviewImg.style.display = 'none';
+            photoPreviewVideo.style.display = 'none';
+            photoPreviewImg.src = '';
+            photoPreviewVideo.src = '';
             photoInput.value = '';
             photoIndicator.innerHTML = '<i class="fa-solid fa-plus"></i> যোগ করুন';
             uploadProgress.classList.remove('show');
@@ -786,8 +819,8 @@
         // ========== HANDLE POST ==========
         async function handlePost() {
             const text = postText.value.trim();
-            if (!text && !uploadedImageUrl) {
-                showToast('কিছু লিখুন বা ছবি যোগ করুন!');
+            if (!text && !uploadedMediaUrl) {
+                showToast('কিছু লিখুন বা ছবি/ভিডিও যোগ করুন!');
                 return;
             }
 
@@ -808,7 +841,6 @@
                 const userImage = currentUserData.photoURL || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=60';
                 const isBanner = isBannerMode && selectedTheme !== 'white';
 
-                // Generate a unique post ID
                 const postId = db.collection('all-user-post').doc().id;
 
                 const postData = {
@@ -816,9 +848,11 @@
                     userName: userName,
                     userId: user.uid,
                     userImage: userImage,
-                    caption: text || '📷 ছবি পোস্ট',
-                    fullText: text || '📷 ছবি পোস্ট',
-                    imageUrl: uploadedImageUrl || '',
+                    caption: text || '📷 মিডিয়া পোস্ট',
+                    fullText: text || '📷 মিডিয়া পোস্ট',
+                    imageUrl: uploadedMediaUrl || '',  // kept as imageUrl for compatibility
+                    mediaUrl: uploadedMediaUrl || '',
+                    mediaType: mediaType || 'image',
                     likes: 0,
                     likedBy: [],
                     comments: [],
@@ -826,23 +860,18 @@
                     createdAt: new Date().toISOString(),
                     isBanner: isBanner,
                     bannerTheme: isBanner ? selectedTheme : null,
-                    postType: uploadedImageUrl ? (uploadedImageUrl.includes('video') ? 'video' : 'image') : 'text'
+                    postType: uploadedMediaUrl ? (mediaType === 'video' ? 'video' : 'image') : 'text'
                 };
 
-                // Save to Firestore
                 await db.collection('all-user-post').doc(postId).set(postData);
-
-                // Also save to a 'posts' collection for better organization
                 await db.collection('posts').doc(postId).set(postData);
 
                 showToast('🎉 পোস্ট তৈরি হয়েছে!');
 
-                // Clear form
                 postText.value = '';
                 removePhoto();
                 setTheme('white', document.querySelector('.theme-white'));
 
-                // Redirect to home page after short delay
                 setTimeout(() => { 
                     window.location.href = 'index.html';
                 }, 1500);
@@ -878,9 +907,7 @@
             this.style.height = this.scrollHeight + 'px';
         });
 
-        console.log('🔥 পোস্ট তৈরি পেজ লোড হয়েছে');
-        console.log('📝 পোস্ট Firestore-এ সংরক্ষণ করা হবে');
-        console.log('📱 index.html পেজে পোস্ট দেখাবে');
+        console.log('🔥 পোস্ট তৈরি পেজ লোড হয়েছে (ভিডিও সাপোর্ট সহ)');
     </script>
 </body>
 </html>
