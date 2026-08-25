@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>SecretIntro · Online Status</title>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
@@ -14,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
     <style>
-        /* ===== RESET & BASE ===== */
+        /* --- Base & Reset --- */
         * {
             margin: 0;
             padding: 0;
@@ -30,8 +28,7 @@
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
-        
-        /* ===== SWIPE TO REFRESH INDICATOR ===== */
+        /* --- Swipe Refresh --- */
         #swipe-refresh-indicator {
             position: fixed;
             top: -60px;
@@ -47,7 +44,7 @@
             font-size: 14px;
             font-weight: 500;
             transition: top 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             pointer-events: none;
         }
         #swipe-refresh-indicator.show {
@@ -63,60 +60,81 @@
             animation: spin 0.8s linear infinite;
             margin-right: 10px;
         }
-        #swipe-refresh-indicator i {
-            margin-right: 8px;
-            font-size: 18px;
-            color: #1877f2;
-        }
-
-        /* ===== OPTIMIZED ANIMATIONS ===== */
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
-        }
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
         @keyframes slideInRight {
-            from { transform: translateX(120%) scale(0.9); opacity: 0; }
-            to { transform: translateX(0) scale(1); opacity: 1; }
+            from {
+                transform: translateX(120%) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
         }
         @keyframes progressAnim {
-            0% { transform: scaleX(0); }
-            100% { transform: scaleX(1); }
+            0% {
+                transform: scaleX(0);
+            }
+            100% {
+                transform: scaleX(1);
+            }
         }
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-        
-        /* ===== LOGIN OVERLAY ===== */
+        /* --- Login --- */
         #login-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
             justify-content: center;
             align-items: center;
             z-index: 3000;
         }
-        #login-overlay.show { display: flex; }
+        #login-overlay.show {
+            display: flex;
+        }
         .login-card {
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
             padding: 40px 32px;
             width: 100%;
             max-width: 400px;
             text-align: center;
             animation: fadeIn 0.3s ease;
         }
-        .login-card .logo { color: #1877f2; font-size: 42px; font-weight: bold; letter-spacing: -1px; margin-bottom: 10px; }
-        .login-card .sub { color: #606770; font-size: 15px; margin-bottom: 24px; }
+        .login-card .logo {
+            color: #1877f2;
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+        .login-card .sub {
+            color: #606770;
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
         .login-card input {
             width: 100%;
             padding: 14px 16px;
@@ -146,7 +164,9 @@
             transition: 0.2s;
             margin-top: 4px;
         }
-        .login-card .login-btn:hover { background: #166fe5; }
+        .login-card .login-btn:hover {
+            background: #166fe5;
+        }
         .login-card .forgot {
             display: block;
             margin: 16px 0 20px;
@@ -155,8 +175,13 @@
             text-decoration: none;
             cursor: pointer;
         }
-        .login-card .forgot:hover { text-decoration: underline; }
-        .login-card .hr { border-top: 1px solid #dadde1; margin: 20px 0; }
+        .login-card .forgot:hover {
+            text-decoration: underline;
+        }
+        .login-card .hr {
+            border-top: 1px solid #dadde1;
+            margin: 20px 0;
+        }
         .login-card .create-account-btn {
             background: #42b72a;
             border: none;
@@ -169,18 +194,21 @@
             transition: 0.2s;
             display: inline-block;
         }
-        .login-card .create-account-btn:hover { background: #36a420; }
-        .login-card .meta-brand { color: #8a8d91; font-size: 12px; margin-top: 24px; }
-
-        /* ===== MAIN APP ===== */
+        .login-card .create-account-btn:hover {
+            background: #36a420;
+        }
+        .login-card .meta-brand {
+            color: #8a8d91;
+            font-size: 12px;
+            margin-top: 24px;
+        }
+        /* --- Main App --- */
         #app-main {
             display: flex;
             flex-direction: column;
             flex: 1;
             min-height: 100vh;
         }
-        
-        /* ===== HEADER ===== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -190,7 +218,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             min-height: 56px;
         }
         .header .logo {
@@ -221,7 +249,9 @@
             position: relative;
             flex-shrink: 0;
         }
-        .header-icon:hover { background: #d8dadf; }
+        .header-icon:hover {
+            background: #d8dadf;
+        }
         .header .logout-btn {
             background: #e4e6eb;
             border: none;
@@ -234,7 +264,9 @@
             transition: 0.2s;
             white-space: nowrap;
         }
-        .header .logout-btn:hover { background: #d8dadf; }
+        .header .logout-btn:hover {
+            background: #d8dadf;
+        }
         .badge-icon {
             position: absolute;
             top: -4px;
@@ -249,14 +281,15 @@
             text-align: center;
             border: 2px solid #fff;
         }
-
-        /* ===== NAV OVERLAY ===== */
+        /* --- Nav Overlay --- */
         #nav-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
             z-index: 1500;
             justify-content: center;
@@ -264,7 +297,9 @@
             flex-direction: column;
             padding: 20px;
         }
-        #nav-overlay.show { display: flex; }
+        #nav-overlay.show {
+            display: flex;
+        }
         .nav-overlay-content {
             background: #fff;
             border-radius: 20px;
@@ -273,7 +308,7 @@
             max-width: 420px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: fadeIn 0.3s ease;
         }
         .nav-overlay-header {
@@ -284,11 +319,15 @@
             padding-bottom: 12px;
             border-bottom: 1px solid #e4e6eb;
         }
-        .nav-overlay-header h2 { font-size: 20px; font-weight: 700; }
+        .nav-overlay-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
         .nav-overlay-close {
             background: #e4e6eb;
             border: none;
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             font-size: 20px;
             cursor: pointer;
@@ -297,7 +336,9 @@
             justify-content: center;
             transition: 0.2s;
         }
-        .nav-overlay-close:hover { background: #d8dadf; }
+        .nav-overlay-close:hover {
+            background: #d8dadf;
+        }
         .nav-overlay-item {
             display: flex;
             align-items: center;
@@ -311,7 +352,9 @@
             font-size: 16px;
             font-weight: 500;
         }
-        .nav-overlay-item:hover { background: #f0f2f5; }
+        .nav-overlay-item:hover {
+            background: #f0f2f5;
+        }
         .nav-overlay-item i {
             width: 28px;
             font-size: 22px;
@@ -327,8 +370,7 @@
             border-radius: 12px;
             font-weight: bold;
         }
-
-        /* ===== NAV TABS ===== */
+        /* --- Nav Tabs --- */
         .nav-tabs {
             display: flex;
             justify-content: space-around;
@@ -338,19 +380,28 @@
             position: sticky;
             top: 56px;
             z-index: 90;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
         }
         .nav-tab {
             flex: 1;
             text-align: center;
             padding: 10px 0;
-            font-size: clamp(18px, 3vw, 22px);
+            font-size: clamp(16px, 2.5vw, 20px);
             color: #65676b;
             position: relative;
             cursor: pointer;
             transition: 0.2s;
             -webkit-tap-highlight-color: transparent;
+            min-width: 50px;
+            white-space: nowrap;
         }
-        .nav-tab.active { color: #1877f2; }
+        .nav-tab.active {
+            color: #1877f2;
+        }
         .nav-tab.active::after {
             content: '';
             position: absolute;
@@ -373,8 +424,7 @@
             min-width: 18px;
             text-align: center;
         }
-
-        /* ===== POST BOX ===== */
+        /* --- Post Box --- */
         .post-box {
             background: #fff;
             padding: 10px 16px;
@@ -382,10 +432,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         .profile-pic {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
         }
@@ -395,15 +446,19 @@
             display: inline-block;
         }
         .online-dot {
-            width: 10px; height: 10px;
+            width: 10px;
+            height: 10px;
             background: #31a24c;
             border-radius: 50%;
             position: absolute;
-            bottom: 0; right: 0;
+            bottom: 0;
+            right: 0;
             border: 2px solid #fff;
             transition: background 0.2s;
         }
-        .online-dot.offline { background: #b0b3b8; }
+        .online-dot.offline {
+            background: #b0b3b8;
+        }
         .post-input {
             flex: 1;
             border: 1px solid #ccd0d5;
@@ -415,15 +470,16 @@
             cursor: pointer;
             min-width: 0;
         }
-        .post-input:hover { background: #e4e6eb; }
+        .post-input:hover {
+            background: #e4e6eb;
+        }
         .photo-icon {
             color: #45bd62;
             font-size: 22px;
             cursor: pointer;
             flex-shrink: 0;
         }
-
-        /* ===== STORIES ===== */
+        /* --- Stories --- */
         .stories-container {
             display: flex;
             gap: 8px;
@@ -432,10 +488,12 @@
             margin-top: 8px;
             overflow-x: auto;
             scrollbar-width: none;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             -webkit-overflow-scrolling: touch;
         }
-        .stories-container::-webkit-scrollbar { display: none; }
+        .stories-container::-webkit-scrollbar {
+            display: none;
+        }
         .story-card {
             min-width: 105px;
             height: 175px;
@@ -443,14 +501,17 @@
             overflow: hidden;
             position: relative;
             background: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             flex-shrink: 0;
             cursor: pointer;
             transition: transform 0.2s;
             will-change: transform;
         }
-        .story-card:active { transform: scale(0.95); }
-        .story-card img, .story-card video {
+        .story-card:active {
+            transform: scale(0.95);
+        }
+        .story-card img,
+        .story-card video {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -464,7 +525,9 @@
             flex-direction: column;
             border: 1px solid #e4e6eb;
         }
-        .create-story img { height: 65%; }
+        .create-story img {
+            height: 65%;
+        }
         .create-story-content {
             height: 35%;
             background: #fff;
@@ -478,7 +541,8 @@
         .plus-icon-btn {
             position: absolute;
             top: -16px;
-            width: 32px; height: 32px;
+            width: 32px;
+            height: 32px;
             background: #1877f2;
             color: #fff;
             border-radius: 50%;
@@ -488,10 +552,16 @@
             border: 3px solid #fff;
             font-size: 14px;
         }
-        .create-story-content span { font-size: 12px; font-weight: 600; text-align: center; padding: 0 5px; }
+        .create-story-content span {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            padding: 0 5px;
+        }
         .story-badge {
             position: absolute;
-            top: 8px; left: 8px;
+            top: 8px;
+            left: 8px;
             background: #1877f2;
             color: #fff;
             font-size: 11px;
@@ -502,32 +572,35 @@
         }
         .story-name {
             position: absolute;
-            bottom: 8px; left: 8px;
+            bottom: 8px;
+            left: 8px;
             color: #fff;
             font-size: 12px;
             font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
             z-index: 2;
         }
         .story-video-tag {
             position: absolute;
-            bottom: 8px; right: 8px;
+            bottom: 8px;
+            right: 8px;
             color: #fff;
             font-size: 10px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             padding: 2px 8px;
             border-radius: 4px;
             z-index: 2;
             pointer-events: none;
         }
-
-        /* ===== STORY VIEWER ===== */
+        /* --- Story Viewer --- */
         #story-viewer-modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
             z-index: 2000;
             justify-content: center;
             align-items: center;
@@ -543,12 +616,14 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         .story-viewer-bg {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-size: cover;
             background-position: center;
             filter: blur(20px);
@@ -558,28 +633,34 @@
         .story-viewer-content {
             position: relative;
             z-index: 2;
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
         .story-top-bar {
             padding: 12px 16px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        .story-progress-bars { display: flex; gap: 4px; width: 100%; }
+        .story-progress-bars {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
         .story-progress {
             flex: 1;
             height: 3px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
             overflow: hidden;
         }
         .story-progress-fill {
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             background: #fff;
             transform: scaleX(0);
             transform-origin: left;
@@ -596,18 +677,27 @@
             gap: 10px;
         }
         .story-user-details img {
-            width: 36px; height: 36px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: 2px solid #1877f2;
             object-fit: cover;
         }
-        .story-user-text h4 { color: #fff; font-size: 14px; font-weight: 600; }
-        .story-user-text span { color: rgba(255,255,255,0.7); font-size: 12px; }
+        .story-user-text h4 {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .story-user-text span {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
         .story-close-btn {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             border: none;
             color: #fff;
-            width: 36px; height: 36px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             font-size: 18px;
             cursor: pointer;
@@ -616,7 +706,9 @@
             justify-content: center;
             transition: 0.2s;
         }
-        .story-close-btn:hover { background: rgba(255,255,255,0.2); }
+        .story-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
         .story-main-image-area {
             flex: 1;
             display: flex;
@@ -641,10 +733,11 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             color: #fff;
             border: none;
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -654,61 +747,85 @@
             z-index: 10;
             transition: 0.2s;
         }
-        .story-nav-arrow:hover { background: rgba(255,255,255,0.6); color: #000; }
-        .story-prev { left: 10px; }
-        .story-next { right: 10px; }
+        .story-nav-arrow:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: #000;
+        }
+        .story-prev {
+            left: 10px;
+        }
+        .story-next {
+            right: 10px;
+        }
         .story-footer {
             padding: 12px 16px;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .story-message-input {
             flex: 1;
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             padding: 10px 16px;
             color: #fff;
             font-size: 14px;
             outline: none;
         }
-        .story-message-input::placeholder { color: rgba(255,255,255,0.7); }
-        .story-reactions { display: flex; gap: 8px; font-size: 24px; cursor: pointer; }
-        .story-reactions i { transition: transform 0.2s; }
-        .story-reactions i:active { transform: scale(1.2); }
+        .story-message-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .story-reactions {
+            display: flex;
+            gap: 8px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .story-reactions i {
+            transition: transform 0.2s;
+        }
+        .story-reactions i:active {
+            transform: scale(1.2);
+        }
         .story-video-indicator {
             position: absolute;
             bottom: 70px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             color: #fff;
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 12px;
             z-index: 15;
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             display: none;
         }
-        .story-video-indicator.show { display: block; }
-
-        /* ===== FEED POST ===== */
+        .story-video-indicator.show {
+            display: block;
+        }
+        /* --- Feed Posts --- */
         .feed-post {
             background: #fff;
             margin-top: 8px;
             padding-top: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             cursor: pointer;
             transition: 0.2s;
             overflow: hidden;
             border-radius: 4px;
             will-change: transform;
         }
-        .feed-post:active { background: #fafafa; }
-        .feed-post.banner-post { padding: 0; overflow: hidden; }
+        .feed-post:active {
+            background: #fafafa;
+        }
+        .feed-post.banner-post {
+            padding: 0;
+            overflow: hidden;
+        }
         .feed-post.banner-post .banner-content {
             padding: 40px 20px;
             min-height: 150px;
@@ -729,8 +846,8 @@
             position: relative;
             z-index: 2;
             padding: 12px 16px;
-            background: rgba(255,255,255,0.95);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         .feed-post.banner-post .post-stats,
         .feed-post.banner-post .post-actions,
@@ -752,7 +869,8 @@
             min-width: 0;
         }
         .post-user-info img {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
             cursor: pointer;
@@ -769,7 +887,9 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .post-meta h4:hover { text-decoration: underline; }
+        .post-meta h4:hover {
+            text-decoration: underline;
+        }
         .post-meta span {
             font-size: clamp(10px, 1.5vw, 12px);
             color: #65676b;
@@ -783,7 +903,9 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .post-options i { pointer-events: auto; }
+        .post-options i {
+            pointer-events: auto;
+        }
         .post-caption {
             padding: 10px 16px;
             font-size: clamp(14px, 2vw, 16px);
@@ -794,7 +916,7 @@
         }
         .post-image-content {
             width: 100%;
-            background: #000;
+            background: transparent;
             position: relative;
         }
         .post-image-content img {
@@ -803,6 +925,25 @@
             max-height: 400px;
             object-fit: contain;
             cursor: pointer;
+            background: #f0f2f5;
+        }
+        .post-image-content video {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+            object-fit: contain;
+            cursor: pointer;
+            background: #000;
+            opacity: 1 !important;
+            border-radius: 4px;
+        }
+        .post-image-content video::-webkit-media-controls {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+        }
+        .post-image-content video::-webkit-media-controls-play-button {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
         }
         .post-stats {
             display: flex;
@@ -822,7 +963,8 @@
         .like-icon-circle {
             background: #1877f2;
             color: #fff;
-            width: 18px; height: 18px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -854,8 +996,13 @@
             min-height: 44px;
             -webkit-tap-highlight-color: transparent;
         }
-        .action-btn:active { transform: scale(0.95); background: #f0f2f5; }
-        .action-btn.liked { color: #1877f2; }
+        .action-btn:active {
+            transform: scale(0.95);
+            background: #f0f2f5;
+        }
+        .action-btn.liked {
+            color: #1877f2;
+        }
         .comments-section {
             padding: 10px 16px;
             background: #f9f9f9;
@@ -863,7 +1010,9 @@
             display: none;
             pointer-events: auto;
         }
-        .comments-section.active { display: block; }
+        .comments-section.active {
+            display: block;
+        }
         .comment-item {
             font-size: 13px;
             margin-bottom: 8px;
@@ -876,7 +1025,9 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
-        .comment-item:hover { background: #f0f2f5; }
+        .comment-item:hover {
+            background: #f0f2f5;
+        }
         .comment-box-input {
             display: flex;
             gap: 8px;
@@ -902,14 +1053,15 @@
             font-weight: bold;
             white-space: nowrap;
         }
-
-        /* ===== MODAL ===== */
+        /* --- Modals --- */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -941,8 +1093,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-
-        /* ===== TOAST ===== */
         .toast-msg {
             background: #333;
             color: #fff;
@@ -955,13 +1105,11 @@
             transform: translateX(-50%);
             z-index: 9999;
             display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             max-width: 90%;
             text-align: center;
             pointer-events: none;
         }
-
-        /* ===== FEED CONTAINER ===== */
         #feed-container {
             display: flex;
             flex-direction: column;
@@ -974,8 +1122,6 @@
             color: #65676b;
             font-size: 16px;
         }
-
-        /* ===== READ MORE ===== */
         .read-more-btn {
             color: #1877f2;
             cursor: pointer;
@@ -985,7 +1131,9 @@
             pointer-events: auto;
             font-size: 14px;
         }
-        .read-more-btn:hover { text-decoration: underline; }
+        .read-more-btn:hover {
+            text-decoration: underline;
+        }
         .caption-text {
             word-wrap: break-word;
             overflow-wrap: break-word;
@@ -996,22 +1144,29 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .banner-post .caption-text { color: #fff; }
-        .banner-post .caption-text.truncated { -webkit-line-clamp: 5; }
-
-        /* ===== POST DETAIL OVERLAY ===== */
+        .banner-post .caption-text {
+            color: #fff;
+        }
+        .banner-post .caption-text.truncated {
+            -webkit-line-clamp: 5;
+        }
+        /* --- Post Detail --- */
         #post-detail-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: #ffffff;
             z-index: 2500;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 0;
         }
-        #post-detail-overlay.show { display: block; }
+        #post-detail-overlay.show {
+            display: block;
+        }
         .post-detail-header {
             background: #fff;
             padding: 12px 16px;
@@ -1021,7 +1176,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         .post-detail-header .back-btn {
             background: none;
@@ -1039,7 +1194,9 @@
             border-radius: 50%;
             transition: 0.2s;
         }
-        .post-detail-header .back-btn:hover { background: #f0f2f5; }
+        .post-detail-header .back-btn:hover {
+            background: #f0f2f5;
+        }
         .post-detail-body {
             max-width: 680px;
             width: 100%;
@@ -1047,8 +1204,15 @@
             padding: 0 0 80px 0;
             overflow-x: hidden;
         }
-        .post-detail-body .feed-post { cursor: default; box-shadow: none; margin-top: 0; border-radius: 0; }
-        .post-detail-body .feed-post:hover { background: #fff; }
+        .post-detail-body .feed-post {
+            cursor: default;
+            box-shadow: none;
+            margin-top: 0;
+            border-radius: 0;
+        }
+        .post-detail-body .feed-post:hover {
+            background: #fff;
+        }
         .post-detail-body .feed-post .post-caption {
             pointer-events: auto;
             word-wrap: break-word;
@@ -1063,6 +1227,18 @@
             object-fit: contain;
             display: block;
             margin: 0 auto;
+            background: #f0f2f5;
+        }
+        .post-detail-body .feed-post .post-image-content video {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            background: #000;
+            opacity: 1 !important;
+            border-radius: 4px;
         }
         .post-detail-body .comments-section {
             display: block !important;
@@ -1070,8 +1246,15 @@
             border-top: none;
             padding: 0 16px 20px;
         }
-        .post-detail-body .post-stats { padding: 10px 16px; border-bottom: 1px solid #ced0d4; flex-wrap: wrap; }
-        .post-detail-body .post-actions { border-bottom: 1px solid #ced0d4; flex-wrap: wrap; }
+        .post-detail-body .post-stats {
+            padding: 10px 16px;
+            border-bottom: 1px solid #ced0d4;
+            flex-wrap: wrap;
+        }
+        .post-detail-body .post-actions {
+            border-bottom: 1px solid #ced0d4;
+            flex-wrap: wrap;
+        }
         .post-detail-body .post-actions .action-btn {
             font-size: clamp(13px, 1.8vw, 16px);
             padding: 10px 4px;
@@ -1146,7 +1329,9 @@
             padding: 4px 0;
             min-height: 30px;
         }
-        .post-detail-body .comment-footer-actions span:hover { text-decoration: underline; }
+        .post-detail-body .comment-footer-actions span:hover {
+            text-decoration: underline;
+        }
         .post-detail-body .comment-input-bar {
             position: sticky;
             bottom: 0;
@@ -1188,7 +1373,9 @@
             min-width: 0;
             padding: 8px 0;
         }
-        .post-detail-body .input-wrapper input::placeholder { color: #65676b; }
+        .post-detail-body .input-wrapper input::placeholder {
+            color: #65676b;
+        }
         .post-detail-body .input-icons {
             display: flex;
             align-items: center;
@@ -1213,8 +1400,12 @@
             color: #65676b;
             font-size: 16px;
         }
-        .detail-loading i { margin-right: 10px; }
-        .post-detail-body .feed-post .comment-box-input { display: none !important; }
+        .detail-loading i {
+            margin-right: 10px;
+        }
+        .post-detail-body .feed-post .comment-box-input {
+            display: none !important;
+        }
         .reply-container {
             margin-left: clamp(30px, 6vw, 50px);
             margin-top: 8px;
@@ -1229,7 +1420,8 @@
         }
         #scroll-loader .spinner {
             display: inline-block;
-            width: 30px; height: 30px;
+            width: 30px;
+            height: 30px;
             border: 3px solid #e4e6eb;
             border-top: 3px solid #1877f2;
             border-radius: 50%;
@@ -1242,20 +1434,23 @@
             font-size: 14px;
             display: none;
         }
-
-        /* ===== IFRAME OVERLAY ===== */
+        /* --- Iframe Overlay --- */
         .iframe-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: #ffffff;
             z-index: 2600;
             overflow: hidden;
             padding: 0;
             margin: 0;
         }
-        .iframe-overlay.show { display: block; }
+        .iframe-overlay.show {
+            display: block;
+        }
         .iframe-overlay iframe {
             width: 100%;
             height: 100%;
@@ -1268,44 +1463,53 @@
             top: 12px;
             left: 12px;
             z-index: 2700;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             border: none;
             border-radius: 50%;
-            width: 44px; height: 44px;
+            width: 44px;
+            height: 44px;
             font-size: 22px;
             cursor: pointer;
             color: #050505;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
             display: none;
             align-items: center;
             justify-content: center;
             transition: 0.2s;
         }
-        .iframe-back-btn:hover { background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
-        .iframe-back-btn.show { display: flex; }
-
-        /* ===== ONLINE STATUS ===== */
+        .iframe-back-btn:hover {
+            background: #fff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        .iframe-back-btn.show {
+            display: flex;
+        }
         .online-status {
             display: inline-block;
-            width: 10px; height: 10px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             margin-left: 6px;
             transition: background 0.3s;
             position: absolute;
-            bottom: 0; right: 0;
+            bottom: 0;
+            right: 0;
             border: 2px solid #fff;
         }
-        .online-status.active { background: #31a24c; }
-        .online-status.inactive { background: #b0b3b8; }
-
-        /* ===== NOTIFICATION POPUP ===== */
+        .online-status.active {
+            background: #31a24c;
+        }
+        .online-status.inactive {
+            background: #b0b3b8;
+        }
+        /* --- Notification Popup --- */
         .notif-popup {
             position: fixed;
             top: 70px;
             right: 16px;
             background: #ffffff;
             border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
             padding: 14px 18px;
             z-index: 10000;
             max-width: 380px;
@@ -1322,7 +1526,8 @@
             gap: 12px;
         }
         .notif-popup .notif-avatar {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
@@ -1364,49 +1569,418 @@
             padding: 4px;
             border-radius: 50%;
         }
-        .notif-popup .notif-close:hover { background: #f0f2f5; }
-
-        /* ===== RESPONSIVE ===== */
+        .notif-popup .notif-close:hover {
+            background: #f0f2f5;
+        }
+        /* --- Responsive --- */
         @media (max-width: 480px) {
-            .header { padding: 6px 12px; min-height: 48px; }
-            .header .logo { font-size: 18px; }
-            .header-icon { width: 36px; height: 36px; font-size: 16px; }
-            .header .logout-btn { font-size: 12px; padding: 4px 10px; }
-            .nav-tabs { top: 48px; }
-            .nav-tab { padding: 8px 0; font-size: 18px; }
-            .post-box { padding: 8px 12px; }
-            .post-input { font-size: 14px; padding: 7px 12px; }
-            .story-card { min-width: 85px; height: 140px; }
-            .stories-container { padding: 8px 12px; }
-            .feed-post .post-header { padding: 0 12px; }
-            .feed-post .post-caption { padding: 8px 12px; font-size: 14px; }
-            .feed-post .post-stats { padding: 8px 12px; font-size: 12px; }
-            .feed-post .post-actions .action-btn { font-size: 12px; padding: 6px 2px; min-height: 38px; }
-            .feed-post .comments-section { padding: 8px 12px; }
-            .post-detail-header { padding: 8px 12px; }
-            .post-detail-header .back-btn { font-size: 18px; min-width: 38px; min-height: 38px; }
-            .post-detail-body .comment-input-bar { padding: 6px 8px; }
-            .post-detail-body .input-wrapper { padding: 2px 8px; }
-            .post-detail-body .input-icons { gap: 2px; }
-            .notif-popup { max-width: 280px; right: 8px; top: 56px; padding: 10px 12px; }
-            .notif-popup .notif-avatar { width: 32px; height: 32px; }
-            .notif-popup .notif-name { font-size: 13px; }
-            .notif-popup .notif-preview { font-size: 12px; }
+            .header {
+                padding: 6px 12px;
+                min-height: 48px;
+            }
+            .header .logo {
+                font-size: 18px;
+            }
+            .header-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .header .logout-btn {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .nav-tabs {
+                top: 48px;
+            }
+            .nav-tab {
+                padding: 8px 0;
+                font-size: 18px;
+            }
+            .post-box {
+                padding: 8px 12px;
+            }
+            .post-input {
+                font-size: 14px;
+                padding: 7px 12px;
+            }
+            .story-card {
+                min-width: 85px;
+                height: 140px;
+            }
+            .stories-container {
+                padding: 8px 12px;
+            }
+            .feed-post .post-header {
+                padding: 0 12px;
+            }
+            .feed-post .post-caption {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            .feed-post .post-stats {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            .feed-post .post-actions .action-btn {
+                font-size: 12px;
+                padding: 6px 2px;
+                min-height: 38px;
+            }
+            .feed-post .comments-section {
+                padding: 8px 12px;
+            }
+            .post-detail-header {
+                padding: 8px 12px;
+            }
+            .post-detail-header .back-btn {
+                font-size: 18px;
+                min-width: 38px;
+                min-height: 38px;
+            }
+            .post-detail-body .comment-input-bar {
+                padding: 6px 8px;
+            }
+            .post-detail-body .input-wrapper {
+                padding: 2px 8px;
+            }
+            .post-detail-body .input-icons {
+                gap: 2px;
+            }
+            .notif-popup {
+                max-width: 280px;
+                right: 8px;
+                top: 56px;
+                padding: 10px 12px;
+            }
+            .notif-popup .notif-avatar {
+                width: 32px;
+                height: 32px;
+            }
+            .notif-popup .notif-name {
+                font-size: 13px;
+            }
+            .notif-popup .notif-preview {
+                font-size: 12px;
+            }
         }
         @media (max-width: 380px) {
-            .story-card { min-width: 70px; height: 120px; }
-            .header .logo { font-size: 16px; }
-            .header-icon { width: 32px; height: 32px; font-size: 14px; }
-            .nav-tab { font-size: 16px; padding: 6px 0; }
-            .feed-post .post-actions .action-btn { font-size: 11px; }
-            .notif-popup { max-width: 240px; padding: 8px 10px; right: 6px; top: 50px; }
-            .notif-popup .notif-avatar { width: 28px; height: 28px; }
-            .notif-popup .notif-name { font-size: 12px; }
-            .notif-popup .notif-preview { font-size: 11px; }
+            .story-card {
+                min-width: 70px;
+                height: 120px;
+            }
+            .header .logo {
+                font-size: 16px;
+            }
+            .header-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .nav-tab {
+                font-size: 16px;
+                padding: 6px 0;
+            }
+            .feed-post .post-actions .action-btn {
+                font-size: 11px;
+            }
+            .notif-popup {
+                max-width: 240px;
+                padding: 8px 10px;
+                right: 6px;
+                top: 50px;
+            }
+            .notif-popup .notif-avatar {
+                width: 28px;
+                height: 28px;
+            }
+            .notif-popup .notif-name {
+                font-size: 12px;
+            }
+            .notif-popup .notif-preview {
+                font-size: 11px;
+            }
         }
         @media (min-width: 768px) {
-            .story-card { min-width: 120px; height: 200px; }
-            .feed-post { border-radius: 8px; }
+            .story-card {
+                min-width: 120px;
+                height: 200px;
+            }
+            .feed-post {
+                border-radius: 8px;
+            }
+        }
+        /* --- Video Tab (Reels / Shorts) specific --- */
+        .video-tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding: 0;
+            background: #000;
+        }
+        .video-tab-content.active {
+            display: flex;
+        }
+        .video-tab-content .video-item {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            max-height: 900px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            scroll-snap-align: start;
+        }
+        .video-tab-content .video-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+            opacity: 1 !important;
+            cursor: pointer;
+        }
+        .video-tab-content .video-item .video-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 16px;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+            z-index: 5;
+            pointer-events: none;
+        }
+        .video-tab-content .video-item .video-overlay h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .video-tab-content .video-item .video-overlay p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .video-tab-content .video-item .video-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-tab-content .video-item .video-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* Video tab scroll container */
+        .video-scroll-container {
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            background: #000;
+            padding: 0;
+        }
+        .video-scroll-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .video-scroll-container::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        .video-scroll-container .loading-text {
+            color: #fff;
+            background: #000;
+            padding: 40px;
+        }
+        /* --- Main feed container for normal posts --- */
+        #feed-container .feed-post video {
+            opacity: 1 !important;
+            background: #000;
+        }
+        /* --- New: Overlay for fullscreen video to keep same instance --- */
+        #video-fullscreen-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #video-fullscreen-overlay.show {
+            display: flex;
+        }
+        #video-fullscreen-overlay video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+        .video-fullscreen-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-fullscreen-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .video-fullscreen-close i {
+            pointer-events: none;
+        }
+        /* Video side actions (TikTok style) */
+        .video-side-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            z-index: 10;
+            color: #fff;
+        }
+        .video-side-actions .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-align: center;
+        }
+        .video-side-actions .action-item:active {
+            transform: scale(0.85);
+        }
+        .video-side-actions .action-item i {
+            font-size: 28px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+        .video-side-actions .action-item span {
+            font-size: 12px;
+            font-weight: 500;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        }
+        .video-side-actions .action-item.liked i {
+            color: #e41e3f;
+        }
+        /* Custom video controls overlay */
+        .video-custom-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 16px 16px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .video-item:hover .video-custom-controls,
+        .video-item:focus-within .video-custom-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .video-custom-controls .play-pause-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .video-custom-controls .play-pause-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        .video-custom-controls .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        .video-custom-controls .progress-bar .progress-fill {
+            height: 100%;
+            background: #1877f2;
+            border-radius: 2px;
+            width: 0%;
+        }
+        .video-custom-controls .time-display {
+            color: #fff;
+            font-size: 12px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .video-custom-controls .fullscreen-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        /* Video click hint overlay - shows play icon when hovering video */
+        .post-image-content .video-click-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .post-image-content:hover .video-click-overlay {
+            opacity: 1;
+        }
+        .post-image-content .video-click-overlay i {
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        .post-image-content .video-click-overlay .play-text {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -1533,6 +2107,12 @@
         </div>
     </div>
 
+    <!-- VIDEO FULLSCREEN OVERLAY (shared instance) -->
+    <div id="video-fullscreen-overlay">
+        <button class="video-fullscreen-close" id="video-fullscreen-close"><i class="fa-solid fa-xmark"></i></button>
+        <video id="fullscreen-video" controls playsinline></video>
+    </div>
+
     <!-- IFRAME OVERLAY -->
     <div id="iframe-overlay" class="iframe-overlay">
         <iframe id="iframe-content" src="about:blank"></iframe>
@@ -1544,7 +2124,7 @@
 
         <!-- Header -->
         <div class="header">
-            <div class="logo" onclick="location.reload()">Secret Intro</div>
+            <div class="logo" onclick="goHome()">Secret Intro</div>
             <div class="header-icons">
                 <div class="header-icon" id="search-icon" title="Search"><i class="fa-solid fa-magnifying-glass"></i></div>
                 <div style="display:none" class="header-icon" id="notif-icon" title="Notifications">
@@ -1561,23 +2141,24 @@
         </div>
 
         <!-- Nav Tabs -->
-        <div class="nav-tabs">
-            <div onclick="window.location.href='homepage.html'" class="nav-tab active" title="Home"><i class="fa-solid fa-house"></i></div>
-            <div class="nav-tab" id="tab-friends" title="Friends"><i class="fa-solid fa-user-group"></i></div>
-            <div class="nav-tab" id="tab-messenger" title="Messenger">
+        <div class="nav-tabs" id="main-nav-tabs">
+            <div class="nav-tab active" data-tab="home" title="Home"><i class="fa-solid fa-house"></i></div>
+            <div class="nav-tab" data-tab="friends" title="Friends"><i class="fa-solid fa-user-group"></i></div>
+            <div class="nav-tab" data-tab="messenger" title="Messenger">
                 <i class="fa-brands fa-facebook-messenger"></i>
                 <span class="badge-tab" id="messengerBadgeTab">0</span>
             </div>
-            <div class="nav-tab" id="tab-videos" title="Videos"><i class="fa-solid fa-clapperboard"></i></div>
-            <div class="nav-tab" id="tab-notifications" title="Notifications">
+            <div class="nav-tab" data-tab="reels" title="Reels"><i class="fa-solid fa-video"></i></div>
+            <div class="nav-tab" data-tab="shorts" title="Shorts"><i class="fa-solid fa-clapperboard"></i></div>
+            <div class="nav-tab" data-tab="notifications" title="Notifications">
                 <i class="fa-solid fa-bell"></i>
                 <span class="badge-tab" id="notifBadgeTab">0</span>
             </div>
-            <div class="nav-tab" id="nav-menu-tab" title="Menu"><i class="fa-solid fa-bars"></i></div>
+            <div class="nav-tab" data-tab="menu" title="Menu"><i class="fa-solid fa-bars"></i></div>
         </div>
 
         <!-- What's on your mind? -->
-        <div class="post-box">
+        <div class="post-box" id="post-box-main">
             <div class="profile-container" onclick="openProfileIframe()">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Profile" class="profile-pic" id="header-profile-pic">
                 <div class="online-dot" id="header-status-dot"></div>
@@ -1589,11 +2170,23 @@
         <!-- Stories -->
         <div class="stories-container" id="stories-container"></div>
 
-        <!-- DYNAMIC FEED -->
+        <!-- DYNAMIC FEED (Home) -->
         <div id="feed-container">
             <div class="loading-text" id="feed-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading posts...</div>
             <div id="scroll-loader"><div class="spinner"></div></div>
             <div id="end-of-feed">You've seen all posts</div>
+        </div>
+
+        <!-- VIDEO TAB CONTENT (Reels & Shorts) -->
+        <div class="video-tab-content" id="reels-container">
+            <div class="video-scroll-container" id="reels-scroll">
+                <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading Reels...</div>
+            </div>
+        </div>
+        <div class="video-tab-content" id="shorts-container">
+            <div class="video-scroll-container" id="shorts-scroll">
+                <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading Shorts...</div>
+            </div>
         </div>
 
     </div>
@@ -1608,7 +2201,6 @@
     </div>
 
     <script>
-        // ========== DOM READY ==========
         document.addEventListener('DOMContentLoaded', function() {
 
             // ========== FIREBASE CONFIG ==========
@@ -1621,7 +2213,6 @@
                 messagingSenderId: "579756089926",
                 appId: "1:579756089926:web:abbe35377e3657889be047"
             };
-
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
             const db = firebase.firestore();
@@ -1653,7 +2244,7 @@
             const iframeBackBtn = getEl('iframe-back-btn');
             const navOverlay = getEl('nav-overlay');
             const navToggleBtn = getEl('nav-toggle-btn');
-            const navMenuTab = getEl('nav-menu-tab');
+            const navMenuTab = document.querySelector('[data-tab="menu"]');
             const navOverlayClose = getEl('nav-overlay-close');
             const headerStatusDot = getEl('header-status-dot');
             const notifPopup = getEl('notifPopup');
@@ -1662,119 +2253,98 @@
             const notifPreview = getEl('notifPreview');
             const notifTime = getEl('notifTime');
             const swipeIndicator = getEl('swipe-refresh-indicator');
-
             const notifBadgeHeader = getEl('notifBadgeHeader');
             const notifBadgeTab = getEl('notifBadgeTab');
             const notifBadgeNav = getEl('notifBadgeNav');
             const messengerBadgeHeader = getEl('messengerBadgeHeader');
             const messengerBadgeTab = getEl('messengerBadgeTab');
             const messengerBadgeNav = getEl('messengerBadgeNav');
+            const reelsContainer = getEl('reels-container');
+            const shortsContainer = getEl('shorts-container');
+            const reelsScroll = getEl('reels-scroll');
+            const shortsScroll = getEl('shorts-scroll');
+            const videoFullscreenOverlay = getEl('video-fullscreen-overlay');
+            const fullscreenVideo = getEl('fullscreen-video');
+            const videoFullscreenClose = getEl('video-fullscreen-close');
 
+            // ========== STATE ==========
             let currentUser = null;
-            let notifTimer = null;
-            let pendingNotifData = null;
-            let notifListenerUnsubscribe = null;
+            let currentTab = 'home';
+            let feedScrollPos = 0;
+            let isRefreshing = false;
+            let isSwipingDown = false;
+            let touchStartY = 0;
             let unreadNotifCount = 0;
             let unreadMessageCount = 0;
             let shownNotifIds = new Set();
-
-            // ========== SWIPE TO REFRESH ==========
-            let touchStartY = 0;
-            let touchMoveY = 0;
-            let isRefreshing = false;
-            let isSwipingDown = false;
-
-            document.addEventListener('touchstart', function(e) {
-                if (window.scrollY <= 0) {
-                    touchStartY = e.touches[0].clientY;
-                    isSwipingDown = false;
-                }
-            }, { passive: true });
-
-            document.addEventListener('touchmove', function(e) {
-                if (window.scrollY <= 0 && touchStartY > 0) {
-                    const currentY = e.touches[0].clientY;
-                    const diff = currentY - touchStartY;
-                    if (diff > 10 && !isRefreshing) {
-                        isSwipingDown = true;
-                        e.preventDefault();
-                        const indicator = swipeIndicator;
-                        if (indicator) {
-                            indicator.classList.add('show');
-                            if (diff > 80) {
-                                indicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Release to refresh';
-                            } else {
-                                indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
-                            }
-                        }
-                    }
-                }
-            }, { passive: false });
-
-            document.addEventListener('touchend', function(e) {
-                if (isSwipingDown && !isRefreshing && touchStartY > 0) {
-                    const diff = e.changedTouches[0].clientY - touchStartY;
-                    if (diff > 80) {
-                        // Refresh!
-                        isRefreshing = true;
-                        const indicator = swipeIndicator;
-                        if (indicator) {
-                            indicator.innerHTML = '<div class="spinner"></div><span>Refreshing...</span>';
-                        }
-                        refreshFeed();
-                    } else {
-                        const indicator = swipeIndicator;
-                        if (indicator) {
-                            indicator.classList.remove('show');
-                            indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
-                        }
-                    }
-                }
-                touchStartY = 0;
-                isSwipingDown = false;
-            }, { passive: true });
-
-            async function refreshFeed() {
-                try {
-                    // Clear cache and reload
-                    postsLoaded = 0;
-                    lastDoc = null;
-                    hasMore = true;
-                    if (feedContainer) {
-                        const posts = feedContainer.querySelectorAll('.feed-post');
-                        posts.forEach(el => el.remove());
-                    }
-                    if (feedLoading) {
-                        feedLoading.style.display = 'block';
-                        feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refreshing...';
-                    }
-                    if (endOfFeed) endOfFeed.style.display = 'none';
-                    
-                    // Reload stories
-                    await loadStories(true);
-                    
-                    // Reload posts
-                    await loadPosts(false);
-                    
-                    showToast('Feed refreshed!');
-                } catch (e) {
-                    console.error('Refresh error:', e);
-                    showToast('Error refreshing feed');
-                } finally {
-                    isRefreshing = false;
-                    const indicator = swipeIndicator;
-                    if (indicator) {
-                        indicator.classList.remove('show');
-                        indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
-                    }
-                }
-            }
-
-            // ========== OPTIMIZED STATUS MANAGEMENT ==========
+            let notifTimer = null;
+            let notifListenerUnsubscribe = null;
+            let videoObserver = null;
             let isUserOnline = false;
             let statusUpdateInterval = null;
             let hasSetOffline = false;
+            let lastDoc = null;
+            let isLoading = false;
+            let hasMore = true;
+            let postsLoaded = 0;
+            const POSTS_PER_PAGE = 10;
+            let storyDataCache = [];
+            let storiesLoaded = false;
+            let storiesCache = [];
+            let currentStoryIndex = 0;
+            let storyTimer = null;
+            let currentVideoElement = null;
+            let isVideoPlaying = false;
+            let videoDataCache = [];
+            let shortsDataCache = [];
+            let videoLastDoc = null;
+            let shortsLastDoc = null;
+            let isLoadingVideo = false;
+            let isLoadingShorts = false;
+            let hasMoreVideo = true;
+            let hasMoreShorts = true;
+            let videoObserverInstance = null;
+            let activeVideoElement = null; // Track currently playing video
 
+            // ========== CACHE / LOCAL STORAGE HELPERS ==========
+            function getCache(key, defaultVal = null) {
+                try {
+                    const data = localStorage.getItem('si_cache_' + key);
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        if (parsed && parsed.expiry && Date.now() < parsed.expiry) {
+                            return parsed.value;
+                        }
+                        localStorage.removeItem('si_cache_' + key);
+                    }
+                    return defaultVal;
+                } catch (e) { return defaultVal; }
+            }
+
+            function setCache(key, value, ttl = 3600000) {
+                try {
+                    const data = {
+                        value: value,
+                        expiry: Date.now() + ttl
+                    };
+                    localStorage.setItem('si_cache_' + key, JSON.stringify(data));
+                } catch (e) { console.warn('Cache set error:', e); }
+            }
+
+            // ========== FUNCTIONS ==========
+
+            // --- Toast ---
+            let toastTimer;
+
+            function showToast(msg) {
+                if (!toast) return;
+                toast.textContent = msg;
+                toast.style.display = 'block';
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+            }
+
+            // --- Status Management ---
             function setUserOnline(uid) {
                 if (!uid) return;
                 isUserOnline = true;
@@ -1816,22 +2386,15 @@
 
             function handlePageUnload() {
                 const user = auth.currentUser;
-                if (user) {
-                    setUserOffline(user.uid);
-                }
+                if (user) setUserOffline(user.uid);
             }
 
             function startStatusMonitoring(user) {
                 if (!user) return;
-                if (statusUpdateInterval) {
-                    clearInterval(statusUpdateInterval);
-                    statusUpdateInterval = null;
-                }
+                if (statusUpdateInterval) clearInterval(statusUpdateInterval);
                 setUserOnline(user.uid);
                 statusUpdateInterval = setInterval(() => {
-                    if (auth.currentUser && !document.hidden) {
-                        setUserOnline(user.uid);
-                    }
+                    if (auth.currentUser && !document.hidden) setUserOnline(user.uid);
                 }, 30000);
                 document.addEventListener('visibilitychange', handleVisibilityChange);
                 window.addEventListener('beforeunload', handlePageUnload);
@@ -1839,19 +2402,14 @@
             }
 
             function stopStatusMonitoring(user) {
-                if (statusUpdateInterval) {
-                    clearInterval(statusUpdateInterval);
-                    statusUpdateInterval = null;
-                }
+                if (statusUpdateInterval) clearInterval(statusUpdateInterval);
                 document.removeEventListener('visibilitychange', handleVisibilityChange);
                 window.removeEventListener('beforeunload', handlePageUnload);
                 window.removeEventListener('pagehide', handlePageUnload);
-                if (user) {
-                    setUserOffline(user.uid);
-                }
+                if (user) setUserOffline(user.uid);
             }
 
-            // ========== HANDLE LOGOUT ==========
+            // --- Logout ---
             function handleLogout() {
                 const user = auth.currentUser;
                 if (user) {
@@ -1870,14 +2428,14 @@
                 }
             }
 
-            // ========== CREATE USER DOCUMENT ==========
+            // --- User Document ---
             async function createUserDocument(user) {
                 if (!user) return;
                 try {
                     const docRef = db.collection('users').doc(user.uid);
                     const doc = await docRef.get();
                     if (!doc.exists) {
-                        const userData = {
+                        await docRef.set({
                             uid: user.uid,
                             fullName: user.displayName || user.email?.split('@')[0] || 'User',
                             email: user.email || '',
@@ -1897,8 +2455,7 @@
                             mutual: 12,
                             createdAt: new Date().toISOString(),
                             updatedAt: new Date().toISOString()
-                        };
-                        await docRef.set(userData);
+                        });
                     } else {
                         await docRef.update({ status: 'online', updatedAt: new Date().toISOString() });
                     }
@@ -1907,7 +2464,7 @@
                 }
             }
 
-            // ========== PROFILE NAVIGATION ==========
+            // --- Profile & Iframe ---
             function openProfileIframe(targetUserId) {
                 const userId = targetUserId || auth.currentUser?.uid;
                 if (!userId) { showToast('Please login first'); return; }
@@ -1919,16 +2476,6 @@
                 history.pushState({ iframeOverlay: true, url: url }, '');
             }
 
-            // ========== GET USER DATA ==========
-            async function getUserData(userId) {
-                try {
-                    const doc = await db.collection('users').doc(userId).get();
-                    if (doc.exists) return { id: userId, ...doc.data() };
-                    return null;
-                } catch (error) { console.error('Error fetching user data:', error); return null; }
-            }
-
-            // ========== IFRAME OVERLAY ==========
             function openIframe(url, title) {
                 if (url === 'profile.html' && auth.currentUser) {
                     url = `profile.html?user=${auth.currentUser.uid}`;
@@ -1948,29 +2495,34 @@
                 if (history.state && history.state.iframeOverlay) history.back();
             }
 
-            if (iframeBackBtn) {
-                iframeBackBtn.addEventListener('click', closeIframe);
-            }
-
+            if (iframeBackBtn) iframeBackBtn.addEventListener('click', closeIframe);
             window.addEventListener('popstate', function(e) {
                 if (iframeOverlay && iframeOverlay.classList.contains('show')) { e.preventDefault();
                     closeIframe(); }
                 if (detailOverlay && detailOverlay.classList.contains('show')) { e.preventDefault();
                     closePostDetail(); }
+                if (videoFullscreenOverlay && videoFullscreenOverlay.classList.contains('show')) { e.preventDefault();
+                    closeFullscreenVideo(); }
             });
 
-            // ========== TOAST ==========
-            let toastTimer;
-
-            function showToast(msg) {
-                if (!toast) return;
-                toast.textContent = msg;
-                toast.style.display = 'block';
-                clearTimeout(toastTimer);
-                toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+            // --- Badges ---
+            function updateNotifBadge(change) {
+                unreadNotifCount += change;
+                if (unreadNotifCount < 0) unreadNotifCount = 0;
+                const display = unreadNotifCount > 0 ? unreadNotifCount : '';
+                if (notifBadgeHeader) notifBadgeHeader.textContent = display;
+                if (notifBadgeTab) notifBadgeTab.textContent = display;
+                if (notifBadgeNav) notifBadgeNav.textContent = display;
             }
 
-            // ========== NOTIFICATION SYSTEM ==========
+            function updateMessengerBadge(count) {
+                const display = count > 0 ? count : '';
+                if (messengerBadgeHeader) messengerBadgeHeader.textContent = display;
+                if (messengerBadgeTab) messengerBadgeTab.textContent = display;
+                if (messengerBadgeNav) messengerBadgeNav.textContent = display;
+            }
+
+            // --- Notification ---
             function playNotifSound() {
                 try {
                     const ctx = new(window.AudioContext || window.webkitAudioContext)();
@@ -1982,11 +2534,9 @@
                     osc.type = 'sine';
                     gain.gain.value = 0.1;
                     osc.start();
-                    setTimeout(() => {
-                        osc.frequency.value = 1100;
+                    setTimeout(() => { osc.frequency.value = 1100;
                         setTimeout(() => { osc.stop();
-                            ctx.close(); }, 150);
-                    }, 150);
+                            ctx.close(); }, 150); }, 150);
                 } catch (e) { console.log('Sound error:', e); }
             }
 
@@ -2012,16 +2562,11 @@
             function closeNotif() {
                 if (notifPopup) notifPopup.style.display = 'none';
                 clearTimeout(notifTimer);
-                pendingNotifData = null;
             }
 
             function openNotifChat() {
                 closeNotif();
-                if (pendingNotifData && pendingNotifData.type === 'message') {
-                    openIframe('messenger.html', 'Messenger');
-                } else {
-                    openIframe('notifications.html', 'Notifications');
-                }
+                openIframe('notifications.html', 'Notifications');
             }
 
             function formatTime(date) {
@@ -2034,14 +2579,10 @@
                 return date.toLocaleDateString();
             }
 
-            // ========== START NOTIFICATION LISTENERS ==========
+            // --- Notification Listeners ---
             function startNotificationListeners(userId) {
-                if (notifListenerUnsubscribe) {
-                    notifListenerUnsubscribe();
-                    notifListenerUnsubscribe = null;
-                }
-                console.log('👂 Starting notification listeners for:', userId);
-
+                if (notifListenerUnsubscribe) { notifListenerUnsubscribe();
+                    notifListenerUnsubscribe = null; }
                 const postsQuery = db.collection('all-user-post').where('userId', '==', userId);
                 notifListenerUnsubscribe = postsQuery.onSnapshot((snapshot) => {
                     snapshot.docChanges().forEach(async (change) => {
@@ -2082,9 +2623,7 @@
                             }
                         }
                     });
-                }, (error) => {
-                    console.error('Error listening to notifications:', error);
-                });
+                }, (error) => { console.error('Error listening to notifications:', error); });
 
                 const messageQuery = db.collection('chats').where('participants', 'array-contains', userId);
                 messageQuery.onSnapshot((snapshot) => {
@@ -2093,98 +2632,761 @@
                         const data = doc.data();
                         const messages = data.messages || [];
                         for (const msg of messages) {
-                            if (msg.sender !== userId && !msg.seen && !msg.deletedFor?.includes(userId)) {
-                                count++;
-                            }
+                            if (msg.sender !== userId && !msg.seen && !msg.deletedFor?.includes(userId)) count++;
                         }
                     });
                     unreadMessageCount = count;
                     updateMessengerBadge(count);
-                }, (error) => {
-                    console.error('Error listening to messages:', error);
+                }, (error) => { console.error('Error listening to messages:', error); });
+            }
+
+            async function getUserData(userId) {
+                try {
+                    const doc = await db.collection('users').doc(userId).get();
+                    if (doc.exists) return { id: userId, ...doc.data() };
+                    return null;
+                } catch (error) { console.error('Error fetching user data:', error); return null; }
+            }
+
+            // --- Go Home (preserve state) ---
+            function goHome() {
+                switchTab('home');
+                if (feedContainer) {
+                    feedContainer.scrollTop = feedScrollPos || 0;
+                }
+                window.scrollTo(0, feedScrollPos || 0);
+            }
+
+            // --- Tab Switching ---
+            function switchTab(tab) {
+                if (tab === currentTab && tab === 'home') {
+                    window.scrollTo(0, feedScrollPos || 0);
+                    return;
+                }
+                currentTab = tab;
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                const activeTab = document.querySelector(`.nav-tab[data-tab="${tab}"]`);
+                if (activeTab) activeTab.classList.add('active');
+
+                // Hide all sections
+                if (feedContainer) feedContainer.style.display = 'none';
+                if (reelsContainer) reelsContainer.classList.remove('active');
+                if (shortsContainer) shortsContainer.classList.remove('active');
+                if (document.getElementById('post-box-main')) document.getElementById('post-box-main').style.display = 'none';
+                if (document.getElementById('stories-container')) document.getElementById('stories-container').style
+                .display = 'none';
+
+                // Show relevant section
+                if (tab === 'home') {
+                    if (feedContainer) feedContainer.style.display = 'flex';
+                    if (document.getElementById('post-box-main')) document.getElementById('post-box-main').style
+                        .display = 'flex';
+                    if (document.getElementById('stories-container')) document.getElementById('stories-container').style
+                        .display = 'flex';
+                    setTimeout(() => { window.scrollTo(0, feedScrollPos || 0); }, 50);
+                } else if (tab === 'reels') {
+                    if (reelsContainer) reelsContainer.classList.add('active');
+                    if (!videoDataCache.length) loadVideoContent('reels');
+                } else if (tab === 'shorts') {
+                    if (shortsContainer) shortsContainer.classList.add('active');
+                    if (!shortsDataCache.length) loadVideoContent('shorts');
+                } else if (tab === 'friends') {
+                    openIframe('friends.html', 'Friends');
+                    setTimeout(() => switchTab('home'), 100);
+                } else if (tab === 'messenger') {
+                    openIframe('messenger.html', 'Messenger');
+                    setTimeout(() => switchTab('home'), 100);
+                } else if (tab === 'notifications') {
+                    openIframe('notifications.html', 'Notifications');
+                    setTimeout(() => switchTab('home'), 100);
+                } else if (tab === 'menu') {
+                    toggleNavOverlay(true);
+                    setTimeout(() => switchTab('home'), 100);
+                }
+            }
+
+            // --- Tab click listeners ---
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    const tabName = this.dataset.tab;
+                    if (tabName === 'home') {
+                        feedScrollPos = window.scrollY;
+                    }
+                    switchTab(tabName);
+                });
+            });
+
+            // --- Swipe to Refresh ---
+            document.addEventListener('touchstart', function(e) {
+                if (window.scrollY <= 0) {
+                    touchStartY = e.touches[0].clientY;
+                    isSwipingDown = false;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (window.scrollY <= 0 && touchStartY > 0 && !isRefreshing) {
+                    const currentY = e.touches[0].clientY;
+                    const diff = currentY - touchStartY;
+                    if (diff > 10) {
+                        isSwipingDown = true;
+                        e.preventDefault();
+                        const indicator = swipeIndicator;
+                        if (indicator) {
+                            indicator.classList.add('show');
+                            if (diff > 80) {
+                                indicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Release to refresh';
+                            } else {
+                                indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
+                            }
+                        }
+                    }
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchend', function(e) {
+                if (isSwipingDown && !isRefreshing && touchStartY > 0) {
+                    const diff = e.changedTouches[0].clientY - touchStartY;
+                    if (diff > 80) {
+                        isRefreshing = true;
+                        const indicator = swipeIndicator;
+                        if (indicator) {
+                            indicator.innerHTML = '<div class="spinner"></div><span>Refreshing...</span>';
+                        }
+                        refreshCurrentTab();
+                    } else {
+                        const indicator = swipeIndicator;
+                        if (indicator) {
+                            indicator.classList.remove('show');
+                            indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
+                        }
+                    }
+                }
+                touchStartY = 0;
+                isSwipingDown = false;
+            }, { passive: true });
+
+            async function refreshCurrentTab() {
+                try {
+                    if (currentTab === 'home') {
+                        await refreshFeed();
+                    } else if (currentTab === 'reels') {
+                        videoDataCache = [];
+                        videoLastDoc = null;
+                        hasMoreVideo = true;
+                        if (reelsScroll) {
+                            const items = reelsScroll.querySelectorAll('.video-item');
+                            items.forEach(el => el.remove());
+                            reelsScroll.innerHTML =
+                                '<div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading Reels...</div>';
+                        }
+                        await loadVideoContent('reels', true);
+                    } else if (currentTab === 'shorts') {
+                        shortsDataCache = [];
+                        shortsLastDoc = null;
+                        hasMoreShorts = true;
+                        if (shortsScroll) {
+                            const items = shortsScroll.querySelectorAll('.video-item');
+                            items.forEach(el => el.remove());
+                            shortsScroll.innerHTML =
+                                '<div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading Shorts...</div>';
+                        }
+                        await loadVideoContent('shorts', true);
+                    }
+                    showToast('Refreshed!');
+                } catch (e) {
+                    console.error('Refresh error:', e);
+                    showToast('Error refreshing');
+                } finally {
+                    isRefreshing = false;
+                    const indicator = swipeIndicator;
+                    if (indicator) {
+                        indicator.classList.remove('show');
+                        indicator.innerHTML = '<div class="spinner"></div><span>Pull to refresh</span>';
+                    }
+                }
+            }
+
+            // --- Refresh Feed (Home) ---
+            async function refreshFeed() {
+                try {
+                    postsLoaded = 0;
+                    lastDoc = null;
+                    hasMore = true;
+                    if (feedContainer) {
+                        const posts = feedContainer.querySelectorAll('.feed-post');
+                        posts.forEach(el => el.remove());
+                    }
+                    if (feedLoading) {
+                        feedLoading.style.display = 'block';
+                        feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refreshing...';
+                    }
+                    if (endOfFeed) endOfFeed.style.display = 'none';
+                    await loadStories(true);
+                    await loadPosts(false);
+                } catch (e) {
+                    console.error('Refresh feed error:', e);
+                }
+            }
+
+            // ========== VIDEO CONTENT (Reels & Shorts) with Side Actions ==========
+            async function loadVideoContent(type, force = false) {
+                const isReels = type === 'reels';
+                const container = isReels ? reelsScroll : shortsScroll;
+                const cache = isReels ? videoDataCache : shortsDataCache;
+
+                if ((isReels && isLoadingVideo) || (!isReels && isLoadingShorts)) return;
+                if (!force && cache.length > 0) {
+                    setTimeout(setupVideoObserverForTab, 200);
+                    return;
+                }
+                if ((isReels && !hasMoreVideo) || (!isReels && !hasMoreShorts)) {
+                    if (container) {
+                        const loadingEl = container.querySelector('.loading-text');
+                        if (loadingEl) loadingEl.textContent = 'No more videos';
+                    }
+                    return;
+                }
+
+                if (isReels) isLoadingVideo = true;
+                else isLoadingShorts = true;
+
+                try {
+                    let query = db.collection('all-user-post')
+                        .orderBy('timestamp', 'desc')
+                        .limit(15);
+                    if (isReels && videoLastDoc) query = query.startAfter(videoLastDoc);
+                    if (!isReels && shortsLastDoc) query = query.startAfter(shortsLastDoc);
+
+                    const snapshot = await query.get();
+                    if (snapshot.empty) {
+                        if (isReels) hasMoreVideo = false;
+                        else hasMoreShorts = false;
+                        if (container) {
+                            const loadingEl = container.querySelector('.loading-text');
+                            if (loadingEl) loadingEl.textContent = 'No more videos';
+                        }
+                        if (isReels) isLoadingVideo = false;
+                        else isLoadingShorts = false;
+                        return;
+                    }
+
+                    const videos = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const url = data.imageUrl || '';
+                        if (url && url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) {
+                            videos.push({ id: doc.id, ...data });
+                        }
+                    });
+
+                    if (videos.length === 0) {
+                        if (isReels) {
+                            videoLastDoc = snapshot.docs[snapshot.docs.length - 1];
+                            hasMoreVideo = true;
+                            isLoadingVideo = false;
+                            loadVideoContent('reels', true);
+                        } else {
+                            shortsLastDoc = snapshot.docs[snapshot.docs.length - 1];
+                            hasMoreShorts = true;
+                            isLoadingShorts = false;
+                            loadVideoContent('shorts', true);
+                        }
+                        return;
+                    }
+
+                    if (isReels) {
+                        videoDataCache = [...videoDataCache, ...videos];
+                        videoLastDoc = snapshot.docs[snapshot.docs.length - 1];
+                        hasMoreVideo = videos.length >= 10;
+                        renderVideos(container, videos, 'reels');
+                        isLoadingVideo = false;
+                    } else {
+                        shortsDataCache = [...shortsDataCache, ...videos];
+                        shortsLastDoc = snapshot.docs[snapshot.docs.length - 1];
+                        hasMoreShorts = videos.length >= 10;
+                        renderVideos(container, videos, 'shorts');
+                        isLoadingShorts = false;
+                    }
+
+                    setTimeout(setupVideoObserverForTab, 300);
+
+                } catch (error) {
+                    console.error('Error loading videos:', error);
+                    if (isReels) isLoadingVideo = false;
+                    else isLoadingShorts = false;
+                    if (container) {
+                        const loadingEl = container.querySelector('.loading-text');
+                        if (loadingEl) loadingEl.textContent = '⚠️ Failed to load videos. Please refresh.';
+                    }
+                    showToast('Error loading videos. Please try again.');
+                }
+            }
+
+            function renderVideos(container, videos, type) {
+                if (!container) return;
+                const loadingEl = container.querySelector('.loading-text');
+                if (loadingEl) loadingEl.remove();
+
+                videos.forEach((video, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'video-item';
+                    div.dataset.videoId = video.id;
+                    const userName = video.userName || 'User';
+                    const videoUrl = video.imageUrl || '';
+                    const caption = video.caption || '';
+                    const likes = video.likes || 0;
+                    const comments = (video.comments || []).length;
+
+                    div.innerHTML = `
+                        <video src="${videoUrl}" playsinline preload="metadata" loop></video>
+                        <div class="video-overlay">
+                            <h4>${escapeHTML(userName)}</h4>
+                            <p>${escapeHTML(caption)}</p>
+                        </div>
+                        <div class="video-side-actions">
+                            <div class="action-item like-video-btn" data-postid="${video.id}" data-likes="${likes}">
+                                <i class="fa-regular fa-heart"></i>
+                                <span class="like-count">${likes}</span>
+                            </div>
+                            <div class="action-item" onclick="event.stopPropagation(); openPostDetail('${video.id}')">
+                                <i class="fa-regular fa-comment"></i>
+                                <span>${comments}</span>
+                            </div>
+                            <div class="action-item" onclick="event.stopPropagation(); shareVideo('${videoUrl}', '${escapeHTML(caption)}')">
+                                <i class="fa-regular fa-share-from-square"></i>
+                                <span>Share</span>
+                            </div>
+                            <div class="action-item" onclick="event.stopPropagation(); openFullscreenVideo('${videoUrl}')">
+                                <i class="fa-regular fa-expand"></i>
+                                <span>Full</span>
+                            </div>
+                        </div>
+                        <div class="video-custom-controls">
+                            <button class="play-pause-btn" onclick="event.stopPropagation(); toggleVideoPlay(this)"><i class="fa-solid fa-play"></i></button>
+                            <div class="progress-bar" onclick="event.stopPropagation(); seekVideo(event, this)">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <span class="time-display">0:00 / 0:00</span>
+                            <button class="fullscreen-btn" onclick="event.stopPropagation(); openFullscreenVideo('${videoUrl}')"><i class="fa-solid fa-expand"></i></button>
+                        </div>
+                        <button class="video-close-btn" onclick="switchTab('home')"><i class="fa-solid fa-xmark"></i></button>
+                    `;
+                    container.appendChild(div);
+
+                    const videoEl = div.querySelector('video');
+                    if (videoEl) {
+                        videoEl.volume = 1.0;
+                        videoEl.muted = false;
+
+                        // Custom controls update
+                        const playBtn = div.querySelector('.play-pause-btn');
+                        const progressFill = div.querySelector('.progress-fill');
+                        const timeDisplay = div.querySelector('.time-display');
+
+                        videoEl.addEventListener('timeupdate', function() {
+                            if (progressFill) {
+                                const percent = (this.currentTime / this.duration) * 100;
+                                progressFill.style.width = percent + '%';
+                            }
+                            if (timeDisplay) {
+                                const current = formatTimeDisplay(this.currentTime);
+                                const total = formatTimeDisplay(this.duration);
+                                timeDisplay.textContent = current + ' / ' + total;
+                            }
+                        });
+
+                        videoEl.addEventListener('play', function() {
+                            if (playBtn) playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                        });
+                        videoEl.addEventListener('pause', function() {
+                            if (playBtn) playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                        });
+
+                        videoEl.addEventListener('loadedmetadata', function() {
+                            if (timeDisplay) {
+                                const total = formatTimeDisplay(this.duration);
+                                timeDisplay.textContent = '0:00 / ' + total;
+                            }
+                        });
+
+                        // Click to open fullscreen instead of play/pause
+                        videoEl.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const url = this.src || this.getAttribute('src');
+                            if (url) {
+                                openFullscreenVideo(url);
+                            }
+                        });
+                    }
+
+                    // Like button
+                    const likeBtn = div.querySelector('.like-video-btn');
+                    if (likeBtn) {
+                        likeBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            handleVideoLike(this, video.id);
+                        });
+                    }
+                });
+
+                // Infinite scroll
+                container.addEventListener('scroll', function() {
+                    if (this.scrollTop + this.clientHeight >= this.scrollHeight - 300) {
+                        if (type === 'reels' && hasMoreVideo && !isLoadingVideo) {
+                            loadVideoContent('reels');
+                        } else if (type === 'shorts' && hasMoreShorts && !isLoadingShorts) {
+                            loadVideoContent('shorts');
+                        }
+                    }
+                }, { passive: true });
+            }
+
+            // --- Video Like Handler ---
+            async function handleVideoLike(btn, postId) {
+                const userId = auth.currentUser?.uid;
+                if (!userId) { showToast('Please login to like'); return; }
+                const icon = btn.querySelector('i');
+                const countSpan = btn.querySelector('.like-count');
+                let currentLikes = parseInt(countSpan.textContent) || 0;
+                const isLiked = icon.classList.contains('fa-solid');
+
+                try {
+                    const doc = await db.collection('all-user-post').doc(postId).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const likedBy = data.likedBy || [];
+                        if (isLiked) {
+                            const newLikedBy = likedBy.filter(id => id !== userId);
+                            await db.collection('all-user-post').doc(postId).update({
+                                likes: currentLikes - 1,
+                                likedBy: newLikedBy
+                            });
+                            icon.className = 'fa-regular fa-heart';
+                            countSpan.textContent = currentLikes - 1;
+                            btn.classList.remove('liked');
+                        } else {
+                            const newLikedBy = [...likedBy, userId];
+                            await db.collection('all-user-post').doc(postId).update({
+                                likes: currentLikes + 1,
+                                likedBy: newLikedBy
+                            });
+                            icon.className = 'fa-solid fa-heart';
+                            countSpan.textContent = currentLikes + 1;
+                            btn.classList.add('liked');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error liking video:', error);
+                    showToast('Error: ' + error.message);
+                }
+            }
+
+            // --- Video Share ---
+            function shareVideo(url, caption) {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Check out this video!',
+                        text: caption || 'Amazing video!',
+                        url: url
+                    }).catch(() => {});
+                } else {
+                    navigator.clipboard.writeText(url).then(() => {
+                        showToast('Video link copied to clipboard!');
+                    }).catch(() => {
+                        showToast('Share: ' + url);
+                    });
+                }
+            }
+
+            // --- Toggle Video Play ---
+            function toggleVideoPlay(btn) {
+                const video = btn.closest('.video-item').querySelector('video');
+                if (video) {
+                    if (video.paused) video.play().catch(() => {});
+                    else video.pause();
+                }
+            }
+
+            // --- Seek Video ---
+            function seekVideo(event, bar) {
+                const video = bar.closest('.video-item').querySelector('video');
+                if (video && video.duration) {
+                    const rect = bar.getBoundingClientRect();
+                    const percent = (event.clientX - rect.left) / rect.width;
+                    video.currentTime = percent * video.duration;
+                }
+            }
+
+            // --- Format Time Display ---
+            function formatTimeDisplay(seconds) {
+                if (!seconds || isNaN(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return mins + ':' + (secs < 10 ? '0' : '') + secs;
+            }
+
+            // --- Video Observer for Auto-Play (Single Video at a time) ---
+            function setupVideoObserverForTab() {
+                if (videoObserverInstance) videoObserverInstance.disconnect();
+
+                const container = currentTab === 'reels' ? reelsScroll : (currentTab === 'shorts' ? shortsScroll : null);
+                if (!container) return;
+
+                videoObserverInstance = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const video = entry.target.closest('.video-item')?.querySelector('video');
+                        if (!video) return;
+
+                        if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+                            // Pause any other playing video
+                            if (activeVideoElement && activeVideoElement !== video) {
+                                activeVideoElement.pause();
+                            }
+                            // Play this video
+                            if (video.paused) {
+                                video.play().catch(() => {});
+                                video.volume = 1.0;
+                                video.muted = false;
+                            }
+                            activeVideoElement = video;
+                        } else if (entry.intersectionRatio < 0.3) {
+                            if (!video.paused) {
+                                video.pause();
+                            }
+                            if (activeVideoElement === video) {
+                                activeVideoElement = null;
+                            }
+                        }
+                    });
+                }, { root: container, rootMargin: '0px', threshold: [0, 0.3, 0.5, 0.7, 1] });
+
+                container.querySelectorAll('.video-item video').forEach(v => {
+                    videoObserverInstance.observe(v);
                 });
             }
 
-            // ========== UPDATE BADGES ==========
-            function updateNotifBadge(change) {
-                unreadNotifCount += change;
-                if (unreadNotifCount < 0) unreadNotifCount = 0;
-                const display = unreadNotifCount > 0 ? unreadNotifCount : '';
-                if (notifBadgeHeader) notifBadgeHeader.textContent = display;
-                if (notifBadgeTab) notifBadgeTab.textContent = display;
-                if (notifBadgeNav) notifBadgeNav.textContent = display;
+            // ========== STORIES ==========
+            async function loadStories(force = false) {
+                if (storiesLoaded && !force) { renderStories(); return; }
+                try {
+                    const user = auth.currentUser;
+                    let stories = [];
+                    await cleanupOldStories();
+
+                    if (user) {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        const userData = userDoc.exists ? userDoc.data() : {};
+                        const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
+                        const userPic = user.photoURL || userData.photoURL ||
+                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                        const userStoryDoc = await db.collection('stories').doc(user.uid).get();
+                        if (userStoryDoc.exists) {
+                            const storyData = userStoryDoc.data();
+                            const storyDate = storyData.timestamp?.toDate?.() || new Date(storyData.createdAt);
+                            const diffHours = (Date.now() - storyDate.getTime()) / (1000 * 60 * 60);
+                            if (diffHours < 24) {
+                                let mediaType = storyData.mediaType || 'image';
+                                const url = storyData.imageUrl || '';
+                                if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) mediaType = 'video';
+                                stories.push({
+                                    name: userName,
+                                    pic: userPic,
+                                    img: storyData.imageUrl || userPic,
+                                    thumbnail: storyData.thumbnail || storyData.imageUrl || userPic,
+                                    imageUrl: storyData.imageUrl || userPic,
+                                    time: 'Now',
+                                    uid: user.uid,
+                                    mediaType: mediaType,
+                                    timestamp: storyDate
+                                });
+                            }
+                        }
+                    }
+
+                    const storiesSnapshot = await db.collection('stories')
+                        .orderBy('timestamp', 'desc')
+                        .limit(20)
+                        .get();
+
+                    const now = new Date();
+                    storiesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
+                        const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                        if (diffHours < 24 && data.uid !== user?.uid) {
+                            let mediaType = data.mediaType || 'image';
+                            const url = data.imageUrl || '';
+                            if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) mediaType = 'video';
+                            stories.push({
+                                name: data.userName || 'User',
+                                pic: data.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                                img: data.imageUrl || data.userImage || '',
+                                thumbnail: data.thumbnail || data.imageUrl || data.userImage || '',
+                                imageUrl: data.imageUrl || data.userImage || '',
+                                time: getTimeAgo(storyDate),
+                                uid: data.uid,
+                                mediaType: mediaType,
+                                timestamp: storyDate
+                            });
+                        }
+                    });
+
+                    const uniqueStories = [];
+                    const seenUids = new Set();
+                    for (const story of stories) {
+                        if (!seenUids.has(story.uid)) {
+                            seenUids.add(story.uid);
+                            uniqueStories.push(story);
+                        }
+                    }
+                    uniqueStories.sort((a, b) => {
+                        if (a.uid === user?.uid) return -1;
+                        if (b.uid === user?.uid) return 1;
+                        return (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0);
+                    });
+
+                    storyDataCache = uniqueStories.length > 0 ? uniqueStories : getDefaultStories();
+                    storiesCache = storyDataCache;
+                    storiesLoaded = true;
+                    renderStories();
+                } catch (error) {
+                    console.error('Error loading stories:', error);
+                    storyDataCache = storiesCache.length > 0 ? storiesCache : getDefaultStories();
+                    renderStories();
+                }
             }
 
-            function updateMessengerBadge(count) {
-                const display = count > 0 ? count : '';
-                if (messengerBadgeHeader) messengerBadgeHeader.textContent = display;
-                if (messengerBadgeTab) messengerBadgeTab.textContent = display;
-                if (messengerBadgeNav) messengerBadgeNav.textContent = display;
+            function getTimeAgo(date) {
+                if (!date) return 'Just now';
+                const now = new Date();
+                const diff = now - date;
+                if (diff < 60000) return 'Just now';
+                if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+                if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+                return Math.floor(diff / 86400000) + 'd';
             }
+
+            function getDefaultStories() {
+                return [
+                    { name: 'Md Rhoman', pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+                        img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+                        time: '1h', uid: 'default1', mediaType: 'image' },
+                    { name: 'হাবিবুর সোহান', pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+                        img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+                        time: '3h', uid: 'default2', mediaType: 'image' }
+                ];
+            }
+
+            function renderStories() {
+                if (!storiesContainer) return;
+                storiesContainer.innerHTML = '';
+                const createCard = document.createElement('div');
+                createCard.className = 'story-card create-story';
+                createCard.onclick = () => openIframe('story/create-story.html', 'Create Story');
+                const userPhoto = auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
+                createCard.innerHTML = `
+                    <img src="${userPhoto}" alt="Create Story">
+                    <div class="create-story-content">
+                        <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
+                        <span>Create story</span>
+                    </div>
+                `;
+                storiesContainer.appendChild(createCard);
+                storyDataCache.forEach((story, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'story-card';
+                    card.onclick = () => openStoryViewer(index);
+                    const isVideo = story.mediaType === 'video' || (story.imageUrl && story.imageUrl.match(
+                    /\.(mp4|mov|avi|webm|mkv)$/i));
+                    const videoUrl = story.imageUrl || story.img || '';
+                    const thumbnailUrl = story.thumbnail || story.pic ||
+                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
+                    if (isVideo && videoUrl) {
+                        card.innerHTML = `
+                            <video src="${videoUrl}" muted autoplay loop playsinline style="width:100%; height:100%; object-fit:cover;" poster="${thumbnailUrl}"></video>
+                            <div class="story-video-tag"><i class="fa-solid fa-video"></i> Video</div>
+                            <div class="story-name">${story.name || 'User'}</div>
+                            <span class="story-badge">${story.time || 'Now'}</span>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <span class="story-badge">${story.time || 'Now'}</span>
+                            <img src="${thumbnailUrl}" alt="Story" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'">
+                            <div class="story-name">${story.name || 'User'}</div>
+                        `;
+                    }
+                    storiesContainer.appendChild(card);
+                });
+            }
+
+            async function cleanupOldStories() {
+                try {
+                    const now = new Date();
+                    const storiesSnapshot = await db.collection('stories').get();
+                    const batch = db.batch();
+                    let deleteCount = 0;
+                    storiesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
+                        const diffHours = (now - storyDate) / (1000 * 60 * 60);
+                        if (diffHours >= 24) { batch.delete(doc.ref);
+                            deleteCount++; }
+                    });
+                    if (deleteCount > 0) await batch.commit();
+                } catch (error) { console.error('Error cleaning up stories:', error); }
+            }
+
+            setInterval(() => { if (auth.currentUser) loadStories(true); }, 60000);
 
             // ========== STORY VIEWER ==========
-            let currentStoryIndex = 0;
-            let storyDataCache = [];
-            let storyTimer = null;
-            let isVideoPlaying = false;
-            let currentVideoElement = null;
-
-            const storyModal = getEl('story-viewer-modal');
-            const viewerUserPic = getEl('viewer-user-pic');
-            const viewerUsername = getEl('viewer-username');
-            const viewerTime = getEl('viewer-time');
-            const viewerStoryImg = getEl('viewer-story-img');
-            const viewerBg = getEl('viewer-bg');
-            const videoIndicator = getEl('story-video-indicator');
-            const storyPrevBtn = getEl('story-prev-btn');
-            const storyNextBtn = getEl('story-next-btn');
-            const closeStoryViewerBtn = getEl('close-story-viewer');
-
             function openStoryViewer(index) {
-                if (storyDataCache.length === 0) {
-                    showToast('No stories available');
-                    return;
-                }
+                if (storyDataCache.length === 0) { showToast('No stories available'); return; }
                 currentStoryIndex = index % storyDataCache.length;
                 isVideoPlaying = false;
                 const mainArea = document.querySelector('.story-main-image-area');
                 const oldVideo = mainArea ? mainArea.querySelector('video') : null;
-                if (oldVideo) {
-                    oldVideo.pause();
+                if (oldVideo) { oldVideo.pause();
                     oldVideo.currentTime = 0;
                     oldVideo.remove();
-                    currentVideoElement = null;
-                }
-                if (viewerStoryImg) {
-                    viewerStoryImg.style.display = 'none';
-                    viewerStoryImg.src = '';
-                }
+                    currentVideoElement = null; }
+                const viewerStoryImg = getEl('viewer-story-img');
+                if (viewerStoryImg) { viewerStoryImg.style.display = 'none';
+                    viewerStoryImg.src = ''; }
+                const videoIndicator = getEl('story-video-indicator');
                 if (videoIndicator) videoIndicator.classList.remove('show');
+                const storyModal = getEl('story-viewer-modal');
                 if (storyModal) storyModal.style.display = 'flex';
-                setTimeout(() => {
-                    showStory(currentStoryIndex);
-                }, 100);
+                setTimeout(() => { showStory(currentStoryIndex); }, 100);
             }
 
             function showStory(index) {
                 const story = storyDataCache[index];
                 if (!story) return;
+                const viewerUserPic = getEl('viewer-user-pic');
+                const viewerUsername = getEl('viewer-username');
+                const viewerTime = getEl('viewer-time');
                 if (viewerUserPic) viewerUserPic.src = story.pic || 'default.jpg';
                 if (viewerUsername) viewerUsername.textContent = story.name || 'User';
                 if (viewerTime) viewerTime.textContent = story.time || 'Just now';
                 const storyUrl = story.img || story.imageUrl || story.pic || 'default.jpg';
                 const isVideo = story.mediaType === 'video' || storyUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i);
                 const mainArea = document.querySelector('.story-main-image-area');
+                const viewerStoryImg = getEl('viewer-story-img');
+                const videoIndicator = getEl('story-video-indicator');
+                const viewerBg = getEl('viewer-bg');
+
                 if (currentVideoElement) {
                     currentVideoElement.pause();
                     currentVideoElement.currentTime = 0;
                     currentVideoElement.remove();
                     currentVideoElement = null;
                 }
-                if (viewerStoryImg) {
-                    viewerStoryImg.style.display = 'none';
-                }
+                if (viewerStoryImg) viewerStoryImg.style.display = 'none';
                 if (videoIndicator) videoIndicator.classList.remove('show');
+
                 if (isVideo) {
                     const video = document.createElement('video');
                     video.id = 'story-video-player';
@@ -2207,10 +3409,8 @@
                     video.addEventListener('play', function() {
                         isVideoPlaying = true;
                         if (videoIndicator) videoIndicator.classList.remove('show');
-                        if (storyTimer) {
-                            clearTimeout(storyTimer);
-                            storyTimer = null;
-                        }
+                        if (storyTimer) { clearTimeout(storyTimer);
+                            storyTimer = null; }
                     });
                     video.addEventListener('ended', function() {
                         isVideoPlaying = false;
@@ -2219,16 +3419,12 @@
                     });
                     video.addEventListener('pause', function() {
                         isVideoPlaying = false;
-                        if (!this.ended && videoIndicator) {
-                            videoIndicator.classList.add('show');
-                        }
+                        if (!this.ended && videoIndicator) videoIndicator.classList.add('show');
                     });
                     if (viewerBg) viewerBg.style.backgroundImage = `url('${story.pic || storyUrl}')`;
                     setTimeout(() => {
-                        if (video) {
-                            video.currentTime = 0;
-                            video.play().catch(() => {});
-                        }
+                        if (video) { video.currentTime = 0;
+                            video.play().catch(() => {}); }
                     }, 200);
                 } else {
                     if (viewerStoryImg) {
@@ -2269,6 +3465,7 @@
             }
 
             function closeStoryViewer() {
+                const storyModal = getEl('story-viewer-modal');
                 if (storyModal) storyModal.style.display = 'none';
                 if (currentVideoElement) {
                     currentVideoElement.pause();
@@ -2277,31 +3474,26 @@
                     currentVideoElement = null;
                 }
                 isVideoPlaying = false;
+                const videoIndicator = getEl('story-video-indicator');
                 if (videoIndicator) videoIndicator.classList.remove('show');
-                if (storyTimer) {
-                    clearTimeout(storyTimer);
-                    storyTimer = null;
-                }
+                if (storyTimer) { clearTimeout(storyTimer);
+                    storyTimer = null; }
             }
 
-            if (storyPrevBtn) {
-                storyPrevBtn.addEventListener('click', function(e) { e.stopPropagation();
-                    prevStory(); });
-            }
-            if (storyNextBtn) {
-                storyNextBtn.addEventListener('click', function(e) { e.stopPropagation();
-                    nextStory(); });
-            }
-            if (closeStoryViewerBtn) {
-                closeStoryViewerBtn.addEventListener('click', closeStoryViewer);
-            }
-            if (storyModal) {
-                storyModal.addEventListener('click', function(e) {
-                    if (e.target === this) closeStoryViewer();
-                });
-            }
+            const storyPrevBtn = getEl('story-prev-btn');
+            const storyNextBtn = getEl('story-next-btn');
+            const closeStoryViewerBtn = getEl('close-story-viewer');
+            if (storyPrevBtn) storyPrevBtn.addEventListener('click', function(e) { e.stopPropagation();
+                prevStory(); });
+            if (storyNextBtn) storyNextBtn.addEventListener('click', function(e) { e.stopPropagation();
+                nextStory(); });
+            if (closeStoryViewerBtn) closeStoryViewerBtn.addEventListener('click', closeStoryViewer);
+            const storyModalEl = getEl('story-viewer-modal');
+            if (storyModalEl) storyModalEl.addEventListener('click', function(e) {
+                if (e.target === this) closeStoryViewer();
+            });
             document.addEventListener('keydown', function(e) {
-                if (!storyModal || storyModal.style.display !== 'flex') return;
+                if (!storyModalEl || storyModalEl.style.display !== 'flex') return;
                 if (e.key === 'ArrowLeft') { e.preventDefault();
                     prevStory(); }
                 if (e.key === 'ArrowRight') { e.preventDefault();
@@ -2310,11 +3502,8 @@
                 if (e.key === ' ' || e.key === 'Space') {
                     e.preventDefault();
                     if (currentVideoElement) {
-                        if (currentVideoElement.paused) {
-                            currentVideoElement.play().catch(() => {});
-                        } else {
-                            currentVideoElement.pause();
-                        }
+                        if (currentVideoElement.paused) currentVideoElement.play().catch(() => {});
+                        else currentVideoElement.pause();
                     }
                 }
             });
@@ -2324,194 +3513,378 @@
             window.prevStory = prevStory;
             window.closeStoryViewer = closeStoryViewer;
 
-            // ========== LOAD STORIES (CACHED) ==========
-            let storiesLoaded = false;
-            let storiesCache = [];
+            // ========== POSTS (HOME FEED) ==========
+            function shuffleArray(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
 
-            async function loadStories(force = false) {
-                if (storiesLoaded && !force) {
-                    renderStories();
+            async function loadPosts(loadMore = false) {
+                if (isLoading || (!loadMore && postsLoaded > 0)) return;
+                if (!loadMore) {
+                    postsLoaded = 0;
+                    lastDoc = null;
+                    hasMore = true;
+                    if (endOfFeed) endOfFeed.style.display = 'none';
+                    if (feedContainer) {
+                        const existingPosts = feedContainer.querySelectorAll('.feed-post');
+                        existingPosts.forEach(el => el.remove());
+                    }
+                    if (feedLoading) {
+                        feedLoading.style.display = 'block';
+                        feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading posts...';
+                    }
+                } else {
+                    if (scrollLoader) scrollLoader.style.display = 'block';
+                }
+                if (!hasMore) {
+                    if (scrollLoader) scrollLoader.style.display = 'none';
+                    if (endOfFeed) endOfFeed.style.display = 'block';
                     return;
                 }
+                isLoading = true;
                 try {
-                    const user = auth.currentUser;
-                    let stories = [];
-                    await cleanupOldStories();
-                    
-                    if (user) {
-                        const userDoc = await db.collection('users').doc(user.uid).get();
-                        const userData = userDoc.exists ? userDoc.data() : {};
-                        const userName = user.displayName || userData.fullName || user.email?.split('@')[0] || 'Me';
-                        const userPic = user.photoURL || userData.photoURL ||
-                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-                        const userStoryDoc = await db.collection('stories').doc(user.uid).get();
-                        if (userStoryDoc.exists) {
-                            const storyData = userStoryDoc.data();
-                            const storyDate = storyData.timestamp?.toDate?.() || new Date(storyData.createdAt);
-                            const diffHours = (Date.now() - storyDate.getTime()) / (1000 * 60 * 60);
-                            if (diffHours < 24) {
-                                let mediaType = storyData.mediaType || 'image';
-                                const url = storyData.imageUrl || '';
-                                if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) mediaType = 'video';
-                                stories.push({
-                                    name: userName,
-                                    pic: userPic,
-                                    img: storyData.imageUrl || userPic,
-                                    thumbnail: storyData.thumbnail || storyData.imageUrl || userPic,
-                                    imageUrl: storyData.imageUrl || userPic,
-                                    time: 'Now',
-                                    uid: user.uid,
-                                    mediaType: mediaType,
-                                    timestamp: storyDate
-                                });
-                            }
-                        }
-                    }
-                    
-                    const storiesSnapshot = await db.collection('stories')
+                    let query = db.collection('all-user-post')
                         .orderBy('timestamp', 'desc')
-                        .limit(20)
-                        .get();
-                    
-                    const now = new Date();
-                    storiesSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
-                        const diffHours = (now - storyDate) / (1000 * 60 * 60);
-                        if (diffHours < 24 && data.uid !== user?.uid) {
-                            let mediaType = data.mediaType || 'image';
-                            const url = data.imageUrl || '';
-                            if (url.match(/\.(mp4|mov|avi|webm|mkv)$/i)) mediaType = 'video';
-                            stories.push({
-                                name: data.userName || 'User',
-                                pic: data.userImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-                                img: data.imageUrl || data.userImage || '',
-                                thumbnail: data.thumbnail || data.imageUrl || data.userImage || '',
-                                imageUrl: data.imageUrl || data.userImage || '',
-                                time: getTimeAgo(storyDate),
-                                uid: data.uid,
-                                mediaType: mediaType,
-                                timestamp: storyDate
-                            });
+                        .limit(POSTS_PER_PAGE);
+                    if (lastDoc) query = query.startAfter(lastDoc);
+                    const snapshot = await query.get();
+                    if (snapshot.empty) {
+                        hasMore = false;
+                        if (scrollLoader) scrollLoader.style.display = 'none';
+                        if (postsLoaded === 0 && feedLoading) {
+                            feedLoading.innerHTML = 'No posts yet. Be the first to share!';
+                        } else if (endOfFeed) {
+                            endOfFeed.style.display = 'block';
                         }
-                    });
-                    
-                    const uniqueStories = [];
-                    const seenUids = new Set();
-                    for (const story of stories) {
-                        if (!seenUids.has(story.uid)) {
-                            seenUids.add(story.uid);
-                            uniqueStories.push(story);
-                        }
+                        isLoading = false;
+                        return;
                     }
-                    uniqueStories.sort((a, b) => {
-                        if (a.uid === user?.uid) return -1;
-                        if (b.uid === user?.uid) return 1;
-                        return (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0);
+                    const posts = [];
+                    snapshot.forEach(doc => { const data = doc.data();
+                        posts.push({ id: doc.id, ...data }); });
+                    const shuffledPosts = shuffleArray(posts);
+                    lastDoc = snapshot.docs[snapshot.docs.length - 1];
+                    postsLoaded += shuffledPosts.length;
+                    if (feedLoading) feedLoading.style.display = 'none';
+                    if (scrollLoader) scrollLoader.style.display = 'none';
+                    shuffledPosts.forEach((post) => {
+                        const postEl = createPostElement(post);
+                        if (feedContainer && scrollLoader) {
+                            feedContainer.insertBefore(postEl, scrollLoader);
+                        }
                     });
-                    
-                    storyDataCache = uniqueStories.length > 0 ? uniqueStories : getDefaultStories();
-                    storiesCache = storyDataCache;
-                    storiesLoaded = true;
-                    renderStories();
+                    attachFeedListeners();
+                    hasMore = shuffledPosts.length >= POSTS_PER_PAGE;
+                    if (!hasMore && endOfFeed) endOfFeed.style.display = 'block';
+                    isLoading = false;
+                    setTimeout(setupVideoObserverForFeed, 300);
                 } catch (error) {
-                    console.error('Error loading stories:', error);
-                    storyDataCache = storiesCache.length > 0 ? storiesCache : getDefaultStories();
-                    renderStories();
+                    console.error('Error loading posts:', error);
+                    if (feedLoading) feedLoading.innerHTML = '⚠️ Failed to load posts. Please refresh.';
+                    if (scrollLoader) scrollLoader.style.display = 'none';
+                    isLoading = false;
+                    showToast('Error loading posts: ' + error.message);
                 }
             }
 
-            function getTimeAgo(date) {
-                if (!date) return 'Just now';
-                const now = new Date();
-                const diff = now - date;
-                if (diff < 60000) return 'Just now';
-                if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
-                if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
-                return Math.floor(diff / 86400000) + 'd';
-            }
+            function createPostElement(post) {
+                const div = document.createElement('div');
+                div.className = 'feed-post';
+                div.dataset.postId = post.id;
+                div.dataset.userId = post.userId || '';
 
-            function getDefaultStories() {
-                return [
-                    { name: 'Md Rhoman', pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80', time: '1h', uid: 'default1', mediaType: 'image' },
-                    { name: 'হাবিবুর সোহান', pic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80', time: '3h', uid: 'default2', mediaType: 'image' }
-                ];
-            }
+                div.addEventListener('click', function(e) {
+                    if (e.target.closest('.action-btn') || e.target.closest('.read-more-btn') ||
+                        e.target.closest('.comment-box-input') || e.target.closest('.post-options') ||
+                        e.target.closest('.profile-container') || e.target.closest('.post-meta h4') ||
+                        e.target.closest('.comment-item') || e.target.closest('.comment-count') ||
+                        e.target.closest('.post-image-content') || e.target.closest('.like-btn') ||
+                        e.target.closest('.comment-toggle-btn') || e.target.closest('video') ||
+                        e.target.closest('.video-open-btn')) {
+                        return;
+                    }
+                    openPostDetail(post.id);
+                });
 
-            function renderStories() {
-                if (!storiesContainer) return;
-                storiesContainer.innerHTML = '';
-                const createCard = document.createElement('div');
-                createCard.className = 'story-card create-story';
-                createCard.onclick = () => openIframe('story/create-story.html', 'Create Story');
-                const userPhoto = auth.currentUser?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
-                createCard.innerHTML = `
-                    <img src="${userPhoto}" alt="Create Story">
-                    <div class="create-story-content">
-                        <div class="plus-icon-btn"><i class="fa-solid fa-plus"></i></div>
-                        <span>Create story</span>
-                    </div>
-                `;
-                storiesContainer.appendChild(createCard);
-                storyDataCache.forEach((story, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'story-card';
-                    card.onclick = () => openStoryViewer(index);
-                    const isVideo = story.mediaType === 'video' || (story.imageUrl && story.imageUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i));
-                    const videoUrl = story.imageUrl || story.img || '';
-                    const thumbnailUrl = story.thumbnail || story.pic || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
-                    if (isVideo && videoUrl) {
-                        card.innerHTML = `
-                            <video src="${videoUrl}" muted autoplay loop playsinline style="width:100%; height:100%; object-fit:cover;" poster="${thumbnailUrl}"></video>
-                            <div class="story-video-tag"><i class="fa-solid fa-video"></i> Video</div>
-                            <div class="story-name">${story.name || 'User'}</div>
-                            <span class="story-badge">${story.time || 'Now'}</span>
+                const currentUser = auth.currentUser;
+                let userName = post.userName || 'Unknown User';
+                let userImage = post.userImage ||
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                let userId = post.userId || '';
+                if (currentUser && post.userId === currentUser.uid) {
+                    if (currentUser.displayName) userName = currentUser.displayName;
+                    if (currentUser.photoURL) userImage = currentUser.photoURL;
+                }
+
+                const caption = post.caption || '';
+                const fullText = post.fullText || caption;
+                const imageUrl = post.imageUrl || '';
+                const mediaType = post.mediaType || 'image';
+                const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
+                const likes = post.likes || 0;
+                const comments = post.comments || [];
+                const isBanner = post.isBanner || false;
+                const bannerTheme = post.bannerTheme || 'white';
+                const themeStyle = getThemeStyles(bannerTheme);
+                const needsReadMore = fullText.length > 150;
+                const isVideo = mediaType === 'video' || (imageUrl && imageUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i));
+
+                let captionHTML = '';
+                if (caption) {
+                    if (isBanner) {
+                        captionHTML = `
+                            <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
+                                <div class="post-caption caption-text">${escapeHTML(caption)}</div>
+                            </div>
                         `;
                     } else {
-                        card.innerHTML = `
-                            <span class="story-badge">${story.time || 'Now'}</span>
-                            <img src="${thumbnailUrl}" alt="Story" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'">
-                            <div class="story-name">${story.name || 'User'}</div>
+                        const displayText = needsReadMore ? fullText.substring(0, 150) + '...' : fullText;
+                        captionHTML = `
+                            <div class="post-caption">
+                                <span class="caption-text ${needsReadMore ? 'truncated' : ''}" id="caption-${post.id}">${escapeHTML(displayText)}</span>
+                                ${needsReadMore ? `<span class="read-more-btn" onclick="toggleReadMore('${post.id}', '${escapeHTML(fullText)}', event)">read more</span>` : ''}
+                            </div>
                         `;
                     }
-                    storiesContainer.appendChild(card);
+                }
+
+                let mediaHTML = '';
+                if (imageUrl) {
+                    if (isVideo) {
+                        // Remove controls attribute and add click handler for fullscreen
+                        mediaHTML = `
+                            <div class="post-image-content">
+                                <video src="${imageUrl}" playsinline preload="metadata" style="width:100%; max-height:400px; object-fit:contain; background:#000; border-radius:4px; cursor:pointer;"></video>
+                                <div class="video-click-overlay">
+                                    <div style="display:flex;flex-direction:column;align-items:center;">
+                                        <i class="fa-solid fa-play-circle"></i>
+                                        <span class="play-text">Tap to watch fullscreen</span>
+                                    </div>
+                                </div>
+                                <button class="video-open-btn" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;" onclick="event.stopPropagation(); openFullscreenVideo('${imageUrl}')"><i class="fa-solid fa-expand"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        mediaHTML = `
+                            <div class="post-image-content">
+                                <img src="${imageUrl}" alt="Post image" loading="lazy" onclick="event.stopPropagation(); openPostDetail('${post.id}')">
+                            </div>
+                        `;
+                    }
+                }
+
+                const userId_check = auth.currentUser?.uid;
+                const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
+                let statusClass = 'inactive';
+                if (currentUser && post.userId === currentUser.uid) statusClass = 'active';
+
+                div.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user-info">
+                            <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
+                                <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
+                                <span class="online-status ${statusClass}" data-userid="${userId}"></span>
+                            </div>
+                            <div class="post-meta">
+                                <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
+                                <span>${timestamp}</span>
+                            </div>
+                        </div>
+                        <div class="post-options">
+                            <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
+                        </div>
+                    </div>
+                    ${captionHTML}
+                    ${mediaHTML}
+                    <div class="post-stats">
+                        <div class="stat-left">
+                            <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
+                            <span class="like-count">${likes}</span>
+                        </div>
+                        <div class="stat-right">
+                            <span class="comment-count" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="cursor:pointer;">${comments.length} comments</span>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <div class="action-btn like-btn ${isLiked ? 'liked' : ''}">${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}</div>
+                        <div class="action-btn comment-toggle-btn"><i class="fa-regular fa-comment"></i> Comment</div>
+                        <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
+                    </div>
+                    <div class="comments-section">
+                        <div class="comments-list">
+                            ${comments.slice(0, 3).map(c => 
+                                `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')">
+                                    <b>${escapeHTML(c.userName || 'User')}:</b> ${escapeHTML(c.text)}
+                                </div>`
+                            ).join('')}
+                            ${comments.length > 3 ? `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="color:#1877f2;font-weight:600;">View all ${comments.length} comments</div>` : ''}
+                        </div>
+                    </div>
+                `;
+                if (isBanner) div.classList.add('banner-post');
+
+                // Add video click handler for fullscreen
+                const videoEl = div.querySelector('.post-image-content video');
+                if (videoEl) {
+                    videoEl.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const url = this.src || this.getAttribute('src');
+                        if (url) {
+                            openFullscreenVideo(url);
+                        }
+                    });
+                }
+
+                // Live status update
+                if (post.userId) {
+                    db.collection('users').doc(post.userId).onSnapshot((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            const newName = data.fullName || data.displayName || post.userName;
+                            const newPhoto = data.photoURL || post.userImage;
+                            const nameEl = div.querySelector('.post-meta h4');
+                            const imgEl = div.querySelector('.post-user-info img');
+                            const statusEl = div.querySelector('.online-status');
+                            if (nameEl && newName) nameEl.textContent = newName;
+                            if (imgEl && newPhoto) imgEl.src = newPhoto;
+                            if (statusEl) {
+                                if (auth.currentUser && post.userId === auth.currentUser.uid) {
+                                    statusEl.className = 'online-status active';
+                                } else {
+                                    statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
+                                        'inactive');
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return div;
+            }
+
+            function attachFeedListeners() {
+                if (!feedContainer) return;
+                document.querySelectorAll('#feed-container .like-btn').forEach(btn => {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const postDiv = this.closest('.feed-post');
+                        const postId = postDiv.dataset.postId;
+                        handleLikePost(postId, this);
+                    });
+                });
+                document.querySelectorAll('#feed-container .comment-toggle-btn').forEach(btn => {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const postDiv = this.closest('.feed-post');
+                        const postId = postDiv.dataset.postId;
+                        openPostDetail(postId);
+                    });
                 });
             }
 
-            async function cleanupOldStories() {
-                try {
-                    const now = new Date();
-                    const storiesSnapshot = await db.collection('stories').get();
-                    const batch = db.batch();
-                    let deleteCount = 0;
-                    storiesSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        const storyDate = data.timestamp?.toDate?.() || new Date(data.createdAt);
-                        const diffHours = (now - storyDate) / (1000 * 60 * 60);
-                        if (diffHours >= 24) {
-                            batch.delete(doc.ref);
-                            deleteCount++;
+            // --- Infinite Scroll ---
+            let observer = null;
+
+            function setupInfiniteScroll() {
+                if (observer) observer.disconnect();
+                if (!scrollLoader) return;
+                observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !isLoading && hasMore && currentTab === 'home') {
+                            loadPosts(true);
                         }
                     });
-                    if (deleteCount > 0) {
-                        await batch.commit();
-                        console.log(`🗑️ Cleaned up ${deleteCount} old stories`);
-                    }
-                } catch (error) {
-                    console.error('Error cleaning up stories:', error);
-                }
+                }, { root: null, rootMargin: '100px', threshold: 0.1 });
+                observer.observe(scrollLoader);
             }
 
-            setInterval(() => {
-                if (auth.currentUser) {
-                    loadStories(true);
-                }
-            }, 60000);
+            // --- Video Observer for Feed (Only tracks, but does NOT auto-play) ---
+            function setupVideoObserverForFeed() {
+                if (videoObserver) videoObserver.disconnect();
+                // We only track visibility for UI updates, but don't auto-play
+                videoObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const video = entry.target;
+                        if (!video || video.tagName !== 'VIDEO') return;
+                        // Only update UI state, no auto-play
+                        // Videos on home feed have click handler for fullscreen
+                    });
+                }, { root: null, rootMargin: '50px', threshold: [0, 0.1, 0.3, 0.5] });
 
-            // ========== POST DETAIL FUNCTIONS ==========
+                document.querySelectorAll('#feed-container video, #post-detail-overlay video').forEach(v => {
+                    videoObserver.observe(v);
+                });
+            }
+
+            // --- Fullscreen Video (shared instance) ---
+            function openFullscreenVideo(url) {
+                if (!videoFullscreenOverlay || !fullscreenVideo) return;
+                // Pause any playing video
+                if (activeVideoElement) {
+                    activeVideoElement.pause();
+                    activeVideoElement = null;
+                }
+                fullscreenVideo.src = url;
+                fullscreenVideo.load();
+                videoFullscreenOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                // Autoplay in fullscreen
+                setTimeout(() => {
+                    fullscreenVideo.play().catch(() => {});
+                }, 200);
+                history.pushState({ fullscreenVideo: true }, '');
+            }
+
+            function closeFullscreenVideo() {
+                if (!videoFullscreenOverlay || !fullscreenVideo) return;
+                fullscreenVideo.pause();
+                fullscreenVideo.src = '';
+                videoFullscreenOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+                if (history.state && history.state.fullscreenVideo) history.back();
+                // Resume feed observer
+                setTimeout(setupVideoObserverForFeed, 200);
+            }
+
+            if (videoFullscreenClose) {
+                videoFullscreenClose.addEventListener('click', closeFullscreenVideo);
+            }
+            if (videoFullscreenOverlay) {
+                videoFullscreenOverlay.addEventListener('click', function(e) {
+                    if (e.target === this) closeFullscreenVideo();
+                });
+            }
+            document.addEventListener('keydown', function(e) {
+                if (videoFullscreenOverlay && videoFullscreenOverlay.classList.contains('show')) {
+                    if (e.key === 'Escape') closeFullscreenVideo();
+                    if (e.key === ' ' || e.key === 'Space') {
+                        e.preventDefault();
+                        if (fullscreenVideo.paused) fullscreenVideo.play().catch(() => {});
+                        else fullscreenVideo.pause();
+                    }
+                }
+            });
+
+            window.openFullscreenVideo = openFullscreenVideo;
+            window.closeFullscreenVideo = closeFullscreenVideo;
+
+            // --- Post Detail ---
             let currentDetailPostId = null;
 
             function openPostDetail(postId) {
+                // Pause any playing video before opening detail
+                if (activeVideoElement) {
+                    activeVideoElement.pause();
+                    activeVideoElement = null;
+                }
                 currentDetailPostId = postId;
                 if (detailOverlay) detailOverlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
@@ -2521,24 +3894,26 @@
             }
 
             function closePostDetail() {
+                const detailVideos = detailBody ? detailBody.querySelectorAll('video') : [];
+                detailVideos.forEach(v => v.pause());
                 if (detailOverlay) detailOverlay.classList.remove('show');
                 document.body.style.overflow = '';
                 const scrollY = parseInt(sessionStorage.getItem('feedScrollY')) || 0;
                 setTimeout(() => window.scrollTo(0, scrollY), 50);
                 if (history.state && history.state.detailOpen) history.back();
                 currentDetailPostId = null;
+                setTimeout(setupVideoObserverForFeed, 100);
             }
 
-            if (detailBackBtn) {
-                detailBackBtn.addEventListener('click', closePostDetail);
-            }
+            if (detailBackBtn) detailBackBtn.addEventListener('click', closePostDetail);
 
             async function loadPostDetail(postId) {
                 if (!detailBody) return;
                 detailBody.innerHTML = '<div class="detail-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading post...</div>';
                 try {
                     const doc = await db.collection('all-user-post').doc(postId).get();
-                    if (!doc.exists) { detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Post not found</div>'; return; }
+                    if (!doc.exists) { detailBody.innerHTML =
+                            '<div style="padding:40px;text-align:center;color:#65676b;">Post not found</div>'; return; }
                     const post = { id: doc.id, ...doc.data() };
                     if (!post.comments) post.comments = [];
                     post.comments = post.comments.map(c => ({
@@ -2555,6 +3930,7 @@
                     detailBody.innerHTML = '';
                     detailBody.appendChild(postEl);
                     attachDetailListeners(postId);
+                    setTimeout(setupVideoObserverForFeed, 200);
                 } catch (error) {
                     console.error('Error loading post detail:', error);
                     detailBody.innerHTML = '<div style="padding:40px;text-align:center;color:#65676b;">Error loading post</div>';
@@ -2591,6 +3967,7 @@
                 const caption = post.caption || '';
                 const fullText = post.fullText || caption;
                 const imageUrl = post.imageUrl || '';
+                const mediaType = post.mediaType || 'image';
                 const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
                 const likes = post.likes || 0;
                 const comments = post.comments || [];
@@ -2599,6 +3976,7 @@
                 const themeStyle = getThemeStyles(bannerTheme);
                 const userId_check = auth.currentUser?.uid;
                 const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
+                const isVideo = mediaType === 'video' || (imageUrl && imageUrl.match(/\.(mp4|mov|avi|webm|mkv)$/i));
 
                 let captionHTML = '';
                 if (caption) {
@@ -2612,6 +3990,31 @@
                         captionHTML = `
                             <div class="post-caption">
                                 <span class="caption-text">${escapeHTML(fullText)}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                let mediaHTML = '';
+                if (imageUrl) {
+                    if (isVideo) {
+                        // Remove controls attribute and add click handler for fullscreen in detail view
+                        mediaHTML = `
+                            <div class="post-image-content">
+                                <video src="${imageUrl}" playsinline preload="metadata" style="width:100%; max-height:500px; object-fit:contain; background:#000; border-radius:4px; cursor:pointer;"></video>
+                                <div class="video-click-overlay">
+                                    <div style="display:flex;flex-direction:column;align-items:center;">
+                                        <i class="fa-solid fa-play-circle"></i>
+                                        <span class="play-text">Tap to watch fullscreen</span>
+                                    </div>
+                                </div>
+                                <button class="video-open-btn" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;" onclick="event.stopPropagation(); openFullscreenVideo('${imageUrl}')"><i class="fa-solid fa-expand"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        mediaHTML = `
+                            <div class="post-image-content">
+                                <img src="${imageUrl}" alt="Post image" loading="lazy">
                             </div>
                         `;
                     }
@@ -2678,7 +4081,7 @@
                         </div>
                     </div>
                     ${captionHTML}
-                    ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy"></div>` : ''}
+                    ${mediaHTML}
                     <div class="post-stats">
                         <div class="stat-left">
                             <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
@@ -2717,6 +4120,19 @@
                     </div>
                 `;
                 if (isBanner) div.classList.add('banner-post');
+
+                // Add video click handler for fullscreen in detail view
+                const videoEl = div.querySelector('.post-image-content video');
+                if (videoEl) {
+                    videoEl.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const url = this.src || this.getAttribute('src');
+                        if (url) {
+                            openFullscreenVideo(url);
+                        }
+                    });
+                }
+
                 return div;
             }
 
@@ -2757,7 +4173,8 @@
                                 return c;
                             });
                         }
-                        await db.collection('all-user-post').doc(postId).set({ ...data, comments: updatedComments }, { merge: true });
+                        await db.collection('all-user-post').doc(postId).set({ ...data, comments: updatedComments },
+                        { merge: true });
                     }
                 } catch (error) {
                     console.error('Error liking comment:', error);
@@ -2809,14 +4226,16 @@
                         const likedBy = data.likedBy || [];
                         if (likedBy.includes(userId)) {
                             const newLikedBy = likedBy.filter(id => id !== userId);
-                            await db.collection('all-user-post').doc(postId).update({ likes: currentLikes - 1, likedBy: newLikedBy });
+                            await db.collection('all-user-post').doc(postId).update({ likes: currentLikes - 1,
+                                likedBy: newLikedBy });
                             btnElement.classList.remove('liked');
                             btnElement.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Like';
                             likeCountSpan.textContent = currentLikes - 1;
                             showToast('Post unliked');
                         } else {
                             const newLikedBy = [...likedBy, userId];
-                            await db.collection('all-user-post').doc(postId).update({ likes: currentLikes + 1, likedBy: newLikedBy });
+                            await db.collection('all-user-post').doc(postId).update({ likes: currentLikes + 1,
+                                likedBy: newLikedBy });
                             btnElement.classList.add('liked');
                             btnElement.innerHTML = '<i class="fa-solid fa-thumbs-up"></i> Liked';
                             likeCountSpan.textContent = currentLikes + 1;
@@ -2916,282 +4335,95 @@
                 }
             }
 
-            // ========== INFINITE SCROLL ==========
-            let lastDoc = null;
-            let isLoading = false;
-            let hasMore = true;
-            let postsLoaded = 0;
-            const POSTS_PER_PAGE = 10;
-
-            function shuffleArray(arr) {
-                for (let i = arr.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
-                }
-                return arr;
+            // --- Nav Overlay ---
+            function toggleNavOverlay(show) {
+                if (!navOverlay) return;
+                if (show) { navOverlay.classList.add('show');
+                    document.body.style.overflow = 'hidden'; } else { navOverlay.classList.remove('show');
+                    document.body.style.overflow = ''; }
             }
+            if (navToggleBtn) navToggleBtn.addEventListener('click', () => toggleNavOverlay(true));
+            if (navMenuTab) navMenuTab.addEventListener('click', () => toggleNavOverlay(true));
+            if (navOverlayClose) navOverlayClose.addEventListener('click', () => toggleNavOverlay(false));
+            if (navOverlay) navOverlay.addEventListener('click', (e) => { if (e.target === navOverlay) toggleNavOverlay(
+                false); });
 
-            async function loadPosts(loadMore = false) {
-                if (isLoading || (!loadMore && postsLoaded > 0)) return;
-                if (!loadMore) {
-                    postsLoaded = 0;
-                    lastDoc = null;
-                    hasMore = true;
-                    if (endOfFeed) endOfFeed.style.display = 'none';
-                    if (feedContainer) {
-                        const existingPosts = feedContainer.querySelectorAll('.feed-post');
-                        existingPosts.forEach(el => el.remove());
-                    }
-                    if (feedLoading) {
-                        feedLoading.style.display = 'block';
-                        feedLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading posts...';
-                    }
-                } else {
-                    if (scrollLoader) scrollLoader.style.display = 'block';
-                }
-                if (!hasMore) {
-                    if (scrollLoader) scrollLoader.style.display = 'none';
-                    if (endOfFeed) endOfFeed.style.display = 'block';
-                    return;
-                }
-                isLoading = true;
-                try {
-                    let query = db.collection('all-user-post')
-                        .orderBy('timestamp', 'desc')
-                        .limit(POSTS_PER_PAGE);
-                    if (lastDoc) query = query.startAfter(lastDoc);
-                    const snapshot = await query.get();
-                    if (snapshot.empty) {
-                        hasMore = false;
-                        if (scrollLoader) scrollLoader.style.display = 'none';
-                        if (postsLoaded === 0 && feedLoading) {
-                            feedLoading.innerHTML = 'No posts yet. Be the first to share!';
-                        } else if (endOfFeed) {
-                            endOfFeed.style.display = 'block';
-                        }
-                        isLoading = false;
-                        return;
-                    }
-                    const posts = [];
-                    snapshot.forEach(doc => { const data = doc.data();
-                        posts.push({ id: doc.id, ...data }); });
-                    const shuffledPosts = shuffleArray(posts);
-                    lastDoc = snapshot.docs[snapshot.docs.length - 1];
-                    postsLoaded += shuffledPosts.length;
-                    if (feedLoading) feedLoading.style.display = 'none';
-                    if (scrollLoader) scrollLoader.style.display = 'none';
-                    shuffledPosts.forEach((post) => {
-                        const postEl = createPostElement(post);
-                        if (feedContainer && scrollLoader) {
-                            feedContainer.insertBefore(postEl, scrollLoader);
-                        }
-                    });
-                    attachFeedListeners();
-                    shuffledPosts.forEach(post => {
-                        if (post.userId) {
-                            db.collection('users').doc(post.userId).onSnapshot((doc) => {
-                                if (doc.exists) {
-                                    const data = doc.data();
-                                    const postDiv = document.querySelector(`.feed-post[data-userid="${post.userId}"]`);
-                                    if (postDiv) {
-                                        const statusEl = postDiv.querySelector('.online-status');
-                                        if (statusEl) {
-                                            statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
-                                                'inactive');
-                                        }
-                                        const nameEl = postDiv.querySelector('.post-meta h4');
-                                        const imgEl = postDiv.querySelector('.post-user-info img');
-                                        if (nameEl && data.fullName) nameEl.textContent = data.fullName;
-                                        if (imgEl && data.photoURL) imgEl.src = data.photoURL;
-                                    }
-                                }
-                            });
-                        }
-                    });
-                    hasMore = shuffledPosts.length >= POSTS_PER_PAGE;
-                    if (!hasMore && endOfFeed) endOfFeed.style.display = 'block';
-                    isLoading = false;
-                } catch (error) {
-                    console.error('Error loading posts:', error);
-                    if (feedLoading) feedLoading.innerHTML = '⚠️ Failed to load posts. Please refresh.';
-                    if (scrollLoader) scrollLoader.style.display = 'none';
-                    isLoading = false;
-                    showToast('Error loading posts: ' + error.message);
-                }
-            }
+            // --- Header Icons ---
+            const searchIcon = getEl('search-icon');
+            if (searchIcon) searchIcon.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('search.html', 'Search'); });
+            const notifIcon = getEl('notif-icon');
+            if (notifIcon) notifIcon.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('notifications.html', 'Notifications'); });
+            const messengerIcon = getEl('messenger-icon');
+            if (messengerIcon) messengerIcon.addEventListener('click', function(e) { e.stopPropagation();
+                openIframe('messenger.html', 'Messenger'); });
 
-            function attachFeedListeners() {
-                if (!feedContainer) return;
-                document.querySelectorAll('#feed-container .like-btn').forEach(btn => {
-                    const newBtn = btn.cloneNode(true);
-                    btn.parentNode.replaceChild(newBtn, btn);
-                    newBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const postDiv = this.closest('.feed-post');
-                        const postId = postDiv.dataset.postId;
-                        handleLikePost(postId, this);
-                    });
+            // --- Login ---
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    const email = loginEmail ? loginEmail.value.trim() : '';
+                    const pass = loginPassword ? loginPassword.value.trim() : '';
+                    if (!email || !pass) { showToast('Please fill in both fields'); return; }
+                    auth.signInWithEmailAndPassword(email, pass)
+                        .then((userCredential) => {
+                            showToast('Login successful!');
+                            createUserDocument(userCredential.user);
+                        })
+                        .catch(err => { showToast('Error: ' + err.message); });
                 });
-                document.querySelectorAll('#feed-container .comment-toggle-btn').forEach(btn => {
-                    const newBtn = btn.cloneNode(true);
-                    btn.parentNode.replaceChild(newBtn, btn);
-                    newBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const postDiv = this.closest('.feed-post');
-                        const postId = postDiv.dataset.postId;
-                        openPostDetail(postId);
-                    });
+            }
+            if (createAccountBtn) {
+                createAccountBtn.addEventListener('click', () => { window.location.href = 'signup.html'; });
+            }
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+
+            // --- Post Modal ---
+            const postModal = getEl('post-modal');
+            const closeModal = getEl('close-modal');
+            const modalText = getEl('modal-text');
+            if (closeModal) {
+                closeModal.addEventListener('click', async () => {
+                    if (modalText && modalText.value.trim()) {
+                        const user = auth.currentUser;
+                        if (user) {
+                            const userName = user.displayName || user.email?.split('@')[0] || 'Anonymous';
+                            try {
+                                await db.collection('all-user-post').add({
+                                    userName: userName,
+                                    userId: user.uid,
+                                    userImage: user.photoURL ||
+                                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                                    caption: modalText.value.trim(),
+                                    fullText: modalText.value.trim(),
+                                    imageUrl: '',
+                                    likes: 0,
+                                    likedBy: [],
+                                    comments: [],
+                                    isBanner: false,
+                                    bannerTheme: 'white',
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                showToast('Post created successfully!');
+                                modalText.value = '';
+                                postsLoaded = 0;
+                                lastDoc = null;
+                                hasMore = true;
+                                loadPosts(false);
+                            } catch (err) { showToast('Error creating post: ' + err.message); }
+                        } else showToast('Please login first');
+                    }
+                    if (postModal) postModal.style.display = 'none';
                 });
             }
 
-            let observer = null;
-
-            function setupInfiniteScroll() {
-                if (observer) observer.disconnect();
-                if (!scrollLoader) return;
-                observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting && !isLoading && hasMore) loadPosts(true);
-                    });
-                }, { root: null, rootMargin: '100px', threshold: 0.1 });
-                observer.observe(scrollLoader);
-            }
-
-            function createPostElement(post) {
-                const div = document.createElement('div');
-                div.className = 'feed-post';
-                div.dataset.postId = post.id;
-                div.dataset.userId = post.userId || '';
-
-                div.addEventListener('click', function(e) {
-                    if (e.target.closest('.action-btn') || e.target.closest('.read-more-btn') ||
-                        e.target.closest('.comment-box-input') || e.target.closest('.post-options') ||
-                        e.target.closest('.profile-container') || e.target.closest('.post-meta h4') ||
-                        e.target.closest('.comment-item') || e.target.closest('.comment-count') ||
-                        e.target.closest('.post-image-content') || e.target.closest('.like-btn') ||
-                        e.target.closest('.comment-toggle-btn')) {
-                        return;
-                    }
-                    openPostDetail(post.id);
-                });
-
-                const currentUser = auth.currentUser;
-                let userName = post.userName || 'Unknown User';
-                let userImage = post.userImage ||
-                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
-                let userId = post.userId || '';
-                if (currentUser && post.userId === currentUser.uid) {
-                    if (currentUser.displayName) userName = currentUser.displayName;
-                    if (currentUser.photoURL) userImage = currentUser.photoURL;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && loginOverlay && loginOverlay.classList.contains('show')) {
+                    if (loginBtn) loginBtn.click();
                 }
-
-                const caption = post.caption || '';
-                const fullText = post.fullText || caption;
-                const imageUrl = post.imageUrl || '';
-                const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Just now';
-                const likes = post.likes || 0;
-                const comments = post.comments || [];
-                const isBanner = post.isBanner || false;
-                const bannerTheme = post.bannerTheme || 'white';
-                const themeStyle = getThemeStyles(bannerTheme);
-                const needsReadMore = fullText.length > 150;
-
-                let captionHTML = '';
-                if (caption) {
-                    if (isBanner) {
-                        captionHTML = `
-                            <div class="banner-content" style="background: ${themeStyle.background}; color: ${themeStyle.color};">
-                                <div class="post-caption caption-text">${escapeHTML(caption)}</div>
-                            </div>
-                        `;
-                    } else {
-                        const displayText = needsReadMore ? fullText.substring(0, 150) + '...' : fullText;
-                        captionHTML = `
-                            <div class="post-caption">
-                                <span class="caption-text ${needsReadMore ? 'truncated' : ''}" id="caption-${post.id}">${escapeHTML(displayText)}</span>
-                                ${needsReadMore ? `<span class="read-more-btn" onclick="toggleReadMore('${post.id}', '${escapeHTML(fullText)}', event)">read more</span>` : ''}
-                            </div>
-                        `;
-                    }
-                }
-
-                const userId_check = auth.currentUser?.uid;
-                const isLiked = post.likedBy && userId_check && post.likedBy.includes(userId_check);
-
-                let statusClass = 'inactive';
-                if (currentUser && post.userId === currentUser.uid) {
-                    statusClass = 'active';
-                }
-
-                div.innerHTML = `
-                    <div class="post-header">
-                        <div class="post-user-info">
-                            <div class="profile-container" onclick="event.stopPropagation(); openProfileIframe('${userId}')">
-                                <img src="${userImage}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;">
-                                <span class="online-status ${statusClass}" data-userid="${userId}"></span>
-                            </div>
-                            <div class="post-meta">
-                                <h4 onclick="event.stopPropagation(); openProfileIframe('${userId}')">${escapeHTML(userName)}</h4>
-                                <span>${timestamp}</span>
-                            </div>
-                        </div>
-                        <div class="post-options">
-                            <i class="fa-solid fa-ellipsis" onclick="event.stopPropagation(); showToast('Post options clicked')"></i>
-                        </div>
-                    </div>
-                    ${captionHTML}
-                    ${imageUrl ? `<div class="post-image-content"><img src="${imageUrl}" alt="Post image" loading="lazy" onclick="event.stopPropagation(); openPostDetail('${post.id}')"></div>` : ''}
-                    <div class="post-stats">
-                        <div class="stat-left">
-                            <div class="like-icon-circle"><i class="fa-solid fa-thumbs-up"></i></div>
-                            <span class="like-count">${likes}</span>
-                        </div>
-                        <div class="stat-right">
-                            <span class="comment-count" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="cursor:pointer;">${comments.length} comments</span>
-                        </div>
-                    </div>
-                    <div class="post-actions">
-                        <div class="action-btn like-btn ${isLiked ? 'liked' : ''}">${isLiked ? '<i class="fa-solid fa-thumbs-up"></i> Liked' : '<i class="fa-regular fa-thumbs-up"></i> Like'}</div>
-                        <div class="action-btn comment-toggle-btn"><i class="fa-regular fa-comment"></i> Comment</div>
-                        <div class="action-btn" onclick="event.stopPropagation(); showToast('Post shared successfully!')"><i class="fa-solid fa-share"></i> Share</div>
-                    </div>
-                    <div class="comments-section">
-                        <div class="comments-list">
-                            ${comments.slice(0, 3).map(c => 
-                                `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')">
-                                    <b>${escapeHTML(c.userName || 'User')}:</b> ${escapeHTML(c.text)}
-                                </div>`
-                            ).join('')}
-                            ${comments.length > 3 ? `<div class="comment-item" onclick="event.stopPropagation(); openPostDetail('${post.id}')" style="color:#1877f2;font-weight:600;">View all ${comments.length} comments</div>` : ''}
-                        </div>
-                    </div>
-                `;
-                if (isBanner) div.classList.add('banner-post');
-
-                if (post.userId) {
-                    db.collection('users').doc(post.userId).onSnapshot((doc) => {
-                        if (doc.exists) {
-                            const data = doc.data();
-                            const newName = data.fullName || data.displayName || post.userName;
-                            const newPhoto = data.photoURL || post.userImage;
-                            const nameEl = div.querySelector('.post-meta h4');
-                            const imgEl = div.querySelector('.post-user-info img');
-                            const statusEl = div.querySelector('.online-status');
-                            if (nameEl && newName) nameEl.textContent = newName;
-                            if (imgEl && newPhoto) imgEl.src = newPhoto;
-                            if (statusEl) {
-                                if (auth.currentUser && post.userId === auth.currentUser.uid) {
-                                    statusEl.className = 'online-status active';
-                                } else {
-                                    statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' : 'inactive');
-                                }
-                            }
-                        }
-                    });
-                }
-
-                return div;
-            }
+            });
 
             // ========== AUTH STATE ==========
             auth.onAuthStateChanged(async (user) => {
@@ -3240,7 +4472,8 @@
                                     } else {
                                         const statusEl = postEl.querySelector('.online-status');
                                         if (statusEl && data.status !== undefined) {
-                                            statusEl.className = 'online-status ' + (data.status === 'online' ? 'active' :
+                                            statusEl.className = 'online-status ' + (data.status === 'online' ?
+                                                'active' :
                                                 'inactive');
                                         }
                                     }
@@ -3250,9 +4483,7 @@
                     });
 
                 } else {
-                    if (currentUser) {
-                        stopStatusMonitoring(currentUser);
-                    }
+                    if (currentUser) stopStatusMonitoring(currentUser);
                     currentUser = null;
                     if (loginOverlay) loginOverlay.classList.add('show');
                     if (feedContainer) {
@@ -3267,125 +4498,11 @@
                     if (headerStatusDot) headerStatusDot.className = 'online-dot offline';
                     if (notifListenerUnsubscribe) { notifListenerUnsubscribe();
                         notifListenerUnsubscribe = null; }
-                }
-            });
-
-            // ========== LOGIN ==========
-            if (loginBtn) {
-                loginBtn.addEventListener('click', () => {
-                    const email = loginEmail ? loginEmail.value.trim() : '';
-                    const pass = loginPassword ? loginPassword.value.trim() : '';
-                    if (!email || !pass) { showToast('Please fill in both fields'); return; }
-                    auth.signInWithEmailAndPassword(email, pass)
-                        .then((userCredential) => {
-                            showToast('Login successful!');
-                            createUserDocument(userCredential.user);
-                        })
-                        .catch(err => { showToast('Error: ' + err.message); });
-                });
-            }
-
-            if (createAccountBtn) {
-                createAccountBtn.addEventListener('click', () => {
-                    window.location.href = 'signup.html';
-                });
-            }
-
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', handleLogout);
-            }
-
-            // ========== UI INTERACTIONS ==========
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-
-            function toggleNavOverlay(show) {
-                if (!navOverlay) return;
-                if (show) { navOverlay.classList.add('show');
-                    document.body.style.overflow = 'hidden'; } else { navOverlay.classList.remove('show');
-                    document.body.style.overflow = ''; }
-            }
-            if (navToggleBtn) navToggleBtn.addEventListener('click', () => toggleNavOverlay(true));
-            if (navMenuTab) navMenuTab.addEventListener('click', () => toggleNavOverlay(true));
-            if (navOverlayClose) navOverlayClose.addEventListener('click', () => toggleNavOverlay(false));
-            if (navOverlay) navOverlay.addEventListener('click', (e) => { if (e.target === navOverlay) toggleNavOverlay(false); });
-
-            const searchIcon = getEl('search-icon');
-            if (searchIcon) searchIcon.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('search.html', 'Search'); });
-            const notifIcon = getEl('notif-icon');
-            if (notifIcon) notifIcon.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('notifications.html', 'Notifications'); });
-            const messengerIcon = getEl('messenger-icon');
-            if (messengerIcon) messengerIcon.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('messenger.html', 'Messenger'); });
-            const tabFriends = getEl('tab-friends');
-            if (tabFriends) tabFriends.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('friend-request.html', 'Friends'); });
-            const tabMessenger = getEl('tab-messenger');
-            if (tabMessenger) tabMessenger.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('messenger.html', 'Messenger'); });
-            const tabVideos = getEl('tab-videos');
-            if (tabVideos) tabVideos.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('videos.html', 'Videos'); });
-            const tabNotifications = getEl('tab-notifications');
-            if (tabNotifications) tabNotifications.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('notifications.html', 'Notifications'); });
-            const triggerPost = getEl('trigger-post');
-            if (triggerPost) triggerPost.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('create-post.html', 'Create Post'); });
-            const triggerPhoto = getEl('trigger-photo');
-            if (triggerPhoto) triggerPhoto.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('upload-photo.html', 'Upload Photo'); });
-            const openPostModal = getEl('open-post-modal');
-            if (openPostModal) openPostModal.addEventListener('click', function(e) { e.stopPropagation();
-                openIframe('create-post.html', 'Create Post'); });
-
-            const postModal = getEl('post-modal');
-            const closeModal = getEl('close-modal');
-            const modalText = getEl('modal-text');
-            if (closeModal) {
-                closeModal.addEventListener('click', async () => {
-                    if (modalText && modalText.value.trim()) {
-                        const user = auth.currentUser;
-                        if (user) {
-                            const userName = user.displayName || user.email?.split('@')[0] || 'Anonymous';
-                            try {
-                                await db.collection('all-user-post').add({
-                                    userName: userName,
-                                    userId: user.uid,
-                                    userImage: user.photoURL ||
-                                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-                                    caption: modalText.value.trim(),
-                                    fullText: modalText.value.trim(),
-                                    imageUrl: '',
-                                    likes: 0,
-                                    likedBy: [],
-                                    comments: [],
-                                    isBanner: false,
-                                    bannerTheme: 'white',
-                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                                });
-                                showToast('Post created successfully!');
-                                modalText.value = '';
-                                postsLoaded = 0;
-                                lastDoc = null;
-                                hasMore = true;
-                                loadPosts(false);
-                            } catch (err) { showToast('Error creating post: ' + err.message); }
-                        } else showToast('Please login first');
-                    }
-                    if (postModal) postModal.style.display = 'none';
-                });
-            }
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && loginOverlay && loginOverlay.classList.contains('show')) {
-                    if (loginBtn) loginBtn.click();
+                    if (videoObserver) { videoObserver.disconnect();
+                        videoObserver = null; }
+                    if (videoObserverInstance) { videoObserverInstance.disconnect();
+                        videoObserverInstance = null; }
+                    activeVideoElement = null;
                 }
             });
 
@@ -3403,14 +4520,25 @@
             window.closeNotif = closeNotif;
             window.openNotifChat = openNotifChat;
             window.handleLogout = handleLogout;
+            window.goHome = goHome;
+            window.switchTab = switchTab;
+            window.openFullscreenVideo = openFullscreenVideo;
+            window.closeFullscreenVideo = closeFullscreenVideo;
+            window.shareVideo = shareVideo;
+            window.toggleVideoPlay = toggleVideoPlay;
+            window.seekVideo = seekVideo;
+            window.handleVideoLike = handleVideoLike;
 
-            console.log('🚀 SecretIntro - Ultra Fast Feed');
-            console.log('📱 Swipe to refresh enabled');
-            console.log('⚡ Stories cached for instant load');
-            console.log('🔄 Dynamic online/offline status');
-            console.log('📦 Infinite scroll with optimization');
+            console.log('🚀 SecretIntro - Full Optimized with Video Fullscreen');
+            console.log('📱 Swipe to refresh enabled on all tabs');
+            console.log('🎬 Auto-play only on Reels & Shorts - Home feed videos open fullscreen on click');
+            console.log('📹 Fullscreen overlay auto-plays videos on click');
+            console.log('💾 Cached data with localStorage support');
+            console.log('📦 Only visible posts load - saves data');
+            console.log('🔄 Post detail videos also open fullscreen on click');
+            console.log('🎥 TikTok-style video side actions (Like, Comment, Share, Fullscreen)');
 
-        }); // End DOMContentLoaded
+        });
     </script>
 </body>
 </html>
