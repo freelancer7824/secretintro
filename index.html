@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Facebook · Real-Time Status</title>
   
   <!-- Firebase SDKs -->
@@ -46,7 +46,7 @@
       opacity: 1;
     }
 
-    /* Loading state */
+    /* ===== LOADING OVERLAY (First load / slow connection) ===== */
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -68,8 +68,8 @@
     }
 
     .loading-spinner {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border: 4px solid #e4e6eb;
       border-top: 4px solid #1877f2;
       border-radius: 50%;
@@ -78,13 +78,14 @@
 
     .loading-overlay .loading-text {
       margin-top: 18px;
-      color: #65676b;
-      font-size: 15px;
-      font-weight: 500;
+      color: #050505;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
     }
 
     .loading-overlay .loading-sub {
-      color: #8a8d91;
+      color: #65676b;
       font-size: 13px;
       margin-top: 6px;
     }
@@ -111,13 +112,87 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Toast message */
+    /* ===== INTERNET CONNECTION OVERLAY (mimics app content) ===== */
+    .connection-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f0f2f5;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 24px;
+      text-align: center;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    .connection-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .connection-overlay .conn-icon {
+      font-size: 72px;
+      margin-bottom: 16px;
+      animation: float 2.8s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .connection-overlay .conn-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #050505;
+      margin-bottom: 8px;
+    }
+
+    .connection-overlay .conn-sub {
+      font-size: 15px;
+      color: #65676b;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+
+    .connection-overlay .conn-retry {
+      margin-top: 24px;
+      background: #1877f2;
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      padding: 12px 36px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+    }
+
+    .connection-overlay .conn-retry:hover {
+      background: #166fe5;
+    }
+
+    .connection-overlay .conn-retry:active {
+      transform: scale(0.96);
+    }
+
+    /* ===== TOAST ===== */
     .toast-msg {
       position: fixed;
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 200;
+      z-index: 300;
       background: #333;
       color: #fff;
       padding: 10px 24px;
@@ -133,7 +208,7 @@
       to { opacity: 1; transform: translate(-50%, 0); }
     }
 
-    /* ========== NOTIFICATION POPUP ========== */
+    /* ===== NOTIFICATION POPUP ===== */
     .notif-popup {
       position: fixed;
       top: 80px;
@@ -254,12 +329,10 @@
       margin-top: 2px;
     }
 
-    /* Multiple notifications stack */
     .notif-popup.multiple {
       border-left-color: #e74c3c;
     }
 
-    /* Notification sound indicator */
     .notif-popup .notif-sound-indicator {
       position: absolute;
       bottom: 8px;
@@ -276,54 +349,27 @@
 
     /* Responsive */
     @media (max-width: 480px) {
-      .loading-overlay .loading-text {
-        font-size: 13px;
-      }
-      .loading-overlay .loading-sub {
-        font-size: 11px;
-      }
-      .loading-spinner {
-        width: 34px;
-        height: 34px;
-      }
-      .loading-overlay .progress-bar {
-        width: 160px;
-      }
-      .notif-popup {
-        max-width: 300px;
-        right: 10px;
-        top: 70px;
-        padding: 12px 14px;
-      }
-      .notif-popup .notif-avatar {
-        width: 36px;
-        height: 36px;
-      }
-      .notif-popup .notif-name {
-        font-size: 14px;
-      }
-      .notif-popup .notif-preview {
-        font-size: 12px;
-      }
+      .loading-overlay .loading-text { font-size: 14px; }
+      .loading-overlay .loading-sub { font-size: 12px; }
+      .loading-spinner { width: 36px; height: 36px; }
+      .loading-overlay .progress-bar { width: 160px; }
+      .notif-popup { max-width: 300px; right: 10px; top: 70px; padding: 12px 14px; }
+      .notif-popup .notif-avatar { width: 36px; height: 36px; }
+      .notif-popup .notif-name { font-size: 14px; }
+      .notif-popup .notif-preview { font-size: 12px; }
+      .connection-overlay .conn-icon { font-size: 56px; }
+      .connection-overlay .conn-title { font-size: 18px; }
     }
 
     @media (max-width: 380px) {
-      .notif-popup {
-        max-width: 260px;
-        right: 8px;
-        top: 60px;
-        padding: 10px 12px;
-      }
-      .notif-popup .notif-avatar {
-        width: 32px;
-        height: 32px;
-      }
+      .notif-popup { max-width: 260px; right: 8px; top: 60px; padding: 10px 12px; }
+      .notif-popup .notif-avatar { width: 32px; height: 32px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Loading Overlay -->
+  <!-- ===== LOADING OVERLAY ===== -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
     <div class="loading-text">Connecting to SecretIntro...</div>
@@ -333,10 +379,18 @@
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- ===== INTERNET CONNECTION OVERLAY (looks like app content) ===== -->
+  <div class="connection-overlay" id="connectionOverlay">
+    <div class="conn-icon">🌐</div>
+    <div class="conn-title">No internet connection</div>
+    <div class="conn-sub">Please check your network settings and try again.</div>
+    <button class="conn-retry" id="retryBtn">Retry</button>
+  </div>
+
+  <!-- ===== TOAST ===== -->
   <div class="toast-msg" id="toast"></div>
 
-  <!-- ========== NOTIFICATION POPUP ========== -->
+  <!-- ===== NOTIFICATION POPUP ===== -->
   <div class="notif-popup" id="notifPopup" onclick="openNotifChat()">
     <button class="notif-close" onclick="event.stopPropagation(); closeNotif()">&times;</button>
     <div class="notif-header">
@@ -351,7 +405,7 @@
     <div class="notif-sound-indicator">🔔</div>
   </div>
 
-  <!-- FULL SCREEN IFRAME -->
+  <!-- ===== FULL SCREEN IFRAME ===== -->
   <iframe 
     class="fullscreen-iframe" 
     id="mainIframe"
@@ -363,7 +417,9 @@
   ></iframe>
 
   <script>
-    // ========== FIREBASE CONFIG ==========
+    // ============================================================
+    // FIREBASE CONFIG
+    // ============================================================
     const firebaseConfig = {
       apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
       authDomain: "money-generate-dbab3.firebaseapp.com",
@@ -378,8 +434,11 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ========== DOM REFS ==========
+    // ============================================================
+    // DOM REFS
+    // ============================================================
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const connectionOverlay = document.getElementById('connectionOverlay');
     const toast = document.getElementById('toast');
     const mainIframe = document.getElementById('mainIframe');
     const progressFill = document.getElementById('progressFill');
@@ -389,8 +448,11 @@
     const notifPreview = document.getElementById('notifPreview');
     const notifTime = document.getElementById('notifTime');
     const notifCount = document.getElementById('notifCount');
+    const retryBtn = document.getElementById('retryBtn');
 
-    // ========== STATE ==========
+    // ============================================================
+    // STATE
+    // ============================================================
     let toastTimer = null;
     let statusUpdateInterval = null;
     let iframeLoaded = false;
@@ -409,8 +471,89 @@
     let onlineUsers = new Set();
     let isPageVisible = true;
     let hasSetOffline = false;
+    let isOnline = navigator.onLine;
+    let connectionCheckInterval = null;
+    let retryAttempts = 0;
 
-    // ========== SLOW PROGRESS SIMULATION ==========
+    // ============================================================
+    // CONNECTION / NETWORK MONITORING
+    // ============================================================
+    function updateConnectionStatus(online) {
+      isOnline = online;
+      if (online) {
+        connectionOverlay.classList.remove('show');
+        if (!iframeLoaded && !loadingOverlay.classList.contains('hidden')) {
+          // Still loading, continue
+        } else if (!iframeLoaded) {
+          // Iframe not loaded yet, show loading
+          loadingOverlay.classList.remove('hidden');
+          startSlowProgress();
+          checkIframeLoaded();
+        }
+        // Reconnect listeners if needed
+        if (currentUser) {
+          if (!messageListenerUnsubscribe) {
+            startMessageListener(currentUser.uid);
+          }
+          if (!allUsersStatusListener) {
+            startAllUsersStatusListener();
+          }
+        }
+      } else {
+        // Offline: show connection overlay (mimics app content)
+        connectionOverlay.classList.add('show');
+        loadingOverlay.classList.add('hidden');
+        // Pause listeners
+        if (messageListenerUnsubscribe) {
+          messageListenerUnsubscribe();
+          messageListenerUnsubscribe = null;
+        }
+        if (allUsersStatusListener) {
+          allUsersStatusListener();
+          allUsersStatusListener = null;
+        }
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+          statusUpdateInterval = null;
+        }
+      }
+    }
+
+    // Listen to online/offline events
+    window.addEventListener('online', () => {
+      updateConnectionStatus(true);
+      showToast('📶 Internet reconnected');
+    });
+
+    window.addEventListener('offline', () => {
+      updateConnectionStatus(false);
+      showToast('📶 No internet connection');
+    });
+
+    // Initial check
+    updateConnectionStatus(navigator.onLine);
+
+    // Periodic check (every 5s) to catch slow networks
+    setInterval(() => {
+      const currentlyOnline = navigator.onLine;
+      if (currentlyOnline !== isOnline) {
+        updateConnectionStatus(currentlyOnline);
+      }
+    }, 5000);
+
+    // Retry button
+    retryBtn.addEventListener('click', () => {
+      if (navigator.onLine) {
+        updateConnectionStatus(true);
+        location.reload();
+      } else {
+        showToast('Still offline. Please check your network.');
+      }
+    });
+
+    // ============================================================
+    // PROGRESS SIMULATION (first load / slow connection)
+    // ============================================================
     function startSlowProgress() {
       progressValue = 0;
       if (progressInterval) clearInterval(progressInterval);
@@ -437,14 +580,16 @@
         loadingOverlay.classList.add('hidden');
         mainIframe.classList.add('loaded');
         isFirstLoad = false;
-        if (currentUser) {
+        if (currentUser && navigator.onLine) {
           startMessageListener(currentUser.uid);
           startAllUsersStatusListener();
         }
       }, 600);
     }
 
-    // ========== TOAST ==========
+    // ============================================================
+    // TOAST
+    // ============================================================
     function showToast(msg) {
       toast.textContent = msg;
       toast.style.display = 'block';
@@ -454,7 +599,9 @@
       }, 3000);
     }
 
-    // ========== NOTIFICATION POPUP FUNCTIONS ==========
+    // ============================================================
+    // NOTIFICATION POPUP
+    // ============================================================
     function playNotifSound() {
       try {
         const ctx = new(window.AudioContext || window.webkitAudioContext)();
@@ -473,10 +620,12 @@
             ctx.close();
           }, 150);
         }, 150);
-      } catch (e) { console.log('Sound error:', e); }
+      } catch (e) { /* silent fail */ }
     }
 
     function showNotification(senderId, senderName, message, photoURL, timestamp, messageCount) {
+      if (!navigator.onLine) return;
+      
       const now = Date.now();
       if (lastNotifSender === senderId && now - lastNotifTime < 2000) {
         if (notifPopup.style.display === 'block') {
@@ -495,9 +644,7 @@
       };
 
       const msgId = `${senderId}_${message}_${timestamp}`;
-      if (shownMessageIds.has(msgId)) {
-        return;
-      }
+      if (shownMessageIds.has(msgId)) return;
       shownMessageIds.add(msgId);
       if (shownMessageIds.size > 200) {
         const entries = Array.from(shownMessageIds);
@@ -564,19 +711,14 @@
         try {
           const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
           const chatItems = iframeDoc.querySelectorAll('.chat-item');
-          let found = false;
           for (const item of chatItems) {
             if (item.dataset.otherId === senderId) {
               item.click();
-              found = true;
-              break;
+              return;
             }
           }
-          if (!found) {
-            mainIframe.src = `messages.html?user=${senderId}`;
-          }
+          mainIframe.src = `messages.html?user=${senderId}`;
         } catch (e) {
-          console.log('Could not open chat in iframe:', e);
           mainIframe.src = `messages.html?user=${senderId}`;
         }
       }
@@ -592,15 +734,17 @@
       return date.toLocaleDateString();
     }
 
-    // ========== MESSAGE LISTENER ==========
+    // ============================================================
+    // MESSAGE LISTENER
+    // ============================================================
     function startMessageListener(userId) {
       if (messageListenerUnsubscribe) {
         messageListenerUnsubscribe();
         messageListenerUnsubscribe = null;
       }
+      if (!navigator.onLine) return;
 
       console.log('👂 Starting message listener for user:', userId);
-
       const chatQuery = db.collection('chats')
         .where('participants', 'array-contains', userId);
 
@@ -620,9 +764,7 @@
 
           const chatId = doc.id;
           const msgKey = `${chatId}_${lastMsg.timestamp || lastMsg.time}`;
-          if (lastProcessedMessages.has(chatId) && lastProcessedMessages.get(chatId) === msgKey) {
-            continue;
-          }
+          if (lastProcessedMessages.has(chatId) && lastProcessedMessages.get(chatId) === msgKey) continue;
 
           const senderData = await getUserData(lastMsg.sender);
           if (!senderData) continue;
@@ -658,7 +800,9 @@
       });
     }
 
-    // ========== GET USER DATA ==========
+    // ============================================================
+    // USER DATA CACHE
+    // ============================================================
     const userCache = new Map();
 
     async function getUserData(uid) {
@@ -677,9 +821,11 @@
       }
     }
 
-    // ========== UPDATE USER STATUS ==========
+    // ============================================================
+    // USER STATUS (online/offline)
+    // ============================================================
     async function setUserOnline(user) {
-      if (!user) return;
+      if (!user || !navigator.onLine) return;
       hasSetOffline = false;
       try {
         await db.collection('users').doc(user.uid).set({
@@ -687,7 +833,7 @@
           lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        console.log('✅ User status set to online:', user.uid);
+        console.log('✅ User online:', user.uid);
       } catch (error) {
         console.error('Error setting user online:', error);
       }
@@ -702,22 +848,24 @@
           lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        console.log('👤 User status set to offline:', user.uid);
+        console.log('👤 User offline:', user.uid);
       } catch (error) {
         console.error('Error setting user offline:', error);
         hasSetOffline = false;
       }
     }
 
-    // ========== LISTEN TO ALL USERS STATUS ==========
+    // ============================================================
+    // ALL USERS STATUS LISTENER
+    // ============================================================
     function startAllUsersStatusListener() {
       if (allUsersStatusListener) {
         allUsersStatusListener();
         allUsersStatusListener = null;
       }
+      if (!navigator.onLine) return;
 
       console.log('👀 Starting all users status listener');
-
       allUsersStatusListener = db.collection('users')
         .onSnapshot((snapshot) => {
           snapshot.docChanges().forEach((change) => {
@@ -730,7 +878,6 @@
                 const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
                 if (!iframeDoc) return;
                 
-                // Update all status indicators in the iframe
                 if (uid === currentUser?.uid) {
                   const headerDot = iframeDoc.querySelector('#header-status-dot');
                   if (headerDot) {
@@ -745,15 +892,12 @@
                   statusEls.forEach(el => {
                     el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
                   });
-                  
                   const profileDots = iframeDoc.querySelectorAll(`.profile-container[data-userid="${uid}"] .online-dot`);
                   profileDots.forEach(el => {
                     el.className = 'online-dot' + (status === 'online' ? '' : ' offline');
                   });
                 }
-              } catch (e) {
-                // Iframe not accessible yet
-              }
+              } catch (e) { /* iframe not ready */ }
             }
           });
         }, (error) => {
@@ -761,7 +905,9 @@
         });
     }
 
-    // ========== CHECK IFRAME LOADED ==========
+    // ============================================================
+    // IFRAME LOAD DETECTION
+    // ============================================================
     function checkIframeLoaded() {
       try {
         const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
@@ -781,7 +927,9 @@
       }
     }
 
-    // ========== INJECT STATUS STYLES INTO IFRAME ==========
+    // ============================================================
+    // INJECT STATUS STYLES INTO IFRAME
+    // ============================================================
     function injectStatusStyles() {
       try {
         const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
@@ -826,49 +974,43 @@
           `;
           iframeDoc.head.appendChild(styleEl);
         }
-      } catch (e) {
-        // Iframe not accessible yet
-      }
+      } catch (e) { /* iframe not accessible */ }
     }
 
-    // ========== MAIN AUTH HANDLER ==========
+    // ============================================================
+    // AUTH HANDLER
+    // ============================================================
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
-        await setUserOnline(user);
+        if (navigator.onLine) {
+          await setUserOnline(user);
+        }
         
         showToast(`👋 Welcome ${user.displayName || user.email?.split('@')[0] || 'User'}`);
 
         if (statusUpdateInterval) clearInterval(statusUpdateInterval);
         statusUpdateInterval = setInterval(() => {
-          setUserOnline(user);
+          if (navigator.onLine) setUserOnline(user);
         }, 30000);
 
-        // Handle visibility change
         const handleVisibilityChange = () => {
           if (document.hidden) {
             setUserOffline(user);
           } else {
-            setUserOnline(user);
+            if (navigator.onLine) setUserOnline(user);
           }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Handle page unload
-        const handleBeforeUnload = () => {
-          setUserOffline(user);
-        };
+        const handleBeforeUnload = () => { setUserOffline(user); };
         window.addEventListener('beforeunload', handleBeforeUnload);
 
-        // Handle page hide (for mobile)
-        const handlePageHide = () => {
-          setUserOffline(user);
-        };
+        const handlePageHide = () => { setUserOffline(user); };
         window.addEventListener('pagehide', handlePageHide);
 
-        // Handle iframe load
         const handleIframeLoad = () => {
-          setUserOnline(user);
+          if (navigator.onLine) setUserOnline(user);
           if (!iframeLoaded) {
             setTimeout(() => injectStatusStyles(), 300);
           }
@@ -881,7 +1023,7 @@
           if (checkIframeLoaded()) {
             clearInterval(loadCheckInterval);
             setTimeout(() => injectStatusStyles(), 500);
-            startAllUsersStatusListener();
+            if (navigator.onLine) startAllUsersStatusListener();
           }
         }, 800);
 
@@ -890,12 +1032,11 @@
             iframeLoaded = true;
             completeProgress();
             setTimeout(() => injectStatusStyles(), 500);
-            startAllUsersStatusListener();
+            if (navigator.onLine) startAllUsersStatusListener();
             console.log('⚠️ Fallback: Forced load completion');
           }
         }, 15000);
 
-        // Cleanup function
         window._cleanupStatus = () => {
           document.removeEventListener('visibilitychange', handleVisibilityChange);
           window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -924,10 +1065,12 @@
       }
     });
 
-    // ========== IFRAME EVENTS ==========
+    // ============================================================
+    // IFRAME EVENTS
+    // ============================================================
     mainIframe.addEventListener('load', () => {
       const user = auth.currentUser;
-      if (user) {
+      if (user && navigator.onLine) {
         setUserOnline(user);
         if (!iframeLoaded && !isFirstLoad) {
           loadingOverlay.classList.remove('hidden');
@@ -939,7 +1082,7 @@
             }
           }, 2000);
         }
-        if (user.uid) {
+        if (user.uid && navigator.onLine) {
           startMessageListener(user.uid);
           if (iframeLoaded) {
             setTimeout(() => injectStatusStyles(), 300);
@@ -948,7 +1091,9 @@
       }
     });
 
-    // ========== URL PARAMETERS ==========
+    // ============================================================
+    // URL PARAMETER HANDLING
+    // ============================================================
     function getUrlParams() {
       const params = new URLSearchParams(window.location.search);
       return {
@@ -973,7 +1118,7 @@
       }
       
       if (params.userId && !params.page) {
-        url = `massages.html?user=${params.userId}`;
+        url = `messages.html?user=${params.userId}`;
       }
 
       if (mainIframe.src !== url && !mainIframe.src.includes(url)) {
@@ -1006,6 +1151,7 @@
     console.log('📱 Click notification to open chat');
     console.log('👀 Everyone sees real-time online/offline status');
     console.log('📌 Proper cleanup on page unload/visibility change');
+    console.log('🌐 Internet connection overlay shown when offline');
   </script>
 </body>
 </html>
