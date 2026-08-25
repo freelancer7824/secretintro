@@ -191,6 +191,8 @@
             min-height: 70px;
             flex-shrink: 0;
             border-bottom: 1px solid #f0f2f5;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .chat-item:active { background: #f0f2f5; }
         .chat-item .delete-chat-btn {
@@ -918,7 +920,7 @@
                 padding: 6px 10px; }
         }
 
-        /* Swipe Refresh */
+        /* Swipe Refresh - Facebook style */
         .pull-refresh-wrapper {
             position: relative;
             overflow: hidden;
@@ -935,21 +937,38 @@
             justify-content: center;
             color: #65676b;
             font-size: 14px;
-            transition: top 0.3s;
+            transition: top 0.3s ease;
             pointer-events: none;
-            z-index: 5;
+            z-index: 10;
+            background: #ffffff;
+            border-bottom: 1px solid #e4e6eb;
         }
-        .pull-refresh-indicator i {
-            font-size: 24px;
-            margin-right: 8px;
-            transition: transform 0.3s;
+        .pull-refresh-indicator .refresh-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 22px;
+            color: #0084ff;
+            transition: transform 0.3s ease;
         }
-        .pull-refresh-indicator.spinning i {
+        .pull-refresh-indicator .refresh-icon.spinning {
             animation: spin 0.8s linear infinite;
+        }
+        .pull-refresh-indicator .refresh-text {
+            font-weight: 500;
+            font-size: 14px;
+            color: #65676b;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .pull-refresh-indicator .refresh-icon .fa-arrow-down {
+            transition: transform 0.3s ease;
+        }
+        .pull-refresh-indicator .refresh-icon .fa-arrow-down.flip {
+            transform: rotate(180deg);
         }
     </style>
 </head>
@@ -978,10 +997,17 @@
         <div class="menu-item" onclick="editMessage()"><i class="fa-solid fa-pen"></i> Edit</div>
         <div class="menu-item danger" onclick="deleteMessage()"><i class="fa-solid fa-trash"></i> Delete</div>
     </div>
+    
+    <div class="chat-context-menu" id="chat-context-menu" style="display:none;position:fixed;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.2);padding:8px 0;z-index:10002;min-width:180px;">
+        <div class="menu-item danger" onclick="deleteChatFromContext()"><i class="fa-solid fa-trash"></i> Delete Chat</div>
+    </div>
 
     <div id="inbox-page" class="pull-refresh-wrapper">
         <div class="pull-refresh-indicator" id="pull-refresh-indicator">
-            <i class="fa-solid fa-arrow-down"></i> <span>Pull to refresh</span>
+            <div class="refresh-icon" id="refresh-icon">
+                <i class="fa-solid fa-arrow-down" id="refresh-arrow"></i>
+            </div>
+            <span class="refresh-text" id="refresh-text">Pull to refresh</span>
         </div>
         <div class="top-nav">
             <div class="nav-left">
@@ -1058,11 +1084,26 @@
                     <input type="file" id="audio-input" accept="audio/*" class="file-input-hidden" onchange="handleFileSelect(event, 'audio')">
                 </div>
             </div>
+            <div class="voice-recording-indicator" id="voice-recording-indicator" style="display:none;align-items:center;gap:8px;background:#f0f2f5;padding:6px 12px;border-radius:20px;font-size:14px;color:#e74c3c;">
+                <span style="width:12px;height:12px;background:#e74c3c;border-radius:50%;animation:pulse 1s infinite;"></span> Recording...
+            </div>
+            <div class="voice-controls" id="voice-controls" style="display:none;align-items:center;gap:12px;padding:4px 8px;">
+                <span class="cancel-btn" onclick="cancelVoiceRecording()" style="color:#e74c3c;font-size:20px;cursor:pointer;padding:4px 8px;"><i class="fa-solid fa-times-circle"></i></span>
+                <span class="send-voice-btn" onclick="sendVoiceRecording()" style="color:#0084ff;font-size:20px;cursor:pointer;padding:4px 8px;"><i class="fa-solid fa-check-circle"></i></span>
+            </div>
             <button class="send-btn" id="send-btn" onclick="sendMessage()">
                 <i class="fa-regular fa-paper-plane"></i>
             </button>
         </div>
     </div>
+
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 
     <script>
         // ========== FIREBASE CONFIG ==========
@@ -1103,12 +1144,18 @@
         const progressFill = document.getElementById('progress-fill');
         const uploadText = document.getElementById('upload-text');
         const contextMenu = document.getElementById('message-context-menu');
+        const chatContextMenu = document.getElementById('chat-context-menu');
         const videoFullscreenOverlay = document.getElementById('video-fullscreen-overlay');
         const fullscreenVideo = document.getElementById('fullscreen-video');
         const offlineIndicator = document.getElementById('offline-indicator');
         const syncIndicator = document.getElementById('sync-indicator');
         const storiesContainer = document.getElementById('stories-container');
         const pullIndicator = document.getElementById('pull-refresh-indicator');
+        const refreshIcon = document.getElementById('refresh-icon');
+        const refreshArrow = document.getElementById('refresh-arrow');
+        const refreshText = document.getElementById('refresh-text');
+        const voiceIndicator = document.getElementById('voice-recording-indicator');
+        const voiceControls = document.getElementById('voice-controls');
 
         let currentUser = null;
         let currentChatId = null;
@@ -1126,6 +1173,9 @@
         let isRecording = false;
         let selectedMessageData = null;
         let isOffline = false;
+        let voiceBlob = null;
+        let contextChatId = null;
+        let contextChatOtherId = null;
 
         const userCache = new Map();
         const localCache = {
@@ -1155,13 +1205,12 @@
             return new Promise((resolve, reject) => {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
-                // For audio, send as 'document' or 'audio' — using 'document' for broader support, but we use 'audio' type
                 const isAudio = file.type.startsWith('audio/');
                 const sendType = isVideo ? 'video' : (isAudio ? 'audio' : 'photo');
                 formData.append(sendType, file);
 
-                let url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/send${sendType.charAt(0).toUpperCase() + sendType.slice(1)}`;
-                // For audio, use sendAudio
+                let url =
+                    `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/send${sendType.charAt(0).toUpperCase() + sendType.slice(1)}`;
                 if (isAudio) {
                     url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`;
                 }
@@ -1225,7 +1274,6 @@
                 uploadText.textContent = 'Uploading...';
 
                 const isVideo = type === 'video';
-                const isAudio = type === 'audio';
                 const fileId = await uploadToTelegram(file, isVideo);
                 const fileUrl = await getTelegramFileUrl(fileId);
 
@@ -1247,44 +1295,32 @@
         }
 
         // ========== VOICE RECORDING ==========
+        let recordedVoiceBlob = null;
+        let voiceRecordingStream = null;
+
         function startVoiceRecording() {
             if (isRecording) { stopVoiceRecording(); return; }
             if (!navigator.mediaDevices) { showToast('Recording not supported'); return; }
+
+            voiceIndicator.style.display = 'flex';
+            voiceControls.style.display = 'flex';
+            sendBtn.style.display = 'none';
+
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(async (stream) => {
+                    voiceRecordingStream = stream;
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                     mediaRecorder.onstop = async () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
-
-                        try {
-                            uploadProgress.style.display = 'block';
-                            progressFill.style.width = '0%';
-                            uploadText.textContent = 'Uploading voice...';
-
-                            const fileId = await uploadToTelegram(audioFile, false);
-                            const fileUrl = await getTelegramFileUrl(fileId);
-
-                            uploadProgress.style.display = 'none';
-
-                            window._pendingFile = {
-                                type: 'audio',
-                                url: fileUrl,
-                                fileId: fileId
-                            };
-                            await sendMessage();
-                        } catch (error) {
-                            uploadProgress.style.display = 'none';
-                            showToast('Error uploading voice: ' + error.message);
-                        }
-
-                        stream.getTracks().forEach(t => t.stop());
+                        recordedVoiceBlob = audioBlob;
+                        isRecording = false;
+                        voiceIndicator.style.display = 'none';
                     };
                     mediaRecorder.start();
                     isRecording = true;
-                    showToast('Recording... tap again to stop');
+                    showToast('Recording... tap microphone to stop');
                 })
                 .catch(err => showToast('Microphone access denied'));
         }
@@ -1293,6 +1329,58 @@
             if (mediaRecorder && isRecording) {
                 mediaRecorder.stop();
                 isRecording = false;
+                if (voiceRecordingStream) {
+                    voiceRecordingStream.getTracks().forEach(t => t.stop());
+                    voiceRecordingStream = null;
+                }
+                voiceControls.style.display = 'flex';
+                sendBtn.style.display = 'none';
+            }
+        }
+
+        function cancelVoiceRecording() {
+            voiceControls.style.display = 'none';
+            sendBtn.style.display = 'flex';
+            recordedVoiceBlob = null;
+            audioChunks = [];
+            if (voiceRecordingStream) {
+                voiceRecordingStream.getTracks().forEach(t => t.stop());
+                voiceRecordingStream = null;
+            }
+            showToast('Recording cancelled');
+        }
+
+        async function sendVoiceRecording() {
+            if (!recordedVoiceBlob) {
+                showToast('No voice recording');
+                return;
+            }
+
+            voiceControls.style.display = 'none';
+            sendBtn.style.display = 'flex';
+
+            const audioFile = new File([recordedVoiceBlob], 'voice-message.webm', { type: 'audio/webm' });
+            recordedVoiceBlob = null;
+
+            try {
+                uploadProgress.style.display = 'block';
+                progressFill.style.width = '0%';
+                uploadText.textContent = 'Uploading voice...';
+
+                const fileId = await uploadToTelegram(audioFile, false);
+                const fileUrl = await getTelegramFileUrl(fileId);
+
+                uploadProgress.style.display = 'none';
+
+                window._pendingFile = {
+                    type: 'audio',
+                    url: fileUrl,
+                    fileId: fileId
+                };
+                await sendMessage();
+            } catch (error) {
+                uploadProgress.style.display = 'none';
+                showToast('Error uploading voice: ' + error.message);
             }
         }
 
@@ -1684,7 +1772,42 @@
                     openChatRoom(chat.id, chat.otherId, chat.userData);
                 });
 
+                let chatPressTimer = null;
+                item.addEventListener('touchstart', function(e) {
+                    chatPressTimer = setTimeout(() => {
+                        contextChatId = chat.id;
+                        contextChatOtherId = chat.otherId;
+                        chatContextMenu.style.display = 'block';
+                        chatContextMenu.style.left = Math.min(e.touches[0].clientX, window.innerWidth - 200) +
+                            'px';
+                        chatContextMenu.style.top = Math.min(e.touches[0].clientY, window.innerHeight - 100) +
+                            'px';
+                    }, 800);
+                }, { passive: true });
+                item.addEventListener('touchend', function() { clearTimeout(chatPressTimer); });
+                item.addEventListener('touchmove', function() { clearTimeout(chatPressTimer); });
+                item.addEventListener('mousedown', function(e) {
+                    chatPressTimer = setTimeout(() => {
+                        contextChatId = chat.id;
+                        contextChatOtherId = chat.otherId;
+                        chatContextMenu.style.display = 'block';
+                        chatContextMenu.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+                        chatContextMenu.style.top = Math.min(e.clientY, window.innerHeight - 100) + 'px';
+                    }, 800);
+                });
+                item.addEventListener('mouseup', function() { clearTimeout(chatPressTimer); });
+                item.addEventListener('mouseleave', function() { clearTimeout(chatPressTimer); });
+
                 chatList.appendChild(item);
+            }
+        }
+
+        function deleteChatFromContext() {
+            chatContextMenu.style.display = 'none';
+            if (contextChatId) {
+                deleteChatItem(contextChatId, contextChatOtherId);
+                contextChatId = null;
+                contextChatOtherId = null;
             }
         }
 
@@ -1919,7 +2042,7 @@
 
                         const editItem = contextMenu.querySelector('.menu-item:first-child');
                         editItem.style.display = isOutgoing ? 'flex' : 'none';
-                    }, 500);
+                    }, 800);
                 });
                 row.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
                 row.addEventListener('mouseleave', function() { clearTimeout(pressTimer); });
@@ -1937,8 +2060,8 @@
 
                         const editItem = contextMenu.querySelector('.menu-item:first-child');
                         editItem.style.display = isOutgoing ? 'flex' : 'none';
-                    }, 500);
-                });
+                    }, 800);
+                }, { passive: true });
                 row.addEventListener('touchend', function() { clearTimeout(pressTimer); });
                 row.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
 
@@ -2092,8 +2215,13 @@
             }
         }
 
-        document.addEventListener('click', function() {
-            contextMenu.style.display = 'none';
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.message-context-menu')) {
+                contextMenu.style.display = 'none';
+            }
+            if (!e.target.closest('.chat-context-menu')) {
+                chatContextMenu.style.display = 'none';
+            }
         });
 
         // ========== SEND MESSAGE ==========
@@ -2138,7 +2266,6 @@
                 const chatRef = db.collection('chats').doc(currentChatId);
                 const lastMsg = text || (pendingFile ? '📎 ' + pendingFile.type : '');
 
-                // Optimistic update: add to local cache and render immediately
                 const currentMessages = localCache.messages[currentChatId] || [];
                 currentMessages.push(messageData);
                 localCache.messages[currentChatId] = currentMessages;
@@ -2157,7 +2284,6 @@
                     return;
                 }
 
-                // Update Firestore
                 await chatRef.update({
                     messages: firebase.firestore.FieldValue.arrayUnion(messageData),
                     lastMessage: lastMsg,
@@ -2167,7 +2293,6 @@
             } catch (error) {
                 console.error('Error sending message:', error);
                 showToast('Error: ' + error.message);
-                // Rollback optimistic update
                 const currentMessages = localCache.messages[currentChatId] || [];
                 currentMessages.pop();
                 localCache.messages[currentChatId] = currentMessages;
@@ -2221,14 +2346,22 @@
             audioInput.value = '';
             window._pendingFile = null;
             contextMenu.style.display = 'none';
+            chatContextMenu.style.display = 'none';
             closeVideoFullscreen();
+            voiceControls.style.display = 'none';
+            voiceIndicator.style.display = 'none';
+            sendBtn.style.display = 'flex';
+            recordedVoiceBlob = null;
+            if (voiceRecordingStream) {
+                voiceRecordingStream.getTracks().forEach(t => t.stop());
+                voiceRecordingStream = null;
+            }
         }
 
         function goBack() {
             if (chatRoom.style.display === 'flex') {
                 closeChat();
             } else {
-                // Use history.back() for instant back without reload
                 if (window.parent && window.parent.location) {
                     window.parent.history.back();
                 } else {
@@ -2265,7 +2398,7 @@
             }
         });
 
-        // ========== SWIPE REFRESH ==========
+        // ========== SWIPE REFRESH - Facebook Style ==========
         let startY = 0;
         let pullY = 0;
         let isPulling = false;
@@ -2281,6 +2414,11 @@
                 isPulling = true;
                 pullY = 0;
                 pullIndicator.style.transition = 'none';
+                pullIndicator.style.top = '-60px';
+                refreshArrow.className = 'fa-solid fa-arrow-down';
+                refreshArrow.style.transform = 'rotate(0deg)';
+                refreshText.textContent = 'Pull to refresh';
+                refreshIcon.classList.remove('spinning');
             }
         }, { passive: true });
 
@@ -2291,14 +2429,16 @@
             if (pullY > 0 && chatListContainer.scrollTop === 0) {
                 e.preventDefault();
                 const progress = Math.min(pullY / pullThreshold, 1);
-                pullIndicator.style.top = Math.min(pullY - 60, 0) + 'px';
-                const icon = pullIndicator.querySelector('i');
+                const topOffset = Math.min(pullY - 60, 0);
+                pullIndicator.style.top = topOffset + 'px';
+                
                 if (progress >= 1) {
-                    icon.style.transform = 'rotate(180deg)';
-                    pullIndicator.querySelector('span').textContent = 'Release to refresh';
+                    refreshArrow.className = 'fa-solid fa-arrow-down flip';
+                    refreshText.textContent = 'Release to refresh';
                 } else {
-                    icon.style.transform = `rotate(${progress * 180}deg)`;
-                    pullIndicator.querySelector('span').textContent = 'Pull to refresh';
+                    refreshArrow.className = 'fa-solid fa-arrow-down';
+                    refreshArrow.style.transform = `rotate(${progress * 180}deg)`;
+                    refreshText.textContent = 'Pull to refresh';
                 }
             }
         }, { passive: false });
@@ -2306,24 +2446,26 @@
         inboxPage.addEventListener('touchend', function(e) {
             if (!isPulling) return;
             isPulling = false;
-            pullIndicator.style.transition = 'top 0.3s';
+            pullIndicator.style.transition = 'top 0.3s ease';
             pullIndicator.style.top = '-60px';
-            const icon = pullIndicator.querySelector('i');
-            icon.style.transform = 'rotate(0deg)';
-            pullIndicator.querySelector('span').textContent = 'Pull to refresh';
+            refreshArrow.className = 'fa-solid fa-arrow-down';
+            refreshArrow.style.transform = 'rotate(0deg)';
+            refreshText.textContent = 'Pull to refresh';
 
             if (pullY >= pullThreshold && !refreshCooldown) {
                 refreshCooldown = true;
-                pullIndicator.classList.add('spinning');
-                pullIndicator.querySelector('span').textContent = 'Refreshing...';
+                refreshIcon.classList.add('spinning');
+                refreshText.textContent = 'Refreshing...';
                 pullIndicator.style.top = '0px';
+                refreshArrow.className = 'fa-solid fa-spinner';
 
-                // Perform refresh
                 setTimeout(() => {
                     refreshChats();
-                    pullIndicator.classList.remove('spinning');
+                    refreshIcon.classList.remove('spinning');
                     pullIndicator.style.top = '-60px';
-                    pullIndicator.querySelector('span').textContent = 'Pull to refresh';
+                    refreshText.textContent = 'Pull to refresh';
+                    refreshArrow.className = 'fa-solid fa-arrow-down';
+                    refreshArrow.style.transform = 'rotate(0deg)';
                     setTimeout(() => { refreshCooldown = false; }, 1000);
                 }, 800);
             }
@@ -2334,7 +2476,6 @@
             if (!currentUser) return;
             showToast('Refreshing...');
             try {
-                // Force refetch by clearing cache and reloading
                 const query = db.collection('chats').where('participants', 'array-contains', currentUser.uid);
                 const snapshot = await query.get();
                 const chats = [];
@@ -2409,26 +2550,21 @@
             }
         });
 
-        // Handle back button for chat close
         window.addEventListener('popstate', function(e) {
             if (chatRoom.style.display === 'flex') {
                 closeChat();
-                // Push state to prevent reload
                 history.pushState(null, '', window.location.href);
             }
         });
 
-        // Push initial state for back button handling
         history.pushState(null, '', window.location.href);
 
-        console.log('🚀 Messenger with Telegram uploads, Note section for online friends!');
-        console.log('✅ Image, Video, Voice sent via Telegram Bot API');
-        console.log('✅ Online friends appear in Note/Stories section');
-        console.log('✅ Messages cached in localStorage');
-        console.log('✅ Offline support with auto-sync');
-        console.log('✅ Swipe refresh added');
+        console.log('🚀 Messenger with Telegram uploads');
+        console.log('✅ Swipe refresh with Facebook style animated icon');
+        console.log('✅ Voice recording with send/cancel');
+        console.log('✅ Long press delete for messages and chats');
         console.log('✅ Optimistic message sending');
-        console.log('✅ Back button closes chat instantly');
+        console.log('✅ Offline support with auto-sync');
     </script>
 </body>
 </html>
