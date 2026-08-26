@@ -1982,6 +1982,48 @@
             margin-top: 8px;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
+        /* Video thumbnail overlay for feed videos */
+        .feed-video-thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .feed-video-thumbnail .play-icon-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+        }
+        .feed-video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        .feed-video-container video {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+            object-fit: contain;
+            background: #000;
+            opacity: 1 !important;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -2304,7 +2346,7 @@
             let hasMoreVideo = true;
             let hasMoreShorts = true;
             let videoObserverInstance = null;
-            let activeVideoElement = null; // Track currently playing video
+            let activeVideoElement = null;
 
             // ========== CACHE / LOCAL STORAGE HELPERS ==========
             function getCache(key, defaultVal = null) {
@@ -2979,7 +3021,6 @@
                         videoEl.volume = 1.0;
                         videoEl.muted = false;
 
-                        // Custom controls update
                         const playBtn = div.querySelector('.play-pause-btn');
                         const progressFill = div.querySelector('.progress-fill');
                         const timeDisplay = div.querySelector('.time-display');
@@ -3010,7 +3051,6 @@
                             }
                         });
 
-                        // Click to open fullscreen instead of play/pause
                         videoEl.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const url = this.src || this.getAttribute('src');
@@ -3020,7 +3060,6 @@
                         });
                     }
 
-                    // Like button
                     const likeBtn = div.querySelector('.like-video-btn');
                     if (likeBtn) {
                         likeBtn.addEventListener('click', function(e) {
@@ -3030,7 +3069,6 @@
                     }
                 });
 
-                // Infinite scroll
                 container.addEventListener('scroll', function() {
                     if (this.scrollTop + this.clientHeight >= this.scrollHeight - 300) {
                         if (type === 'reels' && hasMoreVideo && !isLoadingVideo) {
@@ -3139,11 +3177,9 @@
                         if (!video) return;
 
                         if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-                            // Pause any other playing video
                             if (activeVideoElement && activeVideoElement !== video) {
                                 activeVideoElement.pause();
                             }
-                            // Play this video
                             if (video.paused) {
                                 video.play().catch(() => {});
                                 video.volume = 1.0;
@@ -3655,11 +3691,10 @@
                 let mediaHTML = '';
                 if (imageUrl) {
                     if (isVideo) {
-                        // Remove controls attribute and add click handler for fullscreen
                         mediaHTML = `
-                            <div class="post-image-content">
-                                <video src="${imageUrl}" playsinline preload="metadata" style="width:100%; max-height:400px; object-fit:contain; background:#000; border-radius:4px; cursor:pointer;"></video>
-                                <div class="video-click-overlay">
+                            <div class="feed-video-container">
+                                <video src="${imageUrl}" playsinline preload="metadata" muted style="width:100%; max-height:400px; object-fit:contain; background:#000; border-radius:4px; cursor:pointer;"></video>
+                                <div class="video-click-overlay" style="pointer-events:none;">
                                     <div style="display:flex;flex-direction:column;align-items:center;">
                                         <i class="fa-solid fa-play-circle"></i>
                                         <span class="play-text">Tap to watch fullscreen</span>
@@ -3727,9 +3762,10 @@
                 `;
                 if (isBanner) div.classList.add('banner-post');
 
-                // Add video click handler for fullscreen
-                const videoEl = div.querySelector('.post-image-content video');
+                // Setup video autoplay with IntersectionObserver
+                const videoEl = div.querySelector('.feed-video-container video');
                 if (videoEl) {
+                    // Click to fullscreen
                     videoEl.addEventListener('click', function(e) {
                         e.stopPropagation();
                         const url = this.src || this.getAttribute('src');
@@ -3806,22 +3842,55 @@
                 observer.observe(scrollLoader);
             }
 
-            // --- Video Observer for Feed (Only tracks, but does NOT auto-play) ---
+            // --- Video Observer for Feed (Auto-play videos when visible) ---
             function setupVideoObserverForFeed() {
                 if (videoObserver) videoObserver.disconnect();
-                // We only track visibility for UI updates, but don't auto-play
+
                 videoObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         const video = entry.target;
                         if (!video || video.tagName !== 'VIDEO') return;
-                        // Only update UI state, no auto-play
-                        // Videos on home feed have click handler for fullscreen
-                    });
-                }, { root: null, rootMargin: '50px', threshold: [0, 0.1, 0.3, 0.5] });
 
-                document.querySelectorAll('#feed-container video, #post-detail-overlay video').forEach(v => {
-                    videoObserver.observe(v);
-                });
+                        if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
+                            // Pause other videos
+                            if (activeVideoElement && activeVideoElement !== video) {
+                                activeVideoElement.pause();
+                                // Also reset the other video's thumbnail overlay if any
+                            }
+                            // Play this video with sound (like stories)
+                            if (video.paused) {
+                                video.muted = false;
+                                video.volume = 1.0;
+                                video.play().catch(() => {
+                                    // If autoplay fails, try muted
+                                    video.muted = true;
+                                    video.play().catch(() => {});
+                                });
+                            }
+                            activeVideoElement = video;
+                            // Hide overlay play button
+                            const overlay = video.closest('.feed-video-container')?.querySelector(
+                            '.video-click-overlay');
+                            if (overlay) overlay.style.opacity = '0';
+                        } else if (entry.intersectionRatio < 0.1) {
+                            if (!video.paused) {
+                                video.pause();
+                            }
+                            if (activeVideoElement === video) {
+                                activeVideoElement = null;
+                                // Show overlay again
+                                const overlay = video.closest('.feed-video-container')?.querySelector(
+                                    '.video-click-overlay');
+                                if (overlay) overlay.style.opacity = '1';
+                            }
+                        }
+                    });
+                }, { root: null, rootMargin: '0px', threshold: [0, 0.1, 0.4, 0.7] });
+
+                document.querySelectorAll('#feed-container .feed-video-container video, #post-detail-overlay .feed-video-container video')
+                    .forEach(v => {
+                        videoObserver.observe(v);
+                    });
             }
 
             // --- Fullscreen Video (shared instance) ---
@@ -3880,7 +3949,6 @@
             let currentDetailPostId = null;
 
             function openPostDetail(postId) {
-                // Pause any playing video before opening detail
                 if (activeVideoElement) {
                     activeVideoElement.pause();
                     activeVideoElement = null;
@@ -3998,11 +4066,10 @@
                 let mediaHTML = '';
                 if (imageUrl) {
                     if (isVideo) {
-                        // Remove controls attribute and add click handler for fullscreen in detail view
                         mediaHTML = `
-                            <div class="post-image-content">
-                                <video src="${imageUrl}" playsinline preload="metadata" style="width:100%; max-height:500px; object-fit:contain; background:#000; border-radius:4px; cursor:pointer;"></video>
-                                <div class="video-click-overlay">
+                            <div class="feed-video-container">
+                                <video src="${imageUrl}" playsinline preload="metadata" muted style="width:100%; max-height:500px; object-fit:contain; background:#000; border-radius:4px; cursor:pointer;"></video>
+                                <div class="video-click-overlay" style="pointer-events:none;">
                                     <div style="display:flex;flex-direction:column;align-items:center;">
                                         <i class="fa-solid fa-play-circle"></i>
                                         <span class="play-text">Tap to watch fullscreen</span>
@@ -4121,8 +4188,8 @@
                 `;
                 if (isBanner) div.classList.add('banner-post');
 
-                // Add video click handler for fullscreen in detail view
-                const videoEl = div.querySelector('.post-image-content video');
+                // Setup video autoplay in detail
+                const videoEl = div.querySelector('.feed-video-container video');
                 if (videoEl) {
                     videoEl.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -4529,13 +4596,13 @@
             window.seekVideo = seekVideo;
             window.handleVideoLike = handleVideoLike;
 
-            console.log('🚀 SecretIntro - Full Optimized with Video Fullscreen');
+            console.log('🚀 SecretIntro - Full Optimized with Video Autoplay on Feed');
             console.log('📱 Swipe to refresh enabled on all tabs');
-            console.log('🎬 Auto-play only on Reels & Shorts - Home feed videos open fullscreen on click');
-            console.log('📹 Fullscreen overlay auto-plays videos on click');
+            console.log('🎬 Videos on home feed autoplay with sound when visible (like stories)');
+            console.log('📹 Click video opens fullscreen with beautiful playback');
             console.log('💾 Cached data with localStorage support');
             console.log('📦 Only visible posts load - saves data');
-            console.log('🔄 Post detail videos also open fullscreen on click');
+            console.log('🔄 Post detail videos also autoplay when visible');
             console.log('🎥 TikTok-style video side actions (Like, Comment, Share, Fullscreen)');
 
         });
