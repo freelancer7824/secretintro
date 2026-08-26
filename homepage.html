@@ -1786,6 +1786,7 @@
             scroll-snap-type: y mandatory;
             background: #000;
             padding: 0;
+            -webkit-overflow-scrolling: touch;
         }
         .video-scroll-container::-webkit-scrollbar {
             width: 4px;
@@ -2347,6 +2348,8 @@
             let hasMoreShorts = true;
             let videoObserverInstance = null;
             let activeVideoElement = null;
+            let allVideoIds = new Set();
+            let usedVideoHistory = [];
 
             // ========== CACHE / LOCAL STORAGE HELPERS ==========
             function getCache(key, defaultVal = null) {
@@ -2760,17 +2763,43 @@
 
             // --- Swipe to Refresh ---
             document.addEventListener('touchstart', function(e) {
+                // Only allow swipe refresh from the very top (near header)
+                const scrollContainer = currentTab === 'reels' ? reelsScroll : (currentTab === 'shorts' ? shortsScroll :
+                    null);
+                if (scrollContainer) {
+                    // For video tabs, check if scroll is at the top
+                    if (scrollContainer.scrollTop <= 0) {
+                        touchStartY = e.touches[0].clientY;
+                        isSwipingDown = false;
+                    } else {
+                        touchStartY = 0;
+                    }
+                    return;
+                }
+                // For home feed
                 if (window.scrollY <= 0) {
                     touchStartY = e.touches[0].clientY;
                     isSwipingDown = false;
+                } else {
+                    touchStartY = 0;
                 }
             }, { passive: true });
 
             document.addEventListener('touchmove', function(e) {
-                if (window.scrollY <= 0 && touchStartY > 0 && !isRefreshing) {
+                const scrollContainer = currentTab === 'reels' ? reelsScroll : (currentTab === 'shorts' ? shortsScroll :
+                    null);
+                let isAtTop = false;
+                if (scrollContainer) {
+                    isAtTop = scrollContainer.scrollTop <= 0;
+                } else {
+                    isAtTop = window.scrollY <= 0;
+                }
+
+                if (isAtTop && touchStartY > 0 && !isRefreshing) {
                     const currentY = e.touches[0].clientY;
                     const diff = currentY - touchStartY;
-                    if (diff > 10) {
+                    // Only trigger if pulling down from the very top edge (within 50px of top)
+                    if (diff > 10 && touchStartY < 80) {
                         isSwipingDown = true;
                         e.preventDefault();
                         const indicator = swipeIndicator;
@@ -2816,6 +2845,8 @@
                         videoDataCache = [];
                         videoLastDoc = null;
                         hasMoreVideo = true;
+                        allVideoIds.clear();
+                        usedVideoHistory = [];
                         if (reelsScroll) {
                             const items = reelsScroll.querySelectorAll('.video-item');
                             items.forEach(el => el.remove());
@@ -2827,6 +2858,8 @@
                         shortsDataCache = [];
                         shortsLastDoc = null;
                         hasMoreShorts = true;
+                        allVideoIds.clear();
+                        usedVideoHistory = [];
                         if (shortsScroll) {
                             const items = shortsScroll.querySelectorAll('.video-item');
                             items.forEach(el => el.remove());
@@ -2871,7 +2904,7 @@
                 }
             }
 
-            // ========== VIDEO CONTENT (Reels & Shorts) with Side Actions ==========
+            // ========== VIDEO CONTENT (Reels & Shorts) with Random Shuffle & No Repeat ==========
             async function loadVideoContent(type, force = false) {
                 const isReels = type === 'reels';
                 const container = isReels ? reelsScroll : shortsScroll;
@@ -2879,6 +2912,8 @@
 
                 if ((isReels && isLoadingVideo) || (!isReels && isLoadingShorts)) return;
                 if (!force && cache.length > 0) {
+                    // If we have cache, render random order
+                    renderVideosFromCache(container, isReels);
                     setTimeout(setupVideoObserverForTab, 200);
                     return;
                 }
@@ -2896,7 +2931,7 @@
                 try {
                     let query = db.collection('all-user-post')
                         .orderBy('timestamp', 'desc')
-                        .limit(15);
+                        .limit(20);
                     if (isReels && videoLastDoc) query = query.startAfter(videoLastDoc);
                     if (!isReels && shortsLastDoc) query = query.startAfter(shortsLastDoc);
 
@@ -2923,6 +2958,7 @@
                     });
 
                     if (videos.length === 0) {
+                        // Skip to next batch
                         if (isReels) {
                             videoLastDoc = snapshot.docs[snapshot.docs.length - 1];
                             hasMoreVideo = true;
@@ -2937,17 +2973,21 @@
                         return;
                     }
 
+                    // Shuffle videos
+                    const shuffled = shuffleArray(videos);
+
+                    // Add to cache with tracking
                     if (isReels) {
-                        videoDataCache = [...videoDataCache, ...videos];
+                        videoDataCache = [...videoDataCache, ...shuffled];
                         videoLastDoc = snapshot.docs[snapshot.docs.length - 1];
-                        hasMoreVideo = videos.length >= 10;
-                        renderVideos(container, videos, 'reels');
+                        hasMoreVideo = videos.length >= 15;
+                        renderVideosFromCache(container, isReels);
                         isLoadingVideo = false;
                     } else {
-                        shortsDataCache = [...shortsDataCache, ...videos];
+                        shortsDataCache = [...shortsDataCache, ...shuffled];
                         shortsLastDoc = snapshot.docs[snapshot.docs.length - 1];
-                        hasMoreShorts = videos.length >= 10;
-                        renderVideos(container, videos, 'shorts');
+                        hasMoreShorts = videos.length >= 15;
+                        renderVideosFromCache(container, isReels);
                         isLoadingShorts = false;
                     }
 
@@ -2965,12 +3005,45 @@
                 }
             }
 
-            function renderVideos(container, videos, type) {
+            function shuffleArray(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function getNextRandomVideos(cache, count = 5) {
+                // Filter out videos that have been recently shown
+                const available = cache.filter(v => !usedVideoHistory.includes(v.id));
+                if (available.length === 0) {
+                    // If all videos have been shown, reset history and use all
+                    usedVideoHistory = [];
+                    return cache.slice(0, count);
+                }
+                const shuffled = shuffleArray(available);
+                const selected = shuffled.slice(0, count);
+                // Update history
+                selected.forEach(v => usedVideoHistory.push(v.id));
+                return selected;
+            }
+
+            function renderVideosFromCache(container, isReels) {
                 if (!container) return;
                 const loadingEl = container.querySelector('.loading-text');
                 if (loadingEl) loadingEl.remove();
 
-                videos.forEach((video, index) => {
+                const cache = isReels ? videoDataCache : shortsDataCache;
+                if (cache.length === 0) {
+                    container.innerHTML =
+                    '<div class="loading-text">No videos available</div>';
+                    return;
+                }
+
+                // Select random videos (5-8 at a time) from cache without repeating
+                const selected = getNextRandomVideos(cache, 6);
+
+                selected.forEach((video) => {
                     const div = document.createElement('div');
                     div.className = 'video-item';
                     div.dataset.videoId = video.id;
@@ -3069,12 +3142,19 @@
                     }
                 });
 
+                // Infinite scroll: load more when reaching bottom
                 container.addEventListener('scroll', function() {
                     if (this.scrollTop + this.clientHeight >= this.scrollHeight - 300) {
-                        if (type === 'reels' && hasMoreVideo && !isLoadingVideo) {
+                        if (isReels && hasMoreVideo && !isLoadingVideo) {
                             loadVideoContent('reels');
-                        } else if (type === 'shorts' && hasMoreShorts && !isLoadingShorts) {
+                        } else if (!isReels && hasMoreShorts && !isLoadingShorts) {
                             loadVideoContent('shorts');
+                        } else if ((isReels && !hasMoreVideo) || (!isReels && !hasMoreShorts)) {
+                            // If no more new videos, reshuffle and show cached videos again
+                            if (usedVideoHistory.length > cache.length * 0.5) {
+                                usedVideoHistory = [];
+                                renderVideosFromCache(container, isReels);
+                            }
                         }
                     }
                 }, { passive: true });
@@ -3855,7 +3935,6 @@
                             // Pause other videos
                             if (activeVideoElement && activeVideoElement !== video) {
                                 activeVideoElement.pause();
-                                // Also reset the other video's thumbnail overlay if any
                             }
                             // Play this video with sound (like stories)
                             if (video.paused) {
@@ -4596,14 +4675,11 @@
             window.seekVideo = seekVideo;
             window.handleVideoLike = handleVideoLike;
 
-            console.log('🚀 SecretIntro - Full Optimized with Video Autoplay on Feed');
-            console.log('📱 Swipe to refresh enabled on all tabs');
-            console.log('🎬 Videos on home feed autoplay with sound when visible (like stories)');
-            console.log('📹 Click video opens fullscreen with beautiful playback');
+            console.log('🚀 SecretIntro - Updated with Smart Swipe Refresh on Video Tabs');
+            console.log('📱 Swipe refresh only works from the very top edge (near header)');
+            console.log('🎬 Videos appear in random order without repeating the same video back-to-back');
+            console.log('🔄 When all videos are seen, they reshuffle and appear again randomly');
             console.log('💾 Cached data with localStorage support');
-            console.log('📦 Only visible posts load - saves data');
-            console.log('🔄 Post detail videos also autoplay when visible');
-            console.log('🎥 TikTok-style video side actions (Like, Comment, Share, Fullscreen)');
 
         });
     </script>
