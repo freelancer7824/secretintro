@@ -446,6 +446,26 @@
             line-height: 1.5;
             cursor: pointer;
         }
+        .post-caption .read-more-btn {
+            color: #1877f2;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .post-caption .read-more-btn:hover {
+            text-decoration: underline;
+        }
+        .post-caption .full-text {
+            display: none;
+        }
+        .post-caption .full-text.visible {
+            display: inline;
+        }
+        .post-caption .truncated-text {
+            display: inline;
+        }
+        .post-caption .truncated-text.hidden {
+            display: none;
+        }
 
         .banner-post {
             width: 100%;
@@ -457,6 +477,7 @@
             text-align: center;
             cursor: pointer;
             position: relative;
+            flex-direction: column;
         }
 
         .banner-post .banner-text {
@@ -466,6 +487,25 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             word-wrap: break-word;
             max-width: 100%;
+        }
+        .banner-post .banner-text .read-more-btn {
+            font-size: 16px;
+            color: #ffffff;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .banner-post .banner-text .full-text {
+            display: none;
+        }
+        .banner-post .banner-text .full-text.visible {
+            display: inline;
+        }
+        .banner-post .banner-text .truncated-text.hidden {
+            display: none;
         }
 
         .banner-post.theme-purple {
@@ -491,6 +531,10 @@
         .banner-post.theme-white .banner-text {
             color: #050505;
             text-shadow: none;
+        }
+        .banner-post.theme-white .banner-text .read-more-btn {
+            color: #1877f2;
+            background: transparent;
         }
 
         .post-media-container {
@@ -1786,11 +1830,11 @@
                 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=100&q=80'
             ];
             const captions = [
-                'We will create websites for $200',
-                'কত টাকার প্যাকেজ হতে পারে এটা',
-                'Just launched our new product! 🚀',
-                'Check out this amazing design',
-                'Our team is growing! Join us'
+                'We will create websites for $200. This is a very long text to test the read more functionality. It should be truncated after a certain number of characters and show a "Read more" link.',
+                'কত টাকার প্যাকেজ হতে পারে এটা। এই টেক্সটটি অনেক লম্বা এবং এটি রিড মোর ফিচার টেস্ট করার জন্য ব্যবহার করা হচ্ছে।',
+                'Just launched our new product! 🚀 This is a short caption.',
+                'Check out this amazing design. This is another long text that should be truncated with a read more link.',
+                'Our team is growing! Join us. Short and sweet.'
             ];
             const mediaTypes = ['text', 'image', 'video', 'image', 'text'];
             const themes = ['theme-white', 'theme-white', 'theme-purple', 'theme-red', 'theme-dark', 'theme-sunset'];
@@ -1799,12 +1843,13 @@
                 const idx = i % names.length;
                 const type = mediaTypes[i % mediaTypes.length];
                 const theme = themes[i % themes.length];
+                const longCaption = i % 2 === 0 ? captions[idx] + ' '.repeat(50) + 'This is extra long text to ensure it exceeds the character limit. The system should truncate this and show a "Read more" button. Clicking it should reveal the full text.' : captions[idx];
                 const post = {
                     id: `mock_${i}_${Date.now()}`,
                     name: names[idx],
                     avatar: avatars[idx],
                     userId: `user_${idx}`,
-                    caption: captions[idx] + ` (post ${i+1})`,
+                    caption: longCaption,
                     contentType: type,
                     media: type === 'image' ? 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80' :
                            type === 'video' ? 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' : '',
@@ -1886,7 +1931,7 @@
         }
 
         // ============================================================
-        // CREATE POST ELEMENT
+        // CREATE POST ELEMENT with READ MORE
         // ============================================================
         function createPostElement(post) {
             const div = document.createElement('div');
@@ -1901,14 +1946,49 @@
 
             const timeStr = post.timestamp ? formatTime(post.timestamp) : (post.time || 'Just now');
 
+            // --- Caption with Read More ---
+            const captionText = post.caption || '';
+            const charLimit = 150;
+            let captionHTML = '';
+            if (captionText) {
+                const isLong = captionText.length > charLimit;
+                const truncated = captionText.substring(0, charLimit) + '...';
+                if (isLong) {
+                    captionHTML = `
+                        <div class="post-caption" data-post-id="${post.id}">
+                            <span class="truncated-text">${truncated}</span>
+                            <span class="full-text">${captionText}</span>
+                            <span class="read-more-btn" data-post-id="${post.id}">Read more</span>
+                        </div>
+                    `;
+                } else {
+                    captionHTML = `
+                        <div class="post-caption" data-post-id="${post.id}">
+                            <span>${captionText}</span>
+                        </div>
+                    `;
+                }
+            }
+
             let contentHTML = '';
             
             if (isText && post.caption) {
                 const themeClass = post.theme || 'theme-white';
                 const textColor = themeClass === 'theme-white' ? '#050505' : '#ffffff';
+                const captionTextForBanner = post.caption || '';
+                const isLongBanner = captionTextForBanner.length > charLimit;
+                const truncatedBanner = captionTextForBanner.substring(0, charLimit) + '...';
                 contentHTML = `
                     <div class="banner-post ${themeClass}" data-post-id="${post.id}">
-                        <div class="banner-text" style="color:${textColor};">${post.caption}</div>
+                        <div class="banner-text" style="color:${textColor};">
+                            ${isLongBanner ? `
+                                <span class="truncated-text">${truncatedBanner}</span>
+                                <span class="full-text">${captionTextForBanner}</span>
+                                <span class="read-more-btn" data-post-id="${post.id}">Read more</span>
+                            ` : `
+                                <span>${captionTextForBanner}</span>
+                            `}
+                        </div>
                     </div>
                 `;
             } else if (isImage) {
@@ -1947,7 +2027,7 @@
                         <i class="fa-solid fa-xmark" data-post-id="${post.id}"></i>
                     </div>
                 </div>
-                ${isText && !post.caption ? '' : (isText ? '' : (post.caption && !isText ? `<div class="post-caption" data-post-id="${post.id}">${post.caption}</div>` : ''))}
+                ${(isText && post.caption) ? '' : (post.caption && !isText ? captionHTML : '')}
                 ${contentHTML}
                 <div class="post-stats-bar">
                     <div class="stats-left" data-post-id="${post.id}">
@@ -1979,6 +2059,30 @@
                     </button>
                 </div>
             `;
+
+            // --- Read More Toggle Logic ---
+            const readMoreBtns = div.querySelectorAll('.read-more-btn');
+            readMoreBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const container = btn.closest('.banner-text') || btn.closest('.post-caption');
+                    if (!container) return;
+                    const truncatedSpan = container.querySelector('.truncated-text');
+                    const fullSpan = container.querySelector('.full-text');
+                    if (truncatedSpan && fullSpan) {
+                        const isExpanded = fullSpan.classList.contains('visible');
+                        if (isExpanded) {
+                            fullSpan.classList.remove('visible');
+                            truncatedSpan.classList.remove('hidden');
+                            btn.textContent = 'Read more';
+                        } else {
+                            fullSpan.classList.add('visible');
+                            truncatedSpan.classList.add('hidden');
+                            btn.textContent = 'Read less';
+                        }
+                    }
+                });
+            });
 
             // Like button with long press
             const likeBtn = div.querySelector('.like-btn');
@@ -2038,13 +2142,15 @@
             // Post caption click for text posts
             const banner = div.querySelector('.banner-post');
             if (banner) {
-                banner.addEventListener('click', () => {
+                banner.addEventListener('click', (e) => {
+                    if (e.target.closest('.read-more-btn')) return;
                     openPostDetail(post.id);
                 });
             }
 
             // Regular caption click
-            div.querySelector('.post-caption')?.addEventListener('click', () => {
+            div.querySelector('.post-caption')?.addEventListener('click', (e) => {
+                if (e.target.closest('.read-more-btn')) return;
                 openPostDetail(post.id);
             });
 
