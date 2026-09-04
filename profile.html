@@ -308,7 +308,6 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: #fff;
         }
 
         .profile-tabs::-webkit-scrollbar {
@@ -360,14 +359,8 @@
         }
 
         @keyframes fadeIn {
-            0% {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         /* ===== ABOUT SECTION ===== */
@@ -505,7 +498,7 @@
             text-transform: uppercase;
         }
 
-        /* ===== POSTS ===== */
+        /* ===== POSTS (Homepage Card Logic) ===== */
         .posts-section {
             padding: 6px 16px 20px;
         }
@@ -659,6 +652,7 @@
             justify-content: space-around;
             padding: 4px 0 6px;
             border-top: 1px solid #e4e6eb;
+            position: relative;
         }
 
         .post-item .post-actions .act-btn {
@@ -689,6 +683,34 @@
 
         .post-item .post-actions .act-btn.liked:hover {
             background: #e7f3ff;
+        }
+
+        .reactions-popup {
+            position: absolute;
+            bottom: 45px;
+            left: 10px;
+            background: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            border-radius: 35px;
+            padding: 8px 12px;
+            display: none;
+            gap: 10px;
+            z-index: 100;
+            animation: popupScale 0.2s ease-in-out;
+        }
+
+        @keyframes popupScale {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .reaction-icon {
+            font-size: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .reaction-icon:hover {
+            transform: scale(1.4) translateY(-8px);
         }
 
         /* ===== EMPTY STATE ===== */
@@ -766,14 +788,8 @@
         }
 
         @keyframes slideUp {
-            0% {
-                opacity: 0;
-                transform: translateX(-50%) translateY(30px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+            0% { opacity: 0; transform: translateX(-50%) translateY(30px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
         /* ===== EDIT OVERLAY ===== */
@@ -809,14 +825,8 @@
         }
 
         @keyframes modalSlideUp {
-            0% {
-                opacity: 0;
-                transform: scale(0.95) translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .edit-modal h2 {
@@ -1214,18 +1224,188 @@
             background: rgba(255, 255, 255, 0.18);
         }
 
-        .gallery-overlay .gallery-nav.prev {
-            left: 16px;
-        }
-
-        .gallery-overlay .gallery-nav.next {
-            right: 16px;
-        }
+        .gallery-overlay .gallery-nav.prev { left: 16px; }
+        .gallery-overlay .gallery-nav.next { right: 16px; }
 
         .gallery-overlay .gallery-counter {
             color: rgba(255, 255, 255, 0.5);
             font-size: 14px;
             margin-top: 12px;
+        }
+
+        /* ===== POST DETAIL OVERLAY (SPA FULLSCREEN POPUP) ===== */
+        .post-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto;
+            right: 0;
+            height: 100%;
+            background: #ffffff;
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            overflow-y: hidden;
+            transform: translateX(100%);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .post-detail-overlay.active {
+            display: flex;
+            transform: translateX(0);
+        }
+
+        .post-detail-overlay .detail-header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .post-detail-overlay .detail-header .back-btn {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .post-detail-overlay .detail-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .post-detail-overlay .detail-comment-fixed {
+            position: sticky;
+            bottom: 0;
+            background: #ffffff;
+            padding: 12px 16px;
+            border-top: 1px solid #e4e6eb;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .post-detail-overlay .detail-comment-fixed .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #f0f2f5;
+            border-radius: 20px;
+            padding: 4px 12px;
+            min-width: 0;
+            position: relative;
+        }
+
+        .post-detail-overlay .detail-comment-fixed .reply-tag {
+            font-size: 12px;
+            color: #1877f2;
+            background: #e7f3ff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+
+        .post-detail-overlay .detail-comment-fixed .reply-tag.active {
+            display: inline-flex;
+        }
+
+        .post-detail-overlay .detail-comment-fixed .reply-tag .cancel-reply {
+            cursor: pointer;
+            color: #65676b;
+            font-size: 12px;
+        }
+
+        .post-detail-overlay .detail-comment-fixed .input-wrapper input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px 4px;
+            font-size: 14px;
+            min-width: 0;
+        }
+
+        .post-detail-overlay .detail-comment-fixed .send-comment {
+            color: #1877f2;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            flex-shrink: 0;
+        }
+
+        .comments-list-container {
+            padding: 12px 16px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        .comment-item .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .comment-item .comment-body {
+            background: #f0f2f5;
+            padding: 8px 12px;
+            border-radius: 16px;
+            flex: 1;
+        }
+
+        .comment-item .comment-body .comment-author {
+            font-weight: 600;
+            font-size: 13px;
+            color: #050505;
+            cursor: pointer;
+        }
+
+        .comment-item .comment-body .comment-text {
+            font-size: 14px;
+            color: #050505;
+            word-wrap: break-word;
+        }
+
+        .comment-item .comment-body .comment-actions {
+            font-size: 12px;
+            color: #65676b;
+            margin-top: 4px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .comment-item .comment-body .comment-actions span {
+            cursor: pointer;
+        }
+
+        .comment-item .reply-section {
+            margin-left: 42px;
+            margin-top: 6px;
+            padding-left: 10px;
+            border-left: 2px solid #e4e6eb;
         }
 
         /* ===== SPINNER ===== */
@@ -1242,229 +1422,40 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
-            .profile-pic-section {
-                margin-top: -45px;
-                padding: 0 14px;
-            }
-
-            .profile-pic-wrapper .profile-pic {
-                width: 80px;
-                height: 80px;
-            }
-
-            .profile-pic-edit {
-                width: 28px;
-                height: 28px;
-                font-size: 11px;
-                bottom: 0px;
-                right: -2px;
-            }
-
-            .profile-info {
-                padding: 6px 14px 12px;
-            }
-
-            .cover-area {
-                height: 20vh;
-                min-height: 120px;
-                max-height: 200px;
-            }
-
-            .action-bar {
-                padding: 6px 14px 12px;
-                gap: 6px;
-            }
-
-            .action-btn {
-                padding: 6px 14px;
-                font-size: 12px;
-                min-height: 36px;
-            }
-
-            .profile-tab {
-                padding: 10px 12px;
-                font-size: 12px;
-                min-height: 40px;
-            }
-
-            .friends-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-                padding: 8px 14px 14px;
-            }
-
-            .friend-card img,
-            .friend-card .friend-fallback {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-
-            #photos-grid {
-                gap: 3px;
-            }
-
-            .post-item .post-header {
-                padding: 10px 12px 8px;
-            }
-
-            .post-item .post-content {
-                padding: 0 12px 8px;
-            }
-
-            .post-item .post-stats {
-                padding: 6px 12px 8px;
-            }
-
-            .gallery-overlay .gallery-nav {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-                padding: 8px;
-            }
-
-            .gallery-overlay .gallery-nav.prev {
-                left: 6px;
-            }
-
-            .gallery-overlay .gallery-nav.next {
-                right: 6px;
-            }
-
-            .edit-modal {
-                padding: 20px 16px 24px;
-                margin: 10px;
-            }
-
-            #messenger-overlay {
-                max-height: 80vh;
-                border-top-left-radius: 20px;
-                border-top-right-radius: 20px;
-            }
-
-            .messenger-messages {
-                padding: 12px 14px;
-            }
-
-            .messenger-input-bar {
-                padding: 10px 14px 14px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .profile-pic-wrapper .profile-pic {
-                width: 70px;
-                height: 70px;
-            }
-
-            .profile-pic-section {
-                margin-top: -38px;
-            }
-
-            .friends-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px;
-            }
-
-            .friend-card img,
-            .friend-card .friend-fallback {
-                width: 44px;
-                height: 44px;
-                font-size: 18px;
-            }
-
-            .friend-card .fname {
-                font-size: 10px;
-            }
-
-            .profile-tab {
-                padding: 8px 10px;
-                font-size: 11px;
-                min-height: 36px;
-            }
-
-            .action-btn {
-                font-size: 11px;
-                padding: 5px 10px;
-                min-height: 32px;
-            }
-
-            .cover-area {
-                min-height: 100px;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .profile-pic-wrapper .profile-pic {
-                width: 130px;
-                height: 130px;
-            }
-
-            .profile-pic-section {
-                margin-top: -65px;
-                padding: 0 24px;
-            }
-
-            .cover-area {
-                height: 32vh;
-                min-height: 220px;
-                max-height: 340px;
-            }
-
-            .friends-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-
-            #photos-grid {
-                gap: 6px;
-            }
-
-            .profile-info {
-                padding: 10px 24px 16px;
-            }
-
-            .action-bar {
-                padding: 10px 24px 16px;
-            }
-
-            .posts-section {
-                padding: 8px 24px 24px;
-            }
-
-            .details-section {
-                padding: 20px 24px 24px;
-            }
+            .profile-pic-section { margin-top: -45px; padding: 0 14px; }
+            .profile-pic-wrapper .profile-pic { width: 80px; height: 80px; }
+            .profile-pic-edit { width: 28px; height: 28px; font-size: 11px; bottom: 0px; right: -2px; }
+            .profile-info { padding: 6px 14px 12px; }
+            .cover-area { height: 20vh; min-height: 120px; max-height: 200px; }
+            .action-bar { padding: 6px 14px 12px; gap: 6px; }
+            .action-btn { padding: 6px 14px; font-size: 12px; min-height: 36px; }
+            .profile-tab { padding: 10px 12px; font-size: 12px; min-height: 40px; }
+            .friends-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px 14px 14px; }
+            .friend-card img, .friend-card .friend-fallback { width: 50px; height: 50px; font-size: 20px; }
+            #photos-grid { gap: 3px; }
+            .post-item .post-header { padding: 10px 12px 8px; }
+            .post-item .post-content { padding: 0 12px 8px; }
+            .post-item .post-stats { padding: 6px 12px 8px; }
+            .gallery-overlay .gallery-nav { width: 40px; height: 40px; font-size: 20px; padding: 8px; }
+            .gallery-overlay .gallery-nav.prev { left: 6px; }
+            .gallery-overlay .gallery-nav.next { right: 6px; }
+            .edit-modal { padding: 20px 16px 24px; margin: 10px; }
+            #messenger-overlay { max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+            .messenger-messages { padding: 12px 14px; }
+            .messenger-input-bar { padding: 10px 14px 14px; }
         }
 
         /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f0f2f5;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #ccd0d5;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #b0b3b8;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f0f2f5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #ccd0d5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b0b3b8; }
 
         /* ===== SECTION HEADERS ===== */
         .section-header {
@@ -1498,12 +1489,8 @@
         }
 
         @keyframes highlightPulse {
-            0% {
-                background-color: rgba(24, 119, 242, 0.12);
-            }
-            100% {
-                background-color: transparent;
-            }
+            0% { background-color: rgba(24, 119, 242, 0.12); }
+            100% { background-color: transparent; }
         }
 
         /* ===== FALLBACK AVATAR ===== */
@@ -1523,6 +1510,25 @@
 
     <!-- ===== TOAST ===== -->
     <div id="toast" class="toast-msg"></div>
+
+    <!-- ===== POST DETAIL OVERLAY (SPA FULLSCREEN POPUP) ===== -->
+    <div class="post-detail-overlay" id="post-detail-overlay">
+        <div class="detail-header">
+            <span class="back-btn" id="close-detail"><i class="fa-solid fa-arrow-left"></i></span>
+            <span style="font-weight:600;">Post</span>
+        </div>
+        <div class="detail-content" id="detail-content"></div>
+        <div class="detail-comment-fixed" id="detail-comment-fixed">
+            <div class="input-wrapper">
+                <span class="reply-tag" id="detail-reply-indicator">
+                    <span id="detail-reply-to-name"></span>
+                    <span class="cancel-reply" id="detail-cancel-reply"><i class="fa-solid fa-xmark"></i></span>
+                </span>
+                <input type="text" placeholder="Write a comment..." id="detail-comment-input">
+            </div>
+            <span class="send-comment" id="detail-send-comment"><i class="fa-regular fa-paper-plane"></i></span>
+        </div>
+    </div>
 
     <!-- ===== EDIT OVERLAY ===== -->
     <div class="edit-overlay" id="edit-overlay">
@@ -1762,6 +1768,16 @@
         const editCoverPreview = $('edit-cover-preview');
         const editSaveBtn = $('edit-save-btn');
 
+        // SPA Post Detail Refs
+        const postDetailOverlay = $('post-detail-overlay');
+        const detailContent = $('detail-content');
+        const closeDetail = $('close-detail');
+        const detailCommentInput = $('detail-comment-input');
+        const detailSendComment = $('detail-send-comment');
+        const detailReplyIndicator = $('detail-reply-indicator');
+        const detailReplyToName = $('detail-reply-to-name');
+        const detailCancelReply = $('detail-cancel-reply');
+
         let toastTimer, currentUser = null,
             currentProfileUserId = null;
         let unsubscribePosts = null,
@@ -1773,6 +1789,12 @@
         let galleryPhotos = [],
             galleryIndex = 0;
         let friendList = [];
+
+        // SPA State Variables
+        let loadedPosts = [];
+        let detailPostId = null;
+        let detailCommentTargetReplyTo = null;
+        let detailCommentTargetReplyName = null;
 
         // ===== USER DATA CACHE FOR REALTIME UPDATES =====
         const userDataCache = {};
@@ -1818,6 +1840,21 @@
         function getUserIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
             return params.get('user');
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Just now';
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            if (seconds < 60) return 'Just now';
+            if (minutes < 60) return minutes + 'm';
+            if (hours < 24) return hours + 'h';
+            if (days < 7) return days + 'd';
+            return new Date(timestamp).toLocaleDateString();
         }
 
         // ===== SYNC DATA TO REALTIME DATABASE =====
@@ -2120,7 +2157,7 @@
             // Load friends
             await loadFriendsData(userId);
             
-            // Load posts
+            // Load posts (Now using RTDB for fast homepage logic)
             await loadUserPosts(userId);
             
             // Load photos
@@ -2249,96 +2286,152 @@
             });
         }
 
-        // ===== LOAD POSTS =====
+        // ===== LOAD POSTS (Fast Homepage RTDB Logic) =====
         async function loadUserPosts(userId) {
             if (unsubscribePosts) unsubscribePosts();
-            const query = db.collection('all-user-post').where('userId', '==', userId);
-            unsubscribePosts = query.onSnapshot((snapshot) => {
+            
+            // Fetching from RTDB feedItems just like Homepage logic for fast load and SPA support
+            const postsRef = rtdb.ref('feedItems').orderByChild('userId').equalTo(userId);
+            
+            unsubscribePosts = postsRef.on('value', (snapshot) => {
                 postsList.innerHTML = '';
                 allPostsData = [];
+                loadedPosts = [];
                 
-                if (snapshot.empty) {
+                if (!snapshot.exists()) {
                     postsList.innerHTML = '<div class="empty-state">No posts yet</div>';
                     postCount.textContent = '0';
                     return;
                 }
                 
                 const posts = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    posts.push({ id: doc.id, ...data });
+                snapshot.forEach((child) => {
+                    const val = child.val();
+                    val.id = child.key;
+                    posts.push(val);
                 });
-                posts.sort((a, b) => {
-                    const ta = a.timestamp ? a.timestamp.toDate() : new Date(0);
-                    const tb = b.timestamp ? b.timestamp.toDate() : new Date(0);
-                    return tb - ta;
-                });
+                
+                // Sort by timestamp
+                posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 
                 allPostsData = posts;
+                loadedPosts = posts;
                 postCount.textContent = posts.length;
                 
-                // Get user data from cache (it should already be listening via listenToUser)
-                const userData = userDataCache[userId] || {};
-                const userName = userData.fullName || 'User';
-                const userImage = userData.photoURL || createFallbackAvatar(userName, '100');
+                renderPostsList(posts);
+            });
+        }
+
+        function renderPostsList(posts) {
+            postsList.innerHTML = '';
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="empty-state">No posts to show</div>';
+                return;
+            }
+
+            const user = auth.currentUser;
+            const profileUserData = userDataCache[currentProfileUserId] || {};
+            const userName = profileUserData.fullName || 'User';
+            const userImage = profileUserData.photoURL || createFallbackAvatar(userName, '100');
+
+            posts.forEach(post => {
+                const div = document.createElement('div');
+                div.className = 'post-item';
+                div.dataset.postId = post.id;
+                div.dataset.userId = post.userId;
+
+                const isOwn = user && post.userId === user.uid;
+                const caption = post.caption || post.fullText || '';
+                const time = formatTime(post.timestamp);
+                const likes = post.likesCount || 0;
+                const comments = post.comments || 0;
+                const imageUrl = post.media || post.imageUrl || '';
+                const isLiked = post.likedBy && user && post.likedBy[user.uid];
+                const userReaction = post.userReaction || (isLiked ? '👍' : null);
+
+                const avatarUrl = userImage || createFallbackAvatar(userName, '100');
                 
-                posts.forEach(post => {
-                    const div = document.createElement('div');
-                    div.className = 'post-item';
-                    div.dataset.postId = post.id;
-                    div.dataset.userId = post.userId;
-                    
-                    const user = auth.currentUser;
-                    const isOwn = user && post.userId === user.uid;
-                    const caption = post.caption || post.fullText || 'No caption';
-                    const time = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Now';
-                    const likes = post.likes || 0;
-                    const comments = post.comments ? post.comments.length : 0;
-                    const imageUrl = post.imageUrl || '';
-                    const isLiked = post.likedBy && user && post.likedBy.includes(user.uid);
-                    
-                    const avatarUrl = userImage || createFallbackAvatar(userName, '100');
-                    
-                    let imageHTML = imageUrl ?
-                        `<img src="${imageUrl}" class="post-image" loading="lazy" onerror="this.style.display='none'" />` :
-                        '';
-                    
-                    div.innerHTML = `
-                            <div class="post-header">
-                                <div class="post-user" onclick="event.stopPropagation(); window.location.href='profile.html?user=${post.userId}'">
-                                    <img src="${avatarUrl}" onerror="this.style.display='none';this.parentElement.querySelector('.user-fallback').style.display='flex'" />
-                                    <div class="user-fallback" style="display:none;width:44px;height:44px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#1877f2,#0d47a1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;text-transform:uppercase;">${getInitials(userName)}</div>
-                                    <div class="user-info"><span class="pname">${escapeHTML(userName)}</span><span class="ptime">${time}</span></div>
-                                </div>
-                                ${isOwn ? `<div class="post-actions-right"><button class="delete-btn" onclick="event.stopPropagation(); deletePost('${post.id}')"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
-                            </div>
-                            <div class="post-content">
-                                <div class="post-text">${escapeHTML(caption)}</div>
-                                ${imageHTML}
-                            </div>
-                            <div class="post-stats">
-                                <div class="stat-left"><span class="like-icon"><i class="fa-solid fa-thumbs-up"></i></span> <span class="like-count">${likes}</span></div>
-                                <div>${comments} comments</div>
-                            </div>
-                            <div class="post-actions">
-                                <button class="act-btn ${isLiked?'liked':''}" onclick="event.stopPropagation(); handleLike('${post.id}', this)"><i class="fa-${isLiked?'solid':'regular'} fa-thumbs-up"></i> ${isLiked?'Liked':'Like'}</button>
-                                <button class="act-btn" onclick="event.stopPropagation(); showToast('Comments feature')"><i class="fa-regular fa-comment"></i> Comment</button>
-                                <button class="act-btn" onclick="event.stopPropagation(); showToast('Shared')"><i class="fa-solid fa-share"></i> Share</button>
-                            </div>
-                        `;
-                    postsList.appendChild(div);
-                });
-                
-                // After rendering, ensure realtime updates are applied if user data changed
-                if (userData) {
-                    updateAllPostsForUser(userId, userData);
+                let imageHTML = '';
+                if (imageUrl) {
+                    imageHTML = `<img src="${imageUrl}" class="post-image" loading="lazy" onerror="this.style.display='none'" />`;
                 }
+
+                let reactionHTML = '';
+                if (userReaction) {
+                    reactionHTML = `<span class="reaction-icon-disp">${userReaction}</span>`;
+                } else {
+                    reactionHTML = `<span class="like-icon"><i class="fa-solid fa-thumbs-up"></i></span>`;
+                }
+
+                div.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user" onclick="event.stopPropagation(); window.location.href='profile.html?user=${post.userId}'">
+                            <img src="${avatarUrl}" onerror="this.style.display='none';this.parentElement.querySelector('.user-fallback').style.display='flex'" />
+                            <div class="user-fallback" style="display:none;width:44px;height:44px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#1877f2,#0d47a1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;text-transform:uppercase;">${getInitials(userName)}</div>
+                            <div class="user-info"><span class="pname">${escapeHTML(userName)}</span><span class="ptime">${time}</span></div>
+                        </div>
+                        ${isOwn ? `<div class="post-actions-right"><button class="delete-btn" onclick="event.stopPropagation(); deletePost('${post.id}')"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
+                    </div>
+                    <div class="post-content">
+                        <div class="post-text">${escapeHTML(caption)}</div>
+                        ${imageHTML}
+                    </div>
+                    <div class="post-stats">
+                        <div class="stat-left">${reactionHTML} <span class="like-count">${likes}</span></div>
+                        <div><span class="comment-count">${comments}</span> comments</div>
+                    </div>
+                    <div class="post-actions">
+                        <div class="reactions-popup" id="reactions-${post.id}">
+                            <span class="reaction-icon" data-emoji="👍" onclick="event.stopPropagation(); setReaction('${post.id}', '👍')">👍</span>
+                            <span class="reaction-icon" data-emoji="❤️" onclick="event.stopPropagation(); setReaction('${post.id}', '❤️')">❤️</span>
+                            <span class="reaction-icon" data-emoji="🫂" onclick="event.stopPropagation(); setReaction('${post.id}', '🫂')">🫂</span>
+                            <span class="reaction-icon" data-emoji="😆" onclick="event.stopPropagation(); setReaction('${post.id}', '😆')">😆</span>
+                            <span class="reaction-icon" data-emoji="😢" onclick="event.stopPropagation(); setReaction('${post.id}', '😢')">😢</span>
+                            <span class="reaction-icon" data-emoji="😡" onclick="event.stopPropagation(); setReaction('${post.id}', '😡')">😡</span>
+                        </div>
+                        <button class="act-btn ${userReaction?'liked':''}" onclick="event.stopPropagation(); handleLike('${post.id}', this)">
+                            <span class="like-icon">${userReaction || '<i class="fa-regular fa-thumbs-up"></i>'}</span> ${userReaction ? 'Liked' : 'Like'}
+                        </button>
+                        <button class="act-btn" onclick="event.stopPropagation(); openPostDetail('${post.id}')"><i class="fa-regular fa-comment"></i> Comment</button>
+                        <button class="act-btn" onclick="event.stopPropagation(); showToast('Shared!')"><i class="fa-solid fa-share"></i> Share</button>
+                    </div>
+                `;
+
+                // Long press for reactions
+                const likeBtn = div.querySelector('.act-btn');
+                let longPressTimer = null;
+
+                const startPress = (e) => {
+                    longPressTimer = setTimeout(() => {
+                        const popup = div.querySelector(`#reactions-${post.id}`);
+                        if(popup) popup.style.display = 'flex';
+                    }, 500);
+                };
+
+                const cancelPress = () => {
+                    clearTimeout(longPressTimer);
+                };
+
+                likeBtn.addEventListener('mousedown', startPress);
+                likeBtn.addEventListener('mouseup', cancelPress);
+                likeBtn.addEventListener('mouseleave', cancelPress);
+                likeBtn.addEventListener('touchstart', startPress, { passive: true });
+                likeBtn.addEventListener('touchend', cancelPress);
+
+                // Open detail on click
+                div.addEventListener('click', (e) => {
+                    if (e.target.closest('.act-btn') || e.target.closest('.delete-btn') || e.target.closest('.reactions-popup')) return;
+                    openPostDetail(post.id);
+                });
+
+                postsList.appendChild(div);
             });
         }
 
         // ===== LOAD PHOTOS =====
         async function loadUserPhotos(userId) {
             try {
+                // Using Firestore just for the Photos Tab as it was originally
                 const query = db.collection('all-user-post').where('userId', '==', userId);
                 const snap = await query.get();
                 photosGrid.innerHTML = '';
@@ -2425,51 +2518,283 @@
                 updateGallery(); }
         });
 
-        // ===== LIKE =====
+        // ===== LIKE / REACTION (Homepage RTDB Logic) =====
         async function handleLike(postId, btn) {
             const user = auth.currentUser;
             if (!user) { showToast('Login to like'); return; }
-            btn.disabled = true;
-            try {
-                const docRef = db.collection('all-user-post').doc(postId);
-                const doc = await docRef.get();
-                if (!doc.exists) return;
-                const data = doc.data();
-                const likedBy = data.likedBy || [];
-                const isLiked = likedBy.includes(user.uid);
-                let newLikes = data.likes || 0;
-                let newLikedBy = [...likedBy];
-                if (isLiked) {
-                    newLikedBy = likedBy.filter(id => id !== user.uid);
-                    newLikes = Math.max(0, newLikes - 1);
-                    btn.classList.remove('liked');
-                    btn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Like';
-                } else {
-                    newLikedBy.push(user.uid);
-                    newLikes = newLikes + 1;
-                    btn.classList.add('liked');
-                    btn.innerHTML = '<i class="fa-solid fa-thumbs-up"></i> Liked';
-                }
-                await docRef.update({ likes: newLikes, likedBy: newLikedBy });
-                const postDiv = btn.closest('.post-item');
-                const likeCount = postDiv.querySelector('.like-count');
-                if (likeCount) likeCount.textContent = newLikes;
-            } catch (err) { showToast('Error: ' + err.message); }
-            btn.disabled = false;
+            
+            const post = loadedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const userLiked = post.userReaction !== undefined && post.userReaction !== null;
+            
+            if (userLiked) {
+                post.likesCount = Math.max(0, (post.likesCount || 0) - 1);
+                delete post.userReaction;
+            } else {
+                post.likesCount = (post.likesCount || 0) + 1;
+                post.userReaction = '👍';
+            }
+
+            await rtdb.ref(`feedItems/${postId}`).update({
+                likesCount: post.likesCount,
+                userReaction: post.userReaction || null
+            });
+
+            renderPostsList(loadedPosts);
+        }
+
+        async function setReaction(postId, emoji) {
+            const user = auth.currentUser;
+            if (!user) { showToast('Login to react'); return; }
+
+            const post = loadedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            if (!post.userReaction) {
+                post.likesCount = (post.likesCount || 0) + 1;
+            }
+            post.userReaction = emoji;
+
+            await rtdb.ref(`feedItems/${postId}`).update({
+                likesCount: post.likesCount,
+                userReaction: emoji
+            });
+
+            const popup = document.getElementById(`reactions-${postId}`);
+            if (popup) popup.style.display = 'none';
+            
+            renderPostsList(loadedPosts);
         }
 
         // ===== DELETE POST =====
         async function deletePost(postId) {
             if (!confirm('Delete this post?')) return;
             try {
-                await db.collection('all-user-post').doc(postId).delete();
+                await rtdb.ref(`feedItems/${postId}`).remove();
                 showToast('🗑️ Post deleted');
-                if (currentProfileUserId) {
-                    if (unsubscribePosts) unsubscribePosts();
-                    loadUserPosts(currentProfileUserId);
-                }
+                // Listener will automatically update the list
             } catch (err) { showToast('Error: ' + err.message); }
         }
+
+        // ==========================================
+        // SPA POST DETAIL & COMMENTS LOGIC
+        // ==========================================
+        function openPostDetail(postId) {
+            detailPostId = postId;
+            const post = loadedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const postEl = createDetailPostElement(post);
+            const commentsContainer = document.createElement('div');
+            commentsContainer.className = 'comments-list-container';
+            commentsContainer.id = 'detailCommentsList';
+            
+            detailContent.innerHTML = '';
+            detailContent.appendChild(postEl);
+            detailContent.appendChild(commentsContainer);
+
+            renderDetailComments(post);
+
+            detailCommentTargetReplyTo = null;
+            detailReplyIndicator.classList.remove('active');
+            detailCommentInput.placeholder = 'Write a comment...';
+
+            postDetailOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePostDetail() {
+            postDetailOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            detailPostId = null;
+        }
+
+        closeDetail.addEventListener('click', closePostDetail);
+
+        function createDetailPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'post-item';
+            div.style.cursor = 'default';
+            div.style.margin = '0';
+            div.style.border = 'none';
+            div.style.borderRadius = '0';
+
+            const user = auth.currentUser;
+            const isOwn = user && post.userId === user.uid;
+            const caption = post.caption || post.fullText || '';
+            const time = formatTime(post.timestamp);
+            const likes = post.likesCount || 0;
+            const comments = post.comments || 0;
+            const imageUrl = post.media || post.imageUrl || '';
+            const userReaction = post.userReaction || null;
+
+            const profileUserData = userDataCache[currentProfileUserId] || {};
+            const userName = profileUserData.fullName || 'User';
+            const userImage = profileUserData.photoURL || createFallbackAvatar(userName, '100');
+            
+            let imageHTML = imageUrl ? `<img src="${imageUrl}" class="post-image" loading="lazy" />` : '';
+            let reactionHTML = userReaction ? `<span class="reaction-icon-disp">${userReaction}</span>` : `<span class="like-icon"><i class="fa-solid fa-thumbs-up"></i></span>`;
+
+            div.innerHTML = `
+                <div class="post-header">
+                    <div class="post-user">
+                        <img src="${userImage}" />
+                        <div class="user-info"><span class="pname">${escapeHTML(userName)}</span><span class="ptime">${time}</span></div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <div class="post-text">${escapeHTML(caption)}</div>
+                    ${imageHTML}
+                </div>
+                <div class="post-stats">
+                    <div class="stat-left">${reactionHTML} <span class="like-count">${likes}</span></div>
+                    <div><span class="comment-count">${comments}</span> comments</div>
+                </div>
+                <div class="post-actions">
+                    <div class="reactions-popup" id="detail-reactions-${post.id}">
+                        <span class="reaction-icon" data-emoji="👍" onclick="event.stopPropagation(); setReaction('${post.id}', '👍'); openPostDetail('${post.id}')">👍</span>
+                        <span class="reaction-icon" data-emoji="❤️" onclick="event.stopPropagation(); setReaction('${post.id}', '❤️'); openPostDetail('${post.id}')">❤️</span>
+                        <span class="reaction-icon" data-emoji="🫂" onclick="event.stopPropagation(); setReaction('${post.id}', '🫂'); openPostDetail('${post.id}')">🫂</span>
+                        <span class="reaction-icon" data-emoji="😆" onclick="event.stopPropagation(); setReaction('${post.id}', '😆'); openPostDetail('${post.id}')">😆</span>
+                        <span class="reaction-icon" data-emoji="😢" onclick="event.stopPropagation(); setReaction('${post.id}', '😢'); openPostDetail('${post.id}')">😢</span>
+                        <span class="reaction-icon" data-emoji="😡" onclick="event.stopPropagation(); setReaction('${post.id}', '😡'); openPostDetail('${post.id}')">😡</span>
+                    </div>
+                    <button class="act-btn ${userReaction?'liked':''}" onclick="event.stopPropagation(); handleLike('${post.id}', this); openPostDetail('${post.id}')">
+                        <span class="like-icon">${userReaction || '<i class="fa-regular fa-thumbs-up"></i>'}</span> ${userReaction ? 'Liked' : 'Like'}
+                    </button>
+                    <button class="act-btn"><i class="fa-regular fa-comment"></i> Comment</button>
+                    <button class="act-btn" onclick="event.stopPropagation(); showToast('Shared!')"><i class="fa-solid fa-share"></i> Share</button>
+                </div>
+            `;
+
+            return div;
+        }
+
+        function renderDetailComments(post) {
+            const list = $('detailCommentsList');
+            const comments = post.commentsList || [];
+            list.innerHTML = '<h3 style="margin-bottom:10px;">Comments</h3>';
+
+            if (comments.length === 0) {
+                list.innerHTML += '<div class="empty-state">No comments yet. Be the first!</div>';
+                return;
+            }
+
+            const sortedComments = [...comments].reverse();
+            
+            sortedComments.forEach(comment => {
+                const item = document.createElement('div');
+                item.className = 'comment-item';
+                
+                const isOwn = comment.authorId === (currentUser && currentUser.uid);
+                const authorName = comment.author || 'User';
+                const authorAvatar = comment.authorAvatar || createFallbackAvatar(authorName, '32');
+                
+                item.innerHTML = `
+                    <img src="${authorAvatar}" class="comment-avatar">
+                    <div class="comment-body">
+                        <div class="comment-author">${escapeHTML(authorName)}</div>
+                        <div class="comment-text">${escapeHTML(comment.text)}</div>
+                        <div class="comment-actions">
+                            <span>Like</span>
+                            <span class="reply-trigger" data-comment-id="${comment.id}" data-author="${authorName}">Reply</span>
+                            <span>${formatTime(comment.timestamp)}</span>
+                        </div>
+                        ${comment.replies ? comment.replies.map(reply => {
+                            const replyName = reply.author || 'User';
+                            const replyAvatar = reply.authorAvatar || createFallbackAvatar(replyName, '24');
+                            return `
+                                <div class="reply-section">
+                                    <div class="comment-item">
+                                        <img src="${replyAvatar}" class="comment-avatar" style="width:24px;height:24px;">
+                                        <div class="comment-body">
+                                            <div class="comment-author">${escapeHTML(replyName)}</div>
+                                            <div class="comment-text">${escapeHTML(reply.text)}</div>
+                                            <div class="comment-actions">
+                                                <span>${formatTime(reply.timestamp)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : ''}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            list.querySelectorAll('.reply-trigger').forEach(el => {
+                el.addEventListener('click', () => {
+                    const commentId = el.dataset.commentId;
+                    const author = el.dataset.author;
+                    detailCommentTargetReplyTo = commentId;
+                    detailReplyIndicator.classList.add('active');
+                    detailReplyToName.textContent = 'Replying to ' + author;
+                    detailCommentInput.focus();
+                });
+            });
+        }
+
+        async function addDetailComment() {
+            const text = detailCommentInput.value.trim();
+            if (!text || !detailPostId) return;
+
+            const user = auth.currentUser;
+            if (!user) { showToast('Login to comment'); return; }
+
+            const post = loadedPosts.find(p => p.id === detailPostId);
+            if (!post) return;
+
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userName = userDoc.exists ? userDoc.data().fullName : 'User';
+            const userPhoto = userDoc.exists ? userDoc.data().photoURL : '';
+
+            const comment = {
+                id: 'c_' + Date.now(),
+                author: userName,
+                authorId: user.uid,
+                authorAvatar: userPhoto,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            if (!post.commentsList) post.commentsList = [];
+
+            if (detailCommentTargetReplyTo) {
+                const parent = post.commentsList.find(c => c.id === detailCommentTargetReplyTo);
+                if (parent) {
+                    if (!parent.replies) parent.replies = [];
+                    parent.replies.push(comment);
+                }
+                detailCommentTargetReplyTo = null;
+                detailReplyIndicator.classList.remove('active');
+                detailCommentInput.placeholder = 'Write a comment...';
+            } else {
+                post.commentsList.push(comment);
+            }
+
+            post.comments = (post.comments || 0) + 1;
+
+            await rtdb.ref(`feedItems/${detailPostId}`).update({
+                commentsList: post.commentsList,
+                comments: post.comments
+            });
+
+            detailCommentInput.value = '';
+            renderDetailComments(post);
+        }
+
+        detailSendComment.addEventListener('click', addDetailComment);
+        detailCommentInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addDetailComment();
+        });
+
+        detailCancelReply.addEventListener('click', () => {
+            detailCommentTargetReplyTo = null;
+            detailReplyIndicator.classList.remove('active');
+            detailCommentInput.placeholder = 'Write a comment...';
+        });
 
         // ===== MESSENGER =====
         function openMessenger(recipientId) {
@@ -2821,13 +3146,11 @@
             });
         });
 
-        console.log('🔥 Profile with Real-time User Profile Updates (Instant)');
-        console.log('✅ When user changes name/avatar/cover, ALL posts update instantly');
-        console.log('✅ Uses Firestore onSnapshot() for realtime updates');
-        console.log('✅ Post updates with highlight animation');
-        console.log('✅ Name changes with pulse animation');
-        console.log('✅ Cover photo upload fixed and working');
-        console.log('✅ Fully responsive with fallback avatars');
+        console.log('🔥 Profile Updated: Real-time Posts with SPA Fullscreen Detail Popup');
+        console.log('✅ Uses RTDB for fast loading posts just like Homepage');
+        console.log('✅ SPA Fullscreen Popup with Reactions, Comments & Replies');
+        console.log('✅ Delete Button for own posts');
+        console.log('✅ Friend request logic integrated perfectly');
     </script>
 </body>
 </html>
