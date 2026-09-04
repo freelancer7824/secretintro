@@ -383,6 +383,16 @@
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
+            transition: transform 0.3s ease, border 0.3s ease;
+        }
+
+        .page-avatar.updating {
+            animation: avatarUpdate 0.4s ease;
+        }
+
+        @keyframes avatarUpdate {
+            0% { transform: scale(1.1); border: 2px solid #1877f2; }
+            100% { transform: scale(1); border: 0px; }
         }
 
         .author-details .name-row {
@@ -398,9 +408,18 @@
             color: #050505;
             text-decoration: none;
             cursor: pointer;
+            transition: color 0.3s ease;
         }
         .page-name:hover {
             text-decoration: underline;
+        }
+        .page-name.updating {
+            animation: nameUpdate 0.5s ease;
+        }
+
+        @keyframes nameUpdate {
+            0% { color: #1877f2; transform: scale(1.05); }
+            100% { color: #050505; transform: scale(1); }
         }
 
         .dot-sep {
@@ -844,6 +863,11 @@
             object-fit: cover;
             flex-shrink: 0;
             cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .comment-item .comment-avatar.updating {
+            animation: avatarUpdate 0.4s ease;
         }
 
         .comment-item .comment-body {
@@ -858,9 +882,13 @@
             font-size: 13px;
             color: #050505;
             cursor: pointer;
+            transition: color 0.3s ease;
         }
         .comment-item .comment-body .comment-author:hover {
             text-decoration: underline;
+        }
+        .comment-item .comment-body .comment-author.updating {
+            animation: nameUpdate 0.5s ease;
         }
 
         .comment-item .comment-body .comment-text {
@@ -1529,6 +1557,131 @@
         const imageWrapper = document.getElementById('imageWrapper');
 
         // ============================================================
+        // USER CACHE - stores latest user data by userId
+        // ============================================================
+        const userCache = {};
+
+        // ============================================================
+        // GLOBAL USER LISTENERS FOR REALTIME UPDATES
+        // ============================================================
+        const userListeners = {};
+
+        function listenToAllUsers() {
+            const userIds = new Set();
+            allPosts.forEach(post => {
+                if (post.userId) userIds.add(post.userId);
+            });
+            
+            userIds.forEach(uid => {
+                if (userListeners[uid]) return;
+                
+                const userRef = database.ref(`users/${uid}`);
+                userRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        const newName = data.name || data.firstName + ' ' + data.lastName || 'User';
+                        const newAvatar = data.avatar || data.profilePic || 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=100';
+                        
+                        // Update cache
+                        userCache[uid] = { name: newName, avatar: newAvatar };
+                        
+                        // Update ALL posts for this user instantly
+                        updateAllPostsForUser(uid, newName, newAvatar);
+                        
+                        console.log(`🔄 User ${uid} updated: ${newName}`);
+                    }
+                });
+                
+                // Mark as listening
+                userListeners[uid] = true;
+            });
+        }
+
+        // ============================================================
+        // UPDATE ALL POSTS FOR A USER (INSTANT)
+        // ============================================================
+        function updateAllPostsForUser(uid, newName, newAvatar) {
+            // Update allPosts array
+            allPosts.forEach(post => {
+                if (post.userId === uid) {
+                    post.name = newName;
+                    post.avatar = newAvatar;
+                }
+            });
+            
+            // Update DOM - all posts
+            document.querySelectorAll('.post-section').forEach(el => {
+                const postId = el.dataset.postId;
+                const post = allPosts.find(p => p.id === postId);
+                
+                if (post && post.userId === uid) {
+                    // Update name with animation
+                    const nameEl = el.querySelector('.page-name');
+                    if (nameEl && nameEl.textContent !== newName) {
+                        nameEl.textContent = newName;
+                        nameEl.classList.remove('updating');
+                        // Trigger reflow
+                        void nameEl.offsetWidth;
+                        nameEl.classList.add('updating');
+                    }
+                    
+                    // Update avatar with animation
+                    const avatarEl = el.querySelector('.page-avatar');
+                    if (avatarEl && avatarEl.src !== newAvatar) {
+                        avatarEl.src = newAvatar;
+                        avatarEl.classList.remove('updating');
+                        void avatarEl.offsetWidth;
+                        avatarEl.classList.add('updating');
+                    }
+                    
+                    // Update author info data
+                    const authorInfo = el.querySelector('.post-author-info');
+                    if (authorInfo) {
+                        authorInfo.dataset.userName = newName;
+                        const avatarImg = authorInfo.querySelector('.page-avatar');
+                        if (avatarImg && avatarImg.src !== newAvatar) {
+                            avatarImg.src = newAvatar;
+                        }
+                    }
+                    
+                    // Update comments with animation
+                    el.querySelectorAll('.comment-author').forEach(c => {
+                        if (c.dataset.userId === uid && c.textContent !== newName) {
+                            c.textContent = newName;
+                            c.classList.remove('updating');
+                            void c.offsetWidth;
+                            c.classList.add('updating');
+                        }
+                    });
+                    
+                    el.querySelectorAll('.comment-avatar').forEach(c => {
+                        if (c.dataset.userId === uid && c.src !== newAvatar) {
+                            c.src = newAvatar;
+                            c.alt = newName;
+                            c.classList.remove('updating');
+                            void c.offsetWidth;
+                            c.classList.add('updating');
+                        }
+                    });
+                }
+            });
+            
+            // Update current user avatar if it's the logged-in user
+            if (uid === currentUser.uid) {
+                userAvatar.src = newAvatar;
+                currentUser.name = newName;
+                currentUser.avatar = newAvatar;
+            }
+            
+            // Update stories
+            document.querySelectorAll('.story-card .story-name').forEach(el => {
+                if (el.dataset.userId === uid && el.textContent !== newName) {
+                    el.textContent = newName;
+                }
+            });
+        }
+
+        // ============================================================
         // AUTH & USER
         // ============================================================
         function checkAuth() {
@@ -1556,19 +1709,41 @@
                     currentUser.name = data.name || data.firstName + ' ' + data.lastName || user.displayName || 'User';
                     currentUser.avatar = data.avatar || data.profilePic || user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name) + '&background=1877f2&color=fff&size=100';
                     currentUser.email = data.email || user.email;
+                    userCache[uid] = { name: currentUser.name, avatar: currentUser.avatar };
                 } else {
                     currentUser.name = user.displayName || 'User';
                     currentUser.avatar = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name) + '&background=1877f2&color=fff&size=100';
+                    userCache[uid] = { name: currentUser.name, avatar: currentUser.avatar };
                 }
                 updateUI();
                 loadPosts();
                 loadStoriesFromFirebase();
+                listenForUserUpdates(uid);
             }).catch(() => {
                 currentUser.name = user.displayName || 'User';
                 currentUser.avatar = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name) + '&background=1877f2&color=fff&size=100';
+                userCache[uid] = { name: currentUser.name, avatar: currentUser.avatar };
                 updateUI();
                 loadPosts();
                 loadStoriesFromFirebase();
+                listenForUserUpdates(uid);
+            });
+        }
+
+        function listenForUserUpdates(uid) {
+            // Listen for real-time updates to user profile
+            database.ref(`users/${uid}`).on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const newName = data.name || data.firstName + ' ' + data.lastName || currentUser.name;
+                    const newAvatar = data.avatar || data.profilePic || currentUser.avatar;
+                    currentUser.name = newName;
+                    currentUser.avatar = newAvatar;
+                    userCache[uid] = { name: newName, avatar: newAvatar };
+                    updateUI();
+                    // Update all posts by this user
+                    updateAllPostsForUser(uid, newName, newAvatar);
+                }
             });
         }
 
@@ -1577,21 +1752,50 @@
         }
 
         // ============================================================
-        // LOAD STORIES FROM FIREBASE - only latest 20, no user data used
+        // FETCH USER DATA FROM FIREBASE WITH CACHING
+        // ============================================================
+        function fetchUserData(userId) {
+            return new Promise((resolve) => {
+                // Check cache first
+                if (userCache[userId]) {
+                    resolve(userCache[userId]);
+                    return;
+                }
+                database.ref(`users/${userId}`).once('value').then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        const userData = {
+                            name: data.name || data.firstName + ' ' + data.lastName || 'User',
+                            avatar: data.avatar || data.profilePic || 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=100'
+                        };
+                        userCache[userId] = userData;
+                        resolve(userData);
+                    } else {
+                        const userData = { name: 'User', avatar: 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=100' };
+                        userCache[userId] = userData;
+                        resolve(userData);
+                    }
+                }).catch(() => {
+                    const userData = { name: 'User', avatar: 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=100' };
+                    userCache[userId] = userData;
+                    resolve(userData);
+                });
+            });
+        }
+
+        // ============================================================
+        // LOAD STORIES FROM FIREBASE
         // ============================================================
         function loadStoriesFromFirebase() {
-            // Only load latest 20 stories, no user data attached
             database.ref('stories').orderByChild('timestamp').limitToLast(20).once('value').then((snapshot) => {
                 const stories = [];
                 snapshot.forEach((child) => {
                     const val = child.val();
                     val.id = child.key;
-                    // Only include if not expired
                     if (val.expiresAt && val.expiresAt > Date.now()) {
                         stories.push(val);
                     }
                 });
-                // Show newest first
                 stories.reverse();
                 renderStories(stories);
             }).catch((err) => {
@@ -1601,7 +1805,7 @@
         }
 
         // ============================================================
-        // RENDER STORIES - video shows thumbnail, no video load on card
+        // RENDER STORIES
         // ============================================================
         function renderStories(stories) {
             const createStoryCard = storiesRow.querySelector('.create-story');
@@ -1624,33 +1828,34 @@
                 const thumbnail = story.thumbnail || '';
 
                 if (isVideo && mediaSrc) {
-                    // Video story - show thumbnail image only, no video element
-                    // Use thumbnail if available, else generate from video URL
-                    const thumbSrc = thumbnail || mediaSrc + '?thumbnail=1'; // fallback
+                    const thumbSrc = thumbnail || mediaSrc + '?thumbnail=1';
                     card.innerHTML = `
                         <img src="${thumbSrc}" alt="${story.name || 'Story'}" class="story-bg" loading="lazy">
                         <div class="story-thumb-play"><i class="fa-solid fa-play-circle"></i></div>
                         ${story.badge ? `<span class="story-badge">${story.badge}</span>` : ''}
-                        <span class="story-name">${story.name || 'User'}</span>
+                        <span class="story-name" data-user-id="${story.userId || ''}">${story.name || 'User'}</span>
                     `;
-                    // Store video URL for playback
                     card.dataset.videoUrl = mediaSrc;
                 } else {
-                    // Image story
                     card.innerHTML = `
                         <img src="${mediaSrc}" alt="${story.name || 'Story'}" class="story-bg" loading="lazy">
                         ${story.badge ? `<span class="story-badge">${story.badge}</span>` : ''}
-                        <span class="story-name">${story.name || 'User'}</span>
+                        <span class="story-name" data-user-id="${story.userId || ''}">${story.name || 'User'}</span>
                     `;
                 }
 
                 card.addEventListener('click', () => openStory(index));
                 storiesRow.appendChild(card);
             });
+            
+            // Apply realtime updates to newly rendered stories
+            Object.keys(userCache).forEach(uid => {
+                updateAllPostsForUser(uid, userCache[uid].name, userCache[uid].avatar);
+            });
         }
 
         // ============================================================
-        // STORY FULLSCREEN - video loads only when opened, sound ON
+        // STORY FULLSCREEN
         // ============================================================
         function openStory(index) {
             currentStoryIndex = index;
@@ -1674,17 +1879,12 @@
             storyVideoLoaded = false;
 
             if (isVideo && mediaSrc) {
-                // Load video only when opened
                 storyVideo.src = mediaSrc;
                 storyVideo.style.display = 'block';
                 storyVideo.load();
-                // Sound ON by default
                 storyVideo.muted = false;
                 storyVideo.controls = true;
-                storyVideo.play().catch(() => {
-                    // Autoplay may fail, user can click play
-                });
-                // Ensure sound is on if possible
+                storyVideo.play().catch(() => {});
                 setTimeout(() => {
                     storyVideo.muted = false;
                 }, 100);
@@ -1696,7 +1896,6 @@
 
             storyUser.textContent = story.name || 'User';
 
-            // Update progress dots
             storyProgress.innerHTML = '';
             storyList.forEach((_, i) => {
                 const dot = document.createElement('div');
@@ -1778,8 +1977,12 @@
                     const parsed = JSON.parse(cached);
                     if (parsed.length > 0) {
                         allPosts = parsed;
-                        shufflePosts();
-                        displayPosts(true);
+                        fetchAllUserData().then(() => {
+                            shufflePosts();
+                            displayPosts(true);
+                            // Setup realtime listeners immediately
+                            listenToAllUsers();
+                        });
                         return;
                     }
                 } catch (e) {}
@@ -1797,8 +2000,11 @@
                 try {
                     localStorage.setItem('feedPostsCache', JSON.stringify(posts));
                 } catch (e) {}
-                shufflePosts();
-                displayPosts(true);
+                fetchAllUserData().then(() => {
+                    shufflePosts();
+                    displayPosts(true);
+                    listenToAllUsers();
+                });
             }).catch((err) => {
                 console.error('Error loading posts:', err);
                 isOffline = true;
@@ -1809,13 +2015,38 @@
                         const parsed = JSON.parse(cached);
                         if (parsed.length > 0) {
                             allPosts = parsed;
-                            shufflePosts();
-                            displayPosts(true);
+                            fetchAllUserData().then(() => {
+                                shufflePosts();
+                                displayPosts(true);
+                                listenToAllUsers();
+                            });
                             return;
                         }
                     } catch (e) {}
                 }
                 generateMockPosts();
+            });
+        }
+
+        // ============================================================
+        // FETCH ALL USER DATA FOR POSTS
+        // ============================================================
+        function fetchAllUserData() {
+            const userIds = new Set();
+            allPosts.forEach(post => {
+                if (post.userId) userIds.add(post.userId);
+            });
+            const promises = [];
+            userIds.forEach(uid => {
+                promises.push(fetchUserData(uid));
+            });
+            return Promise.all(promises).then(() => {
+                allPosts.forEach(post => {
+                    if (post.userId && userCache[post.userId]) {
+                        post.name = userCache[post.userId].name;
+                        post.avatar = userCache[post.userId].avatar;
+                    }
+                });
             });
         }
 
@@ -1873,6 +2104,7 @@
             } catch (e) {}
             shufflePosts();
             displayPosts(true);
+            listenToAllUsers();
         }
 
         // ============================================================
@@ -2007,13 +2239,17 @@
                 `;
             }
 
+            // Ensure name and avatar are up to date from cache
+            const userName = post.name || 'Unknown';
+            const userAvatar = post.avatar || 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=100';
+
             div.innerHTML = `
                 <div class="post-header">
-                    <div class="post-author-info" data-user-id="${post.userId || 'unknown'}" data-user-name="${post.name || 'Unknown'}" data-user-avatar="${post.avatar || ''}">
-                        <img src="${post.avatar || 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=100'}" alt="Profile" class="page-avatar">
+                    <div class="post-author-info" data-user-id="${post.userId || 'unknown'}" data-user-name="${userName}" data-user-avatar="${userAvatar}">
+                        <img src="${userAvatar}" alt="Profile" class="page-avatar" data-user-id="${post.userId || 'unknown'}">
                         <div class="author-details">
                             <div class="name-row">
-                                <span class="page-name">${post.name || 'Unknown'}</span>
+                                <span class="page-name" data-user-id="${post.userId || 'unknown'}">${userName}</span>
                             </div>
                             <div class="time-row">
                                 <span>${timeStr}</span>
@@ -2166,9 +2402,7 @@
                     }
                     const video = mediaContainer.querySelector('video');
                     if (video) {
-                        // Toggle play/pause
                         if (video.paused) {
-                            // Pause all other videos first
                             pauseAllVideos();
                             video.play().catch(() => {});
                             currentlyPlayingVideo = video;
@@ -2214,7 +2448,6 @@
                     if (overlay) overlay.classList.remove('hidden');
                 }
             });
-            // Also pause any story video
             const storyVid = document.getElementById('storyVideo');
             if (storyVid && !storyVid.paused) {
                 storyVid.pause();
@@ -2532,18 +2765,22 @@
                 });
                 posts.reverse();
                 allPosts = posts;
-                try {
-                    localStorage.setItem('feedPostsCache', JSON.stringify(posts));
-                } catch (e) {}
-                shufflePosts();
-                feedPosts.innerHTML = '';
-                currentPage = 0;
-                displayedPosts = [];
-                hasMore = true;
-                displayPosts(true);
-                loadStoriesFromFirebase();
-                showToast('Feed refreshed!');
-                if (callback) callback();
+                fetchAllUserData().then(() => {
+                    try {
+                        localStorage.setItem('feedPostsCache', JSON.stringify(allPosts));
+                    } catch (e) {}
+                    shufflePosts();
+                    feedPosts.innerHTML = '';
+                    currentPage = 0;
+                    displayedPosts = [];
+                    hasMore = true;
+                    displayPosts(true);
+                    loadStoriesFromFirebase();
+                    // Re-establish listeners after refresh
+                    listenToAllUsers();
+                    showToast('Feed refreshed!');
+                    if (callback) callback();
+                });
             }).catch(() => {
                 const cached = localStorage.getItem('feedPostsCache');
                 if (cached) {
@@ -2551,12 +2788,16 @@
                         const parsed = JSON.parse(cached);
                         if (parsed.length > 0) {
                             allPosts = parsed;
-                            shufflePosts();
-                            feedPosts.innerHTML = '';
-                            currentPage = 0;
-                            displayedPosts = [];
-                            hasMore = true;
-                            displayPosts(true);
+                            fetchAllUserData().then(() => {
+                                shufflePosts();
+                                feedPosts.innerHTML = '';
+                                currentPage = 0;
+                                displayedPosts = [];
+                                hasMore = true;
+                                displayPosts(true);
+                                listenToAllUsers();
+                                if (callback) callback();
+                            });
                         }
                     } catch (e) {}
                 }
@@ -2601,32 +2842,38 @@
                 item.dataset.commentId = comment.id;
                 
                 const isOwn = comment.authorId === currentUser.uid || comment.author === currentUser.name;
+                const authorName = userCache[comment.authorId]?.name || comment.author || 'User';
+                const authorAvatar = userCache[comment.authorId]?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(authorName) + '&background=1877f2&color=fff&size=32';
                 
                 item.innerHTML = `
-                    <img src="https://ui-avatars.com/api/?name=${comment.author}&background=1877f2&color=fff&size=32" alt="${comment.author}" class="comment-avatar" data-user-name="${comment.author}" data-user-id="${comment.authorId || 'unknown'}">
+                    <img src="${authorAvatar}" alt="${authorName}" class="comment-avatar" data-user-name="${authorName}" data-user-id="${comment.authorId || 'unknown'}">
                     <div class="comment-body">
-                        <div class="comment-author" data-user-name="${comment.author}" data-user-id="${comment.authorId || 'unknown'}">${comment.author}</div>
+                        <div class="comment-author" data-user-name="${authorName}" data-user-id="${comment.authorId || 'unknown'}">${authorName}</div>
                         <div class="comment-text">${comment.text}</div>
                         <div class="comment-actions">
                             <span>Like</span>
-                            <span class="reply-trigger" data-comment-id="${comment.id}" data-author="${comment.author}">Reply</span>
+                            <span class="reply-trigger" data-comment-id="${comment.id}" data-author="${authorName}">Reply</span>
                             <span class="comment-time">${formatTime(comment.timestamp)}</span>
                             ${isOwn ? `<span class="comment-menu-trigger" data-comment-id="${comment.id}"><i class="fa-solid fa-ellipsis"></i></span>` : ''}
                         </div>
-                        ${comment.replies ? comment.replies.map(reply => `
-                            <div class="reply-section">
-                                <div class="comment-item">
-                                    <img src="https://ui-avatars.com/api/?name=${reply.author}&background=1877f2&color=fff&size=24" alt="${reply.author}" class="comment-avatar" style="width:24px;height:24px;" data-user-name="${reply.author}" data-user-id="${reply.authorId || 'unknown'}">
-                                    <div class="comment-body">
-                                        <div class="comment-author" data-user-name="${reply.author}" data-user-id="${reply.authorId || 'unknown'}">${reply.author}</div>
-                                        <div class="comment-text">${reply.text}</div>
-                                        <div class="comment-actions">
-                                            <span class="comment-time">${formatTime(reply.timestamp)}</span>
+                        ${comment.replies ? comment.replies.map(reply => {
+                            const replyName = userCache[reply.authorId]?.name || reply.author || 'User';
+                            const replyAvatar = userCache[reply.authorId]?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(replyName) + '&background=1877f2&color=fff&size=24';
+                            return `
+                                <div class="reply-section">
+                                    <div class="comment-item">
+                                        <img src="${replyAvatar}" alt="${replyName}" class="comment-avatar" style="width:24px;height:24px;" data-user-name="${replyName}" data-user-id="${reply.authorId || 'unknown'}">
+                                        <div class="comment-body">
+                                            <div class="comment-author" data-user-name="${replyName}" data-user-id="${reply.authorId || 'unknown'}">${replyName}</div>
+                                            <div class="comment-text">${reply.text}</div>
+                                            <div class="comment-actions">
+                                                <span class="comment-time">${formatTime(reply.timestamp)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('') : ''}
+                            `;
+                        }).join('') : ''}
                     </div>
                 `;
                 commentsList.appendChild(item);
@@ -2660,7 +2907,8 @@
                     e.stopPropagation();
                     const userId = el.dataset.userId || 'unknown';
                     const userName = el.dataset.userName || 'User';
-                    openProfile(userId, userName, 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=1877f2&color=fff&size=200');
+                    const userAvatarUrl = userCache[userId]?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=1877f2&color=fff&size=200';
+                    openProfile(userId, userName, userAvatarUrl);
                 });
             });
         }
@@ -2866,7 +3114,7 @@
             detailContent.appendChild(postEl);
 
             // Render comments in detail
-            function renderDetailComments() {
+            window.renderDetailComments = function() {
                 const list = document.getElementById('detailCommentsList');
                 const comments = post.commentsList || [];
                 list.innerHTML = '';
@@ -2877,33 +3125,39 @@
                 const sorted = [...comments].reverse();
                 sorted.forEach(c => {
                     const isOwn = c.authorId === currentUser.uid || c.author === currentUser.name;
+                    const authorName = userCache[c.authorId]?.name || c.author || 'User';
+                    const authorAvatar = userCache[c.authorId]?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(authorName) + '&background=1877f2&color=fff&size=28';
                     const div = document.createElement('div');
                     div.className = 'comment-item';
                     div.dataset.commentId = c.id;
                     div.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;position:relative;';
                     div.innerHTML = `
-                        <img src="https://ui-avatars.com/api/?name=${c.author}&background=1877f2&color=fff&size=28" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer;" data-user-name="${c.author}" data-user-id="${c.authorId || 'unknown'}">
+                        <img src="${authorAvatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer;" data-user-name="${authorName}" data-user-id="${c.authorId || 'unknown'}">
                         <div style="background:#f0f2f5;padding:6px 12px;border-radius:12px;flex:1;">
-                            <div style="font-weight:600;font-size:13px;cursor:pointer;" data-user-name="${c.author}" data-user-id="${c.authorId || 'unknown'}">${c.author}</div>
+                            <div style="font-weight:600;font-size:13px;cursor:pointer;" data-user-name="${authorName}" data-user-id="${c.authorId || 'unknown'}">${authorName}</div>
                             <div style="font-size:14px;">${c.text}</div>
                             <div style="display:flex;gap:10px;font-size:11px;color:#65676b;margin-top:2px;flex-wrap:wrap;">
                                 <span>Like</span>
-                                <span class="detail-reply-trigger" data-comment-id="${c.id}" data-author="${c.author}" style="cursor:pointer;">Reply</span>
+                                <span class="detail-reply-trigger" data-comment-id="${c.id}" data-author="${authorName}" style="cursor:pointer;">Reply</span>
                                 <span>${formatTime(c.timestamp)}</span>
                                 ${isOwn ? `<span class="detail-comment-menu-trigger" data-comment-id="${c.id}" style="cursor:pointer;"><i class="fa-solid fa-ellipsis"></i></span>` : ''}
                             </div>
-                            ${c.replies ? c.replies.map(r => `
-                                <div style="margin-left:36px;margin-top:6px;padding-left:8px;border-left:2px solid #e4e6eb;">
-                                    <div style="display:flex;gap:8px;margin-top:4px;">
-                                        <img src="https://ui-avatars.com/api/?name=${r.author}&background=1877f2&color=fff&size=20" style="width:20px;height:20px;border-radius:50%;object-fit:cover;cursor:pointer;" data-user-name="${r.author}" data-user-id="${r.authorId || 'unknown'}">
-                                        <div style="background:#e4e6eb;padding:4px 10px;border-radius:12px;flex:1;">
-                                            <div style="font-weight:600;font-size:12px;cursor:pointer;" data-user-name="${r.author}" data-user-id="${r.authorId || 'unknown'}">${r.author}</div>
-                                            <div style="font-size:13px;">${r.text}</div>
-                                            <div style="font-size:10px;color:#65676b;margin-top:2px;">${formatTime(r.timestamp)}</div>
+                            ${c.replies ? c.replies.map(r => {
+                                const replyName = userCache[r.authorId]?.name || r.author || 'User';
+                                const replyAvatar = userCache[r.authorId]?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(replyName) + '&background=1877f2&color=fff&size=20';
+                                return `
+                                    <div style="margin-left:36px;margin-top:6px;padding-left:8px;border-left:2px solid #e4e6eb;">
+                                        <div style="display:flex;gap:8px;margin-top:4px;">
+                                            <img src="${replyAvatar}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;cursor:pointer;" data-user-name="${replyName}" data-user-id="${r.authorId || 'unknown'}">
+                                            <div style="background:#e4e6eb;padding:4px 10px;border-radius:12px;flex:1;">
+                                                <div style="font-weight:600;font-size:12px;cursor:pointer;" data-user-name="${replyName}" data-user-id="${r.authorId || 'unknown'}">${replyName}</div>
+                                                <div style="font-size:13px;">${r.text}</div>
+                                                <div style="font-size:10px;color:#65676b;margin-top:2px;">${formatTime(r.timestamp)}</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `).join('') : ''}
+                                `;
+                            }).join('') : ''}
                         </div>
                     `;
                     list.appendChild(div);
@@ -2937,10 +3191,11 @@
                         e.stopPropagation();
                         const userId = el.dataset.userId || 'unknown';
                         const userName = el.dataset.userName || 'User';
-                        openProfile(userId, userName, 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=1877f2&color=fff&size=200');
+                        const userAvatarUrl = userCache[userId]?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=1877f2&color=fff&size=200';
+                        openProfile(userId, userName, userAvatarUrl);
                     });
                 });
-            }
+            };
 
             const commentsContainer = document.createElement('div');
             commentsContainer.id = 'detailCommentsList';
@@ -3134,8 +3389,9 @@
                 }
             }, true);
 
-            console.log('Facebook Feed: Stories load only latest 20, no user data used.');
-            console.log('Video stories show thumbnail only, video loads on open with sound ON.');
+            console.log('🔥 Facebook Feed: Real-time user name and profile image updates enabled.');
+            console.log('✅ When user changes name/avatar, ALL posts update instantly with animations.');
+            console.log('✅ Video stories show thumbnail only, video loads on open with sound ON.');
         });
     </script>
 </body>
