@@ -11,6 +11,9 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
+    <!-- Realtime Database SDK Added -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -95,7 +98,7 @@
             transform: scale(1.05);
         }
 
-        /* ===== PROFILE PIC SECTION - FIXED SPACING ===== */
+        /* ===== PROFILE PIC SECTION ===== */
         .profile-pic-section {
             display: flex;
             align-items: flex-end;
@@ -121,17 +124,6 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
             display: block;
             transition: transform 0.3s ease;
-        }
-
-        .profile-pic-wrapper .profile-pic.fallback {
-            background: linear-gradient(135deg, #1877f2, #0d47a1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 42px;
-            font-weight: 700;
-            text-transform: uppercase;
         }
 
         .profile-pic-edit {
@@ -181,6 +173,16 @@
             font-weight: 700;
             color: #1c1e21;
             line-height: 1.3;
+            transition: color 0.3s ease;
+        }
+
+        .profile-info .name.name-updated {
+            animation: namePulse 0.5s ease;
+        }
+
+        @keyframes namePulse {
+            0% { color: #1877f2; transform: scale(1.02); }
+            100% { color: #1c1e21; transform: scale(1); }
         }
 
         .profile-info .online-status {
@@ -464,6 +466,16 @@
             object-fit: cover;
             margin-bottom: 4px;
             background: #e4e6eb;
+            transition: transform 0.3s ease;
+        }
+
+        .friend-card img.avatar-updated {
+            animation: avatarPulse 0.4s ease;
+        }
+
+        @keyframes avatarPulse {
+            0% { transform: scale(1.1); border: 2px solid #1877f2; }
+            100% { transform: scale(1); border: 0px; }
         }
 
         .friend-card .fname {
@@ -542,6 +554,11 @@
             object-fit: cover;
             flex-shrink: 0;
             background: #e4e6eb;
+            transition: transform 0.3s ease;
+        }
+
+        .post-item .post-user img.avatar-updated {
+            animation: avatarPulse 0.4s ease;
         }
 
         .post-item .post-user .user-fallback {
@@ -569,6 +586,11 @@
             font-size: clamp(14px, 2vw, 16px);
             color: #1c1e21;
             display: block;
+            transition: color 0.3s ease;
+        }
+
+        .post-item .post-user .pname.name-updated {
+            animation: namePulse 0.5s ease;
         }
 
         .post-item .post-user .ptime {
@@ -1470,6 +1492,20 @@
             text-decoration: underline;
         }
 
+        /* ===== PROFILE UPDATE ANIMATION ===== */
+        .post-updated {
+            animation: highlightPulse 0.6s ease;
+        }
+
+        @keyframes highlightPulse {
+            0% {
+                background-color: rgba(24, 119, 242, 0.12);
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
         /* ===== FALLBACK AVATAR ===== */
         .avatar-fallback {
             display: flex;
@@ -1671,6 +1707,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const rtdb = firebase.database(); // Added Realtime Database reference
 
         // ===== CLOUDINARY =====
         const CLOUDINARY = {
@@ -1737,6 +1774,11 @@
             galleryIndex = 0;
         let friendList = [];
 
+        // ===== USER DATA CACHE FOR REALTIME UPDATES =====
+        const userDataCache = {};
+        const userListeners = {};
+        let allPostsData = [];
+
         // ===== UTILITY FUNCTIONS =====
         function getCache(key) {
             try { const d = localStorage.getItem('fb_profile_' + key); return d ? JSON.parse(d) : null; } catch { return null; }
@@ -1768,11 +1810,6 @@
             return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
         }
 
-        function getAvatarUrl(name, photoURL) {
-            if (photoURL && photoURL.startsWith('http')) return photoURL;
-            return null;
-        }
-
         function createFallbackAvatar(name, size = '100') {
             const initials = getInitials(name || 'User');
             return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=1877f2&color=fff&size=${size}&font-size=0.5&bold=true`;
@@ -1783,22 +1820,244 @@
             return params.get('user');
         }
 
-        // ===== GET USER DATA =====
+        // ===== SYNC DATA TO REALTIME DATABASE =====
+        async function syncUserToRTDB(userId, data) {
+            try {
+                const rtdbData = {
+                    name: data.fullName || 'User',
+                    avatar: data.photoURL || null,
+                    email: data.email || '',
+                    bio: data.bio || '',
+                    location: data.location || '',
+                    lastUpdated: Date.now()
+                };
+                await rtdb.ref(`users/${userId}`).set(rtdbData);
+            } catch (err) {
+                console.error('Error syncing to RTDB:', err);
+            }
+        }
+
+        // ===== LISTEN TO USER FOR REALTIME UPDATES =====
+        function listenToUser(userId) {
+            if (!userId || userListeners[userId]) return;
+            
+            const docRef = db.collection('users').doc(userId);
+            const unsubscribe = docRef.onSnapshot((snap) => {
+                if (snap.exists) {
+                    const data = snap.data();
+                    const userData = {
+                        id: userId,
+                        fullName: data.fullName || data.firstName || data.displayName || 'User',
+                        photoURL: data.photoURL || data.avatar || data.profilePic || null,
+                        coverPhoto: data.coverPhoto || null,
+                        email: data.email || '',
+                        status: data.status || 'offline',
+                        bio: data.bio || '',
+                        location: data.location || '',
+                        relationship: data.relationship || '',
+                        birthday: data.birthday || '',
+                        language: data.language || '',
+                        phone: data.phone || '',
+                        workTitle: data.workTitle || '',
+                        workRole: data.workRole || '',
+                        friends: data.friends || []
+                    };
+                    
+                    const oldData = userDataCache[userId];
+                    const nameChanged = oldData && oldData.fullName !== userData.fullName;
+                    const photoChanged = oldData && oldData.photoURL !== userData.photoURL;
+                    const coverChanged = oldData && oldData.coverPhoto !== userData.coverPhoto;
+                    
+                    userDataCache[userId] = userData;
+                    setCache('user_' + userId, userData);
+                    
+                    // Apply profile data
+                    applyProfileData(userData);
+                    
+                    // Update all posts for this user
+                    updateAllPostsForUser(userId, userData);
+                    
+                    // Update friends grid
+                    updateFriendsList();
+                    
+                    // If name changed, animate
+                    if (nameChanged) {
+                        const nameEl = document.getElementById('name-text');
+                        if (nameEl) {
+                            nameEl.classList.remove('name-updated');
+                            void nameEl.offsetWidth;
+                            nameEl.classList.add('name-updated');
+                        }
+                    }
+                    
+                    // If cover photo changed
+                    if (coverChanged && userData.coverPhoto) {
+                        coverImage.src = userData.coverPhoto;
+                        coverImage.style.display = 'block';
+                    }
+                    
+                    if (photoChanged && userData.photoURL) {
+                        profilePic.src = userData.photoURL;
+                    }
+                }
+            });
+            
+            userListeners[userId] = unsubscribe;
+        }
+
+        // ===== UPDATE ALL POSTS FOR A USER =====
+        function updateAllPostsForUser(userId, userData) {
+            // Update all posts in the posts list
+            const postItems = document.querySelectorAll('.post-item');
+            postItems.forEach(item => {
+                const postUserId = item.dataset.userId;
+                if (postUserId === userId) {
+                    // Update name with animation
+                    const nameEl = item.querySelector('.pname');
+                    if (nameEl && nameEl.textContent !== userData.fullName) {
+                        nameEl.textContent = userData.fullName;
+                        nameEl.classList.remove('name-updated');
+                        void nameEl.offsetWidth;
+                        nameEl.classList.add('name-updated');
+                    }
+                    
+                    // Update avatar with animation
+                    const imgEl = item.querySelector('.post-user img');
+                    const fallbackEl = item.querySelector('.user-fallback');
+                    const avatarUrl = userData.photoURL || createFallbackAvatar(userData.fullName, '100');
+                    
+                    if (imgEl && imgEl.src !== avatarUrl) {
+                        imgEl.src = avatarUrl;
+                        imgEl.classList.remove('avatar-updated');
+                        void imgEl.offsetWidth;
+                        imgEl.classList.add('avatar-updated');
+                        imgEl.style.display = 'block';
+                        if (fallbackEl) fallbackEl.style.display = 'none';
+                    }
+                    
+                    // Add highlight animation
+                    item.classList.add('post-updated');
+                    setTimeout(() => {
+                        item.classList.remove('post-updated');
+                    }, 800);
+                }
+            });
+            
+            // Update friends grid
+            updateFriendsList();
+        }
+
+        // ===== UPDATE FRIENDS LIST =====
+        function updateFriendsList() {
+            const userId = currentProfileUserId;
+            if (!userId) return;
+            
+            const userData = userDataCache[userId];
+            if (!userData) return;
+            
+            const friends = userData.friends || [];
+            friendList = friends;
+            friendCount.textContent = friends.length;
+            
+            // Update mutual friends
+            if (currentUser && currentUser.uid) {
+                const mutual = friends.filter(id => {
+                    const friendData = userDataCache[id] || getCache('user_' + id);
+                    return friendData && friendData.friends && friendData.friends.includes(currentUser.uid);
+                });
+                mutualCount.textContent = mutual.length;
+            }
+            
+            // Update friends grid with latest data
+            renderFriendsGrid(friends);
+        }
+
+        // ===== RENDER FRIENDS GRID =====
+        async function renderFriendsGrid(friends) {
+            friendsGrid.innerHTML = '';
+            if (!friends || friends.length === 0) {
+                friendsGrid.innerHTML = '<div class="empty-state">No friends</div>';
+                return;
+            }
+
+            const visible = friends.slice(0, 4);
+            for (const uid of visible) {
+                const fd = await getUserData(uid);
+                if (!fd) continue;
+                const card = document.createElement('div');
+                card.className = 'friend-card';
+                const name = fd.fullName || fd.firstName || 'Friend';
+                const avatar = fd.photoURL || createFallbackAvatar(name, '100');
+                card.innerHTML = `
+                    <img src="${avatar}" onerror="this.style.display='none';this.parentElement.querySelector('.friend-fallback').style.display='flex'" />
+                    <div class="friend-fallback" style="display:none;width:60px;height:60px;border-radius:50%;margin:0 auto 4px;background:linear-gradient(135deg,#1877f2,#0d47a1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;text-transform:uppercase;">${getInitials(name)}</div>
+                    <div class="fname">${escapeHTML(name)}</div>
+                `;
+                card.onclick = () => {
+                    window.location.href = 'profile.html?user=' + uid;
+                };
+                friendsGrid.appendChild(card);
+            }
+
+            if (friends.length > 4) {
+                const card = document.createElement('div');
+                card.className = 'friend-card';
+                card.style.cssText = 'display:flex;align-items:center;justify-content:center;flex-direction:column;';
+                card.innerHTML =
+                    `<div style="width:60px;height:60px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#1877f2;">+${friends.length-4}</div><div class="fname">See all</div>`;
+                card.onclick = () => document.querySelector('.profile-tab[data-tab="friends"]')?.click();
+                friendsGrid.appendChild(card);
+            }
+        }
+
+        // ===== GET USER DATA WITH CACHE =====
         async function getUserData(uid) {
             if (!uid) return null;
+            
+            if (userDataCache[uid]) {
+                return userDataCache[uid];
+            }
+            
             const cached = getCache('user_' + uid);
-            if (cached && Date.now() - (cached._cacheTime || 0) < 60000) {
+            if (cached) {
+                userDataCache[uid] = cached;
+                // Start listening for updates
+                listenToUser(uid);
                 return cached;
             }
+            
             try {
                 const doc = await db.collection('users').doc(uid).get();
                 if (doc.exists) {
-                    const data = { id: uid, ...doc.data(), _cacheTime: Date.now() };
-                    setCache('user_' + uid, data);
-                    return data;
+                    const data = doc.data();
+                    const userData = {
+                        id: uid,
+                        fullName: data.fullName || data.firstName || data.displayName || 'User',
+                        photoURL: data.photoURL || data.avatar || data.profilePic || null,
+                        coverPhoto: data.coverPhoto || null,
+                        email: data.email || '',
+                        status: data.status || 'offline',
+                        bio: data.bio || '',
+                        location: data.location || '',
+                        relationship: data.relationship || '',
+                        birthday: data.birthday || '',
+                        language: data.language || '',
+                        phone: data.phone || '',
+                        workTitle: data.workTitle || '',
+                        workRole: data.workRole || '',
+                        friends: data.friends || [],
+                        _cacheTime: Date.now()
+                    };
+                    userDataCache[uid] = userData;
+                    setCache('user_' + uid, userData);
+                    // Start listening for updates
+                    listenToUser(uid);
+                    return userData;
                 }
                 return null;
-            } catch { return cached || null; }
+            } catch { 
+                return cached || null; 
+            }
         }
 
         // ===== APPLY PROFILE DATA =====
@@ -1817,7 +2076,11 @@
             userPhone.textContent = data.phone || '+880 1234 567890';
             workTitle.textContent = data.workTitle || 'Freelancer';
             workRole.textContent = data.workRole || 'CMO';
-
+            
+            // Update friends count
+            const friends = data.friends || [];
+            friendCount.textContent = friends.length;
+            
             // Profile Photo with fallback
             const photoUrl = data.photoURL || createFallbackAvatar(fullName, '200');
             profilePic.src = photoUrl;
@@ -1829,60 +2092,41 @@
             // Cover Photo
             if (data.coverPhoto) {
                 coverImage.src = data.coverPhoto;
+                coverImage.style.display = 'block';
                 coverImage.onerror = function() {
                     this.style.display = 'none';
                 };
             } else {
                 coverImage.style.display = 'none';
             }
+            
+            // Update friends grid
+            renderFriendsGrid(friends);
         }
 
         // ===== LOAD PROFILE =====
         async function loadProfile(userId) {
             currentProfileUserId = userId;
-            const cached = getCache('user_' + userId);
-
-            if (cached) {
-                applyProfileData(cached);
-                loadFriendsData(userId);
-                loadUserPosts(userId);
-                loadUserPhotos(userId);
-            } else {
-                nameText.textContent = 'Loading...';
-                profileBio.textContent = 'Loading...';
+            
+            // Start real-time listener for this user
+            listenToUser(userId);
+            
+            // Get user data
+            const data = await getUserData(userId);
+            if (data) {
+                applyProfileData(data);
             }
-
-            try {
-                const data = await getUserData(userId);
-                if (data) {
-                    applyProfileData(data);
-                    setCache('user_' + userId, { ...data, _cacheTime: Date.now() });
-                } else if (!cached) {
-                    nameText.textContent = 'User not found';
-                    profileBio.textContent = 'This user does not exist';
-                }
-            } catch (err) { console.error(err); }
-
-            if (unsubscribeProfile) unsubscribeProfile();
-            unsubscribeProfile = db.collection('users').doc(userId).onSnapshot((snap) => {
-                if (snap.exists) {
-                    const d = snap.data();
-                    setCache('user_' + userId, { ...d, _cacheTime: Date.now() });
-                    applyProfileData(d);
-                    const user = auth.currentUser;
-                    if (user) {
-                        if (user.uid === userId) {
-                            renderActionButtons(user.uid, userId, 'self');
-                        } else {
-                            checkFriendStatus(user.uid, userId).then(status => {
-                                friendStatus = status;
-                                renderActionButtons(user.uid, userId, status);
-                            });
-                        }
-                    }
-                }
-            });
-
+            
+            // Load friends
+            await loadFriendsData(userId);
+            
+            // Load posts
+            await loadUserPosts(userId);
+            
+            // Load photos
+            await loadUserPhotos(userId);
+            
+            // Check auth for action buttons
             const user = auth.currentUser;
             if (user) {
                 if (user.uid === userId) {
@@ -1971,7 +2215,6 @@
                 actionBar.appendChild(msgBtn);
             }
 
-            // Show edit icons for own profile
             const coverEdit = $('cover-edit-btn');
             const picEdit = $('profile-pic-edit');
             if (isOwn) {
@@ -1996,47 +2239,13 @@
 
                 if (currentUser) {
                     const mutual = friends.filter(id => {
-                        const friendData = getCache('user_' + id);
+                        const friendData = userDataCache[id] || getCache('user_' + id);
                         return friendData && friendData.friends && friendData.friends.includes(currentUser.uid);
-                    }).length;
-                    mutualCount.textContent = mutual;
+                    });
+                    mutualCount.textContent = mutual.length;
                 }
 
-                friendsGrid.innerHTML = '';
-                if (friends.length === 0) {
-                    friendsGrid.innerHTML = '<div class="empty-state">No friends</div>';
-                    return;
-                }
-
-                const visible = friends.slice(0, 4);
-                for (const uid of visible) {
-                    const fd = await getUserData(uid);
-                    if (!fd) continue;
-                    const card = document.createElement('div');
-                    card.className = 'friend-card';
-                    const name = fd.fullName || fd.firstName || 'Friend';
-                    const avatar = fd.photoURL || createFallbackAvatar(name, '100');
-                    card.innerHTML = `
-                            <img src="${avatar}" onerror="this.style.display='none';this.parentElement.querySelector('.friend-fallback').style.display='flex'" />
-                            <div class="friend-fallback" style="display:none;width:60px;height:60px;border-radius:50%;margin:0 auto 4px;background:linear-gradient(135deg,#1877f2,#0d47a1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;text-transform:uppercase;">${getInitials(name)}</div>
-                            <div class="fname">${escapeHTML(name)}</div>
-                        `;
-                    card.onclick = () => {
-                        window.location.href = 'profile.html?user=' + uid;
-                    };
-                    friendsGrid.appendChild(card);
-                }
-
-                if (friends.length > 4) {
-                    const card = document.createElement('div');
-                    card.className = 'friend-card';
-                    card.style.cssText =
-                        'display:flex;align-items:center;justify-content:center;flex-direction:column;';
-                    card.innerHTML =
-                        `<div style="width:60px;height:60px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#1877f2;">+${friends.length-4}</div><div class="fname">See all</div>`;
-                    card.onclick = () => document.querySelector('.profile-tab[data-tab="friends"]')?.click();
-                    friendsGrid.appendChild(card);
-                }
+                renderFriendsGrid(friends);
             });
         }
 
@@ -2046,11 +2255,14 @@
             const query = db.collection('all-user-post').where('userId', '==', userId);
             unsubscribePosts = query.onSnapshot((snapshot) => {
                 postsList.innerHTML = '';
+                allPostsData = [];
+                
                 if (snapshot.empty) {
                     postsList.innerHTML = '<div class="empty-state">No posts yet</div>';
                     postCount.textContent = '0';
                     return;
                 }
+                
                 const posts = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -2061,27 +2273,40 @@
                     const tb = b.timestamp ? b.timestamp.toDate() : new Date(0);
                     return tb - ta;
                 });
+                
+                allPostsData = posts;
                 postCount.textContent = posts.length;
+                
+                // Get user data from cache (it should already be listening via listenToUser)
+                const userData = userDataCache[userId] || {};
+                const userName = userData.fullName || 'User';
+                const userImage = userData.photoURL || createFallbackAvatar(userName, '100');
+                
                 posts.forEach(post => {
                     const div = document.createElement('div');
                     div.className = 'post-item';
+                    div.dataset.postId = post.id;
+                    div.dataset.userId = post.userId;
+                    
                     const user = auth.currentUser;
                     const isOwn = user && post.userId === user.uid;
-                    const userName = post.userName || 'User';
-                    const userImage = post.userImage || createFallbackAvatar(userName, '100');
                     const caption = post.caption || post.fullText || 'No caption';
                     const time = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'Now';
                     const likes = post.likes || 0;
                     const comments = post.comments ? post.comments.length : 0;
                     const imageUrl = post.imageUrl || '';
                     const isLiked = post.likedBy && user && post.likedBy.includes(user.uid);
+                    
+                    const avatarUrl = userImage || createFallbackAvatar(userName, '100');
+                    
                     let imageHTML = imageUrl ?
                         `<img src="${imageUrl}" class="post-image" loading="lazy" onerror="this.style.display='none'" />` :
                         '';
+                    
                     div.innerHTML = `
                             <div class="post-header">
                                 <div class="post-user" onclick="event.stopPropagation(); window.location.href='profile.html?user=${post.userId}'">
-                                    <img src="${userImage}" onerror="this.style.display='none';this.parentElement.querySelector('.user-fallback').style.display='flex'" />
+                                    <img src="${avatarUrl}" onerror="this.style.display='none';this.parentElement.querySelector('.user-fallback').style.display='flex'" />
                                     <div class="user-fallback" style="display:none;width:44px;height:44px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#1877f2,#0d47a1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;text-transform:uppercase;">${getInitials(userName)}</div>
                                     <div class="user-info"><span class="pname">${escapeHTML(userName)}</span><span class="ptime">${time}</span></div>
                                 </div>
@@ -2103,6 +2328,11 @@
                         `;
                     postsList.appendChild(div);
                 });
+                
+                // After rendering, ensure realtime updates are applied if user data changed
+                if (userData) {
+                    updateAllPostsForUser(userId, userData);
+                }
             });
         }
 
@@ -2390,8 +2620,10 @@
         function openEditProfile() {
             const user = auth.currentUser;
             if (!user) { showToast('Login first'); return; }
-            const data = getCache('user_' + user.uid) || {};
-            editName.value = data.fullName || '';
+            
+            const data = userDataCache[user.uid] || getCache('user_' + user.uid) || {};
+            
+            editName.value = data.fullName || data.name || '';
             editBio.value = data.bio || '';
             editLocation.value = data.location || '';
             editBirthday.value = data.birthday || '';
@@ -2439,6 +2671,10 @@
                     updatedAt: new Date().toISOString()
                 };
                 await db.collection('users').doc(user.uid).set(data, { merge: true });
+                
+                // 🔥 NEW: SYNC TO REALTIME DATABASE SO OTHER PAGES UPDATE INSTANTLY
+                await syncUserToRTDB(user.uid, data);
+
                 const newPass = editPassword.value.trim();
                 if (newPass && newPass.length >= 6) {
                     await user.updatePassword(newPass);
@@ -2447,10 +2683,22 @@
                 if (data.fullName && data.fullName !== user.displayName) {
                     await user.updateProfile({ displayName: data.fullName });
                 }
-                setCache('user_' + user.uid, { ...data, _cacheTime: Date.now() });
+                
+                // Update cache
+                const cached = userDataCache[user.uid] || {};
+                Object.assign(cached, data);
+                userDataCache[user.uid] = cached;
+                setCache('user_' + user.uid, { ...cached, _cacheTime: Date.now() });
+                
                 applyProfileData(data);
+                
+                // Update all posts for this user
+                updateAllPostsForUser(user.uid, data);
+                
                 showToast('✅ Profile updated');
                 closeEditProfile();
+                
+                // Reload posts and photos for this user
                 if (currentProfileUserId === user.uid) {
                     loadUserPosts(user.uid);
                     loadUserPhotos(user.uid);
@@ -2465,7 +2713,17 @@
             triggerFileUpload((url) => {
                 profilePic.src = url;
                 const user = auth.currentUser;
-                if (user) db.collection('users').doc(user.uid).set({ photoURL: url }, { merge: true });
+                if (user) {
+                    db.collection('users').doc(user.uid).set({ photoURL: url }, { merge: true });
+                    if (userDataCache[user.uid]) {
+                        userDataCache[user.uid].photoURL = url;
+                    }
+                    // 🔥 NEW: SYNC TO REALTIME DATABASE
+                    syncUserToRTDB(user.uid, { ...userDataCache[user.uid], photoURL: url });
+                    
+                    // Update all posts for this user
+                    updateAllPostsForUser(user.uid, userDataCache[user.uid]);
+                }
                 showToast('✅ Profile photo updated');
             });
         });
@@ -2475,7 +2733,12 @@
                 coverImage.src = url;
                 coverImage.style.display = 'block';
                 const user = auth.currentUser;
-                if (user) db.collection('users').doc(user.uid).set({ coverPhoto: url }, { merge: true });
+                if (user) {
+                    db.collection('users').doc(user.uid).set({ coverPhoto: url }, { merge: true });
+                    if (userDataCache[user.uid]) {
+                        userDataCache[user.uid].coverPhoto = url;
+                    }
+                }
                 showToast('✅ Cover photo updated');
             });
         });
@@ -2524,6 +2787,12 @@
         // ===== AUTH =====
         auth.onAuthStateChanged((user) => {
             currentUser = user;
+            
+            if (user) {
+                // Listen to current user for updates
+                listenToUser(user.uid);
+            }
+            
             const uid = getUserIdFromUrl();
             if (!uid) {
                 if (user) {
@@ -2546,13 +2815,19 @@
             if (unsubscribeProfile) unsubscribeProfile();
             if (unsubscribeFriends) unsubscribeFriends();
             if (messengerUnsubscribe) messengerUnsubscribe();
+            
+            Object.values(userListeners).forEach(unsub => {
+                if (typeof unsub === 'function') unsub();
+            });
         });
 
-        console.log('🔥 Profile with fixed responsive, fallback avatars, and improved UI');
-        console.log('✅ Image fallback - shows initials when no image');
-        console.log('✅ Better spacing - profile pic has proper margin');
-        console.log('✅ Fully responsive - works on all screen sizes');
-        console.log('✅ Modern UI - cleaner and more polished design');
+        console.log('🔥 Profile with Real-time User Profile Updates (Instant)');
+        console.log('✅ When user changes name/avatar/cover, ALL posts update instantly');
+        console.log('✅ Uses Firestore onSnapshot() for realtime updates');
+        console.log('✅ Post updates with highlight animation');
+        console.log('✅ Name changes with pulse animation');
+        console.log('✅ Cover photo upload fixed and working');
+        console.log('✅ Fully responsive with fallback avatars');
     </script>
 </body>
 </html>
