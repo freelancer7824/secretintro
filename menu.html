@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            opacity: 1;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        }
+
+        /* Page transition exit animation */
+        body.fade-out {
+            opacity: 0;
+            transform: scale(0.98);
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        /* Top Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .nav-link i {
+            font-size: 20px;
+            color: #050505;
+            font-weight: 700;
+        }
+
+        .header-left h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #050505;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            background-color: #e4e6eb;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+
+        .icon-btn i {
+            font-size: 16px;
+            color: #050505;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Clickable Card Link Wrapper Style */
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border-radius: 12px;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+
+        .card-link:active {
+            transform: scale(0.97);
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-text h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        .profile-text p {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 1px;
+        }
+
+        .profile-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-avatar-stack {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            background: #e4e6eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mini-avatar-stack i {
+            font-size: 14px;
+            color: #050505;
+        }
+
+        .dropdown-circle {
+            width: 32px;
+            height: 32px;
+            background-color: #e4e6eb;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dropdown-circle i {
+            font-size: 14px;
+            color: #050505;
+        }
+
+        /* Switch Account Item */
+        .menu-item-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        /* Shortcut Grid (2 columns) */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .shortcut-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .shortcut-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .shortcut-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        /* Custom Icon Colors to match Facebook style */
+        .icon-heart { color: #ff2d55; font-size: 24px; }
+        .icon-dashboard { color: #1877f2; }
+        .icon-messages { color: #0084ff; }
+        .icon-groups { color: #2e89ff; }
+        .icon-marketplace { color: #0084ff; }
+        .icon-friends { color: #2e89ff; }
+        .icon-reels { color: #ff3b30; }
+        .icon-meta-ai { color: #8a36f5; }
+        .icon-pages { color: #ff6e00; }
+        .icon-saved { color: #b833ff; }
+        .icon-birthdays { color: #ff3b5c; }
+        .icon-events { color: #f35369; }
+        .icon-verified { color: #1877f2; }
+        .icon-adcentre { color: #1877f2; }
+        .icon-feeds { color: #ff7a00; }
+
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <div class="header">
+            <div class="header-left">
+                <a href="homepage.html" class="nav-link">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <h1>Menu</h1>
+            </div>
+            <div class="header-right">
+                <a href="switch-options.html" class="icon-btn nav-link">
+                    <i class="fa-solid fa-arrow-right-arrow-left fa-rotate-90"></i>
+                </a>
+                <a href="search.html" class="icon-btn nav-link">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="content">
+            
+            <a href="profile.html" class="card-link">
+                <div class="profile-card">
+                    <div class="profile-info">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Profile" class="profile-pic">
+                        <div class="profile-text">
+                            <h3>SHOPON HASAN PRIYO</h3>
+                            <p>View your profile</p>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <div class="mini-avatar-stack">
+                            <i class="fa-solid fa-rotate"></i>
+                        </div>
+                        <div class="dropdown-circle">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="switch-account.html" class="card-link">
+                <div class="menu-item-card">
+                    <div class="menu-item-left">
+                        <div class="mini-avatar-stack">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <span>Switch account</span>
+                    </div>
+                    <div class="dropdown-circle">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="invite.html" class="card-link">
+                <div class="menu-item-card" style="padding: 14px 16px;">
+                    <div class="menu-item-left">
+                        <i class="fa-solid fa-heart icon-heart"></i>
+                        <span style="font-weight: 600;">Invite friends</span>
+                    </div>
+                </div>
+            </a>
+
+            <div class="grid-container">
+                <a href="dashboard.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-dashboard">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </div>
+                        <div class="shortcut-title">Dashboard</div>
+                    </div>
+                </a>
+
+                <a href="messages.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-messages">
+                            <i class="fa-brands fa-facebook-messenger"></i>
+                        </div>
+                        <div class="shortcut-title">Messages</div>
+                    </div>
+                </a>
+
+                <a href="groups.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-groups">
+                            <i class="fa-solid fa-users-rectangle"></i>
+                        </div>
+                        <div class="shortcut-title">Groups</div>
+                    </div>
+                </a>
+
+                <a href="marketplace.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-marketplace">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <div class="shortcut-title">Marketplace</div>
+                    </div>
+                </a>
+
+                <a href="friends.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-friends">
+                            <i class="fa-solid fa-user-group"></i>
+                        </div>
+                        <div class="shortcut-title">Friends</div>
+                    </div>
+                </a>
+
+                <a href="reels.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-reels">
+                            <i class="fa-solid fa-clapperboard"></i>
+                        </div>
+                        <div class="shortcut-title">Reels</div>
+                    </div>
+                </a>
+
+                <a href="meta-ai.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-meta-ai">
+                            <i class="fa-solid fa-circle-nodes"></i>
+                        </div>
+                        <div class="shortcut-title">Meta AI</div>
+                    </div>
+                </a>
+
+                <a href="pages.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-pages">
+                            <i class="fa-solid fa-flag"></i>
+                        </div>
+                        <div class="shortcut-title">Pages</div>
+                    </div>
+                </a>
+
+                <a href="saved.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-saved">
+                            <i class="fa-solid fa-bookmark"></i>
+                        </div>
+                        <div class="shortcut-title">Saved</div>
+                    </div>
+                </a>
+
+                <a href="birthdays.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-birthdays">
+                            <i class="fa-solid fa-gift"></i>
+                        </div>
+                        <div class="shortcut-title">Birthdays</div>
+                    </div>
+                </a>
+
+                <a href="events.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-events">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <div class="shortcut-title">Events</div>
+                    </div>
+                </a>
+
+                <a href="meta-verified.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-verified">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="shortcut-title">Meta Verified</div>
+                    </div>
+                </a>
+
+                <a href="ad-centre.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-adcentre">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div class="shortcut-title">Ad Centre</div>
+                    </div>
+                </a>
+
+                <a href="feeds.html" class="card-link">
+                    <div class="shortcut-card">
+                        <div class="shortcut-icon icon-feeds">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
+                        <div class="shortcut-title">Feeds</div>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Smooth Page Transition Animation Script
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetUrl = this.getAttribute('href');
+                
+                // Only intercept internal page navigation links
+                if (targetUrl && !targetUrl.startsWith('#') && !targetUrl.startsWith('javascript')) {
+                    e.preventDefault();
+                    document.body.classList.add('fade-out');
+                    
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 350); // Matches CSS transition duration
+                }
+            });
+        });
+    </script>
+</body>
+</html>
