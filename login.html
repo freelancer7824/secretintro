@@ -578,98 +578,6 @@
             transform: scale(1.05);
         }
 
-        /* Success Overlay */
-        .success-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 9998;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .success-overlay.show {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-
-        .success-box {
-            background: white;
-            border-radius: 16px;
-            padding: 40px 30px;
-            max-width: 380px;
-            width: 90%;
-            text-align: center;
-            animation: popIn 0.5s ease;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .success-box .icon {
-            font-size: 64px;
-            color: #31a24c;
-            margin-bottom: 16px;
-        }
-
-        .success-box h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #050505;
-            margin-bottom: 8px;
-        }
-
-        .success-box p {
-            font-size: 14px;
-            color: #65676b;
-            margin-bottom: 20px;
-        }
-
-        .success-box .btn-go-home {
-            background: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 24px;
-            padding: 12px 40px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
-        }
-
-        .success-box .btn-go-home:hover {
-            background: #166fe5;
-        }
-
-        .success-box .btn-go-home:active {
-            transform: scale(0.98);
-        }
-
-        .dark-theme .success-box {
-            background: #242526;
-            color: #e4e6eb;
-        }
-
-        .dark-theme .success-box h2 {
-            color: #e4e6eb;
-        }
-
-        .dark-theme .success-box p {
-            color: #b0b3b8;
-        }
-
         .dark-theme body {
             background-color: #18191a;
         }
@@ -738,20 +646,6 @@
     </style>
 </head>
 <body>
-
-    <!-- Success Overlay -->
-    <div class="success-overlay" id="successOverlay">
-        <div class="success-box">
-            <div class="icon">
-                <i class="fa-solid fa-check-circle"></i>
-            </div>
-            <h2 id="successTitle">Success!</h2>
-            <p id="successMessage">You have been logged in successfully.</p>
-            <button class="btn-go-home" onclick="goToHome()">
-                <i class="fa-solid fa-house"></i> Go to Home
-            </button>
-        </div>
-    </div>
 
     <!-- Theme Toggle Button -->
     <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
@@ -926,6 +820,13 @@
         let isSigningUp = false;
 
         // ============================================================
+        // REDIRECT TO INDEX.HTML
+        // ============================================================
+        function redirectToHome() {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
         // THEME TOGGLE
         // ============================================================
         function toggleTheme() {
@@ -1047,37 +948,6 @@
         }
 
         // ============================================================
-        // SHOW SUCCESS OVERLAY
-        // ============================================================
-        function showSuccessOverlay(title, message) {
-            document.getElementById('successTitle').textContent = title;
-            document.getElementById('successMessage').textContent = message;
-            document.getElementById('successOverlay').classList.add('show');
-        }
-
-        function goToHome() {
-            document.getElementById('successOverlay').classList.remove('show');
-            // Show login form again
-            document.getElementById('loginView').classList.add('active');
-            document.getElementById('signupView').classList.remove('active');
-            document.querySelector('.signup-back').style.display = 'none';
-            // Clear form
-            document.getElementById('loginIdentifier').value = '';
-            document.getElementById('loginPassword').value = '';
-            // Reset button
-            const btn = document.getElementById('loginBtn');
-            btn.classList.remove('success');
-            btn.disabled = false;
-            btn.querySelector('.btn-text').style.display = 'flex';
-            btn.querySelector('.btn-loader').style.display = 'none';
-            // Clear errors
-            document.getElementById('loginError').style.display = 'none';
-            // Reset state
-            isLoggingIn = false;
-            isSigningUp = false;
-        }
-
-        // ============================================================
         // HANDLE SIGNUP
         // ============================================================
         function handleSignup(e) {
@@ -1146,21 +1016,8 @@
                     
                     showToast('✅ Account created successfully!', 'success');
                     
-                    // Show success overlay instead of redirect
-                    showSuccessOverlay(
-                        'Account Created! 🎉',
-                        'Your account has been created successfully. You can now login.'
-                    );
-                    
-                    // Reset signup form
-                    document.getElementById('signFirstName').value = '';
-                    document.getElementById('signLastName').value = '';
-                    document.getElementById('signAddress').value = '';
-                    document.getElementById('signPhone').value = '';
-                    document.getElementById('signDob').value = '';
-                    document.getElementById('signEmail').value = '';
-                    document.getElementById('signPassword').value = '';
-                    document.getElementById('signConfirmPassword').value = '';
+                    // Redirect to index.html
+                    setTimeout(redirectToHome, 1000);
                     
                     isSigningUp = false;
                 })
@@ -1258,15 +1115,8 @@
                     
                     showToast('✅ Login successful!', 'success');
                     
-                    // Show success overlay instead of redirect
-                    showSuccessOverlay(
-                        'Welcome Back! 👋',
-                        'You have been logged in successfully.'
-                    );
-                    
-                    // Clear form
-                    document.getElementById('loginIdentifier').value = '';
-                    document.getElementById('loginPassword').value = '';
+                    // Redirect to index.html
+                    setTimeout(redirectToHome, 1000);
                     
                     isLoggingIn = false;
                 })
@@ -1294,12 +1144,9 @@
         // CHECK IF USER IS ALREADY LOGGED IN
         // ============================================================
         auth.onAuthStateChanged((user) => {
-            if (user && !document.getElementById('successOverlay').classList.contains('show')) {
-                // Show success overlay instead of redirect
-                showSuccessOverlay(
-                    'Welcome Back! 👋',
-                    'You are already logged in.'
-                );
+            if (user) {
+                // User is already logged in, redirect to index.html
+                redirectToHome();
             }
         });
 
