@@ -301,7 +301,7 @@
                 <button class="icon-btn" onclick="navigateTo('create-post')"><i class="fa-solid fa-plus"></i></button>
                 <button class="icon-btn" onclick="navigateTo('search')"><i class="fa-solid fa-magnifying-glass"></i></button>
                 <button class="icon-btn" id="logoutBtn" style="display:none;" onclick="logoutUser()"><i class="fa-solid fa-sign-out-alt"></i></button>
-                <button class="icon-btn" onclick="navigateTo('menu')"><i class="fa-solid fa-bars"></i></button>
+                <button style="display:none" class="icon-btn" onclick="navigateTo('menu')"><i class="fa-solid fa-bars"></i></button>
             </div>
         </header>
 
@@ -337,7 +337,7 @@
 
             <!-- All pages as iframes -->
             <iframe id="iframeHome" src="homepage.html" data-page="home" class="active-iframe"></iframe>
-            <iframe id="iframeFriends" src="friends.html" data-page="friends"></iframe>
+            <iframe id="iframeFriends" src="friend-request.html" data-page="friends"></iframe>
             <iframe id="iframeMessenger" src="messenger.html" data-page="messenger"></iframe>
             <iframe id="iframeWatch" src="watch.html" data-page="watch"></iframe>
             <iframe id="iframeNotifications" src="notifications.html" data-page="notifications"></iframe>
@@ -429,7 +429,7 @@
 
         const pageSources = {
             home: 'home.html',
-            friends: 'friends.html',
+            friends: 'friend-request.html',
             messenger: 'messenger.html',
             watch: 'watch.html',
             notifications: 'notifications.html',
