@@ -1,811 +1,1011 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Facebook · SPA</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Facebook · Real-Time Status</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f0f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
 
-        body {
-            background-color: #f0f2f5;
-            color: #050505;
-            display: flex;
-            justify-content: center;
-            overflow: hidden;
-            height: 100vh;
-            width: 100%;
-        }
+    /* Full-screen iframe */
+    .fullscreen-iframe {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: block;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
 
-        .fb-container {
-            width: 100%;
-            max-width: 500px;
-            background-color: #ffffff;
-            height: 100vh;
-            position: relative;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    .fullscreen-iframe.loaded {
+      opacity: 1;
+    }
 
-        /* ===== SPA IFRAME CONTAINER ===== */
-        .spa-iframe-container {
-            flex: 1;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-            background: #f0f2f5;
-        }
+    /* Loading state */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.8s ease;
+    }
 
-        .spa-iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #f0f2f5;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.25s ease, visibility 0.25s ease;
-        }
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
 
-        .spa-iframe-container iframe.active-iframe {
-            opacity: 1;
-            visibility: visible;
-            position: relative;
-        }
+    .loading-spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #e4e6eb;
+      border-top: 4px solid #1877f2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
 
-        /* ===== TOP BAR ===== */
-        .fb-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background: #ffffff;
-            flex-shrink: 0;
-            border-bottom: 1px solid #ced0d4;
-            z-index: 100;
-        }
+    .loading-overlay .loading-text {
+      margin-top: 18px;
+      color: #65676b;
+      font-size: 15px;
+      font-weight: 500;
+    }
 
-        .fb-logo {
-            color: #1877f2;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: -1px;
-            cursor: pointer;
-            text-decoration: none;
-            background: none;
-            border: none;
-        }
+    .loading-overlay .loading-sub {
+      color: #8a8d91;
+      font-size: 13px;
+      margin-top: 6px;
+    }
 
-        .header-icons {
-            display: flex;
-            gap: 8px;
-        }
+    .loading-overlay .progress-bar {
+      width: 220px;
+      height: 4px;
+      background: #e4e6eb;
+      border-radius: 4px;
+      margin-top: 18px;
+      overflow: hidden;
+    }
 
-        .icon-btn {
-            width: 36px;
-            height: 36px;
-            background-color: #e4e6eb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #050505;
-            cursor: pointer;
-            border: none;
-            text-decoration: none;
-        }
+    .loading-overlay .progress-bar .progress-fill {
+      height: 100%;
+      background: #1877f2;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
 
-        .icon-btn:active {
-            opacity: 0.7;
-            transform: scale(0.95);
-        }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-        /* ===== NAV TABS ===== */
-        .fb-nav-tabs {
-            display: flex;
-            justify-content: space-around;
-            border-bottom: 1px solid #ced0d4;
-            background: #ffffff;
-            flex-shrink: 0;
-            z-index: 99;
-        }
+    /* Toast message */
+    .toast-msg {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      background: #333;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: none;
+      animation: fadeInDown 0.3s ease;
+    }
 
-        .nav-tab {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 48px;
-            font-size: 20px;
-            color: #65676b;
-            position: relative;
-            cursor: pointer;
-            border: none;
-            background: none;
-            text-decoration: none;
-        }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translate(-50%, -20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
 
-        .nav-tab.active {
-            color: #1877f2;
-            border-bottom: 3px solid #1877f2;
-        }
+    /* ========== NOTIFICATION POPUP ========== */
+    .notif-popup {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+      padding: 14px 18px;
+      z-index: 10000;
+      max-width: 380px;
+      width: 100%;
+      display: none;
+      animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      border-left: 4px solid #1877f2;
+      transition: all 0.3s ease;
+    }
 
-        .nav-tab .badge {
-            position: absolute;
-            top: 6px;
-            right: 22%;
-            background-color: #e41e3f;
-            color: white;
-            font-size: 10px;
-            padding: 1px 4px;
-            border-radius: 10px;
-            font-weight: bold;
-            min-width: 16px;
-            text-align: center;
-        }
+    .notif-popup:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
 
-        /* ===== LOADING OVERLAY ===== */
-        .loading-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #f0f2f5;
-            z-index: 50;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
-            gap: 1.5rem;
-        }
+    @keyframes slideInRight {
+      from {
+        transform: translateX(120%) scale(0.9);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+      }
+    }
 
-        .loading-overlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
+    .notif-popup .notif-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: 3px solid rgba(24, 119, 242, 0.15);
-            border-top-color: #1877f2;
-            animation: spin 0.8s linear infinite;
-        }
+    .notif-popup .notif-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid #e4e6eb;
+    }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+    .notif-popup .notif-info {
+      flex: 1;
+      min-width: 0;
+    }
 
-        .loading-text {
-            color: rgba(0, 0, 0, 0.4);
-            font-size: 0.85rem;
-            font-weight: 400;
-            letter-spacing: 1px;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+    .notif-popup .notif-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: #050505;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
+    .notif-popup .notif-preview {
+      font-size: 13px;
+      color: #65676b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
 
-        /* ===== TOAST ===== */
-        .toast-notification {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 9999;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            max-width: 90%;
-        }
+    .notif-popup .notif-time {
+      font-size: 11px;
+      color: #8a8d91;
+      margin-top: 2px;
+    }
 
-        .toast-notification.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+    .notif-popup .notif-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 18px;
+      color: #8a8d91;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
 
-        /* ===== SWIPE REFRESH ===== */
-        .swipe-refresh-indicator {
-            position: absolute;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-60px);
-            width: 44px;
-            height: 44px;
-            background: #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            opacity: 0;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-            pointer-events: none;
-        }
+    .notif-popup .notif-close:hover {
+      background: #f0f2f5;
+    }
 
-        .swipe-refresh-indicator i {
-            color: #1877f2;
-            font-size: 20px;
-            transition: transform 0.3s ease;
-        }
+    .notif-popup .notif-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #e74c3c;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+    }
 
-        .swipe-refresh-indicator.spinning i {
-            animation: spin 0.8s infinite linear;
-        }
+    .notif-popup .notif-message-count {
+      font-size: 12px;
+      color: #1877f2;
+      font-weight: 600;
+      margin-top: 2px;
+    }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 500px) {
-            .fb-container {
-                max-width: 100%;
-            }
-            .fb-logo {
-                font-size: 22px;
-            }
-            .nav-tab {
-                font-size: 17px;
-                height: 42px;
-            }
-            .icon-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-        }
-    </style>
+    /* Multiple notifications stack */
+    .notif-popup.multiple {
+      border-left-color: #e74c3c;
+    }
+
+    /* Notification sound indicator */
+    .notif-popup .notif-sound-indicator {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 14px;
+      color: #1877f2;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .loading-overlay .loading-text {
+        font-size: 13px;
+      }
+      .loading-overlay .loading-sub {
+        font-size: 11px;
+      }
+      .loading-spinner {
+        width: 34px;
+        height: 34px;
+      }
+      .loading-overlay .progress-bar {
+        width: 160px;
+      }
+      .notif-popup {
+        max-width: 300px;
+        right: 10px;
+        top: 70px;
+        padding: 12px 14px;
+      }
+      .notif-popup .notif-avatar {
+        width: 36px;
+        height: 36px;
+      }
+      .notif-popup .notif-name {
+        font-size: 14px;
+      }
+      .notif-popup .notif-preview {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .notif-popup {
+        max-width: 260px;
+        right: 8px;
+        top: 60px;
+        padding: 10px 12px;
+      }
+      .notif-popup .notif-avatar {
+        width: 32px;
+        height: 32px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="fb-container" id="fbContainer">
-        <!-- Swipe Refresh Indicator -->
-        <div class="swipe-refresh-indicator" id="refreshIndicator">
-            <i class="fa-solid fa-arrows-rotate"></i>
-        </div>
-
-        <!-- Toast -->
-        <div class="toast-notification" id="toastNotification"></div>
-
-        <!-- Header -->
-        <header class="fb-header">
-            <button class="fb-logo" onclick="navigateTo('home')">facebook</button>
-            <div class="header-icons">
-                <button class="icon-btn" onclick="navigateTo('create-post')"><i class="fa-solid fa-plus"></i></button>
-                <button class="icon-btn" onclick="navigateTo('search')"><i class="fa-solid fa-magnifying-glass"></i></button>
-                <button class="icon-btn" id="logoutBtn" style="display:none;" onclick="logoutUser()"><i class="fa-solid fa-sign-out-alt"></i></button>
-                <button style="display:none" class="icon-btn" onclick="navigateTo('menu')"><i class="fa-solid fa-bars"></i></button>
-            </div>
-        </header>
-
-        <!-- Nav Tabs -->
-        <nav class="fb-nav-tabs" role="tablist">
-            <button class="nav-tab active" data-page="home" role="tab">
-                <i class="fa-solid fa-house"></i>
-                <span class="badge" id="notificationBadge">0</span>
-            </button>
-            <button class="nav-tab" data-page="friends" role="tab">
-                <i class="fa-solid fa-user-group"></i>
-            </button>
-            <button class="nav-tab" data-page="messenger" role="tab">
-                <i class="fa-brands fa-facebook-messenger"></i>
-            </button>
-            <button class="nav-tab" data-page="watch" role="tab">
-                <i class="fa-solid fa-tv"></i>
-            </button>
-            <button class="nav-tab" data-page="notifications" role="tab">
-                <i class="fa-solid fa-bell"></i>
-            </button>
-            <button class="nav-tab" data-page="menu" role="tab">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-        </nav>
-
-        <!-- SPA IFRAME CONTAINER -->
-        <div class="spa-iframe-container" id="iframeContainer">
-            <div class="loading-overlay" id="loadingOverlay">
-                <div class="spinner"></div>
-                <div class="loading-text">LOADING FACEBOOK</div>
-            </div>
-
-            <!-- All pages as iframes -->
-            <iframe id="iframeHome" src="homepage.html" data-page="home" class="active-iframe"></iframe>
-            <iframe id="iframeFriends" src="friend-request.html" data-page="friends"></iframe>
-            <iframe id="iframeMessenger" src="messenger.html" data-page="messenger"></iframe>
-            <iframe id="iframeWatch" src="watch.html" data-page="watch"></iframe>
-            <iframe id="iframeNotifications" src="notifications.html" data-page="notifications"></iframe>
-            <iframe id="iframeMenu" src="menu.html" data-page="menu"></iframe>
-        </div>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Connecting to SecretIntro...</div>
+    <div class="loading-sub">Please wait while we load your feed</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
     </div>
+  </div>
 
-    <script>
-        // ============================================================
-        // FIREBASE CONFIG
-        // ============================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
-            authDomain: "money-generate-dbab3.firebaseapp.com",
-            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
-            projectId: "money-generate-dbab3",
-            storageBucket: "money-generate-dbab3.firebasestorage.app",
-            messagingSenderId: "579756089926",
-            appId: "1:579756089926:web:abbe35377e3657889be047"
-        };
+  <!-- Toast -->
+  <div class="toast-msg" id="toast"></div>
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const auth = firebase.auth();
+  <!-- ========== NOTIFICATION POPUP ========== -->
+  <div class="notif-popup" id="notifPopup" onclick="openNotifChat()">
+    <button class="notif-close" onclick="event.stopPropagation(); closeNotif()">&times;</button>
+    <div class="notif-header">
+      <img class="notif-avatar" id="notifAvatar" src="" alt="Avatar">
+      <div class="notif-info">
+        <div class="notif-name" id="notifName">User</div>
+        <div class="notif-preview" id="notifPreview">New message</div>
+        <div class="notif-time" id="notifTime">Just now</div>
+        <div class="notif-message-count" id="notifCount" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="notif-sound-indicator">🔔</div>
+  </div>
 
-        // ============================================================
-        // CACHE MANAGEMENT (LocalStorage)
-        // ============================================================
-        const CACHE_PREFIX = 'fb_spa_';
+  <!-- FULL SCREEN IFRAME -->
+  <iframe 
+    class="fullscreen-iframe" 
+    id="mainIframe"
+    src="home.html" 
+    title="Facebook Clone"
+    allowfullscreen
+    loading="eager"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+  ></iframe>
 
-        function getCache(key) {
-            try {
-                const data = localStorage.getItem(CACHE_PREFIX + key);
-                if (data) {
-                    const parsed = JSON.parse(data);
-                    if (parsed.expiry && Date.now() > parsed.expiry) {
-                        localStorage.removeItem(CACHE_PREFIX + key);
-                        return null;
-                    }
-                    return parsed.data;
-                }
-                return null;
-            } catch (e) {
-                return null;
-            }
+  <script>
+    // ========== FIREBASE CONFIG ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+      authDomain: "money-generate-dbab3.firebaseapp.com",
+      databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+      projectId: "money-generate-dbab3",
+      storageBucket: "money-generate-dbab3.firebasestorage.app",
+      messagingSenderId: "579756089926",
+      appId: "1:579756089926:web:abbe35377e3657889be047"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ========== DOM REFS ==========
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const toast = document.getElementById('toast');
+    const mainIframe = document.getElementById('mainIframe');
+    const progressFill = document.getElementById('progressFill');
+    const notifPopup = document.getElementById('notifPopup');
+    const notifAvatar = document.getElementById('notifAvatar');
+    const notifName = document.getElementById('notifName');
+    const notifPreview = document.getElementById('notifPreview');
+    const notifTime = document.getElementById('notifTime');
+    const notifCount = document.getElementById('notifCount');
+
+    // ========== STATE ==========
+    let toastTimer = null;
+    let statusUpdateInterval = null;
+    let iframeLoaded = false;
+    let progressInterval = null;
+    let progressValue = 0;
+    let isFirstLoad = true;
+    let notifTimer = null;
+    let pendingNotifData = null;
+    let isNotifShowing = false;
+    let lastNotifSender = null;
+    let lastNotifTime = 0;
+    let messageListenerUnsubscribe = null;
+    let currentUser = null;
+    let shownMessageIds = new Set();
+    let allUsersStatusListener = null;
+    let onlineUsers = new Set();
+    let isPageVisible = true;
+    let hasSetOffline = false;
+
+    // ========== SLOW PROGRESS SIMULATION ==========
+    function startSlowProgress() {
+      progressValue = 0;
+      if (progressInterval) clearInterval(progressInterval);
+      
+      progressInterval = setInterval(() => {
+        if (progressValue < 90) {
+          const increment = 0.5 + Math.random() * 2.5;
+          progressValue += increment;
+          if (progressValue > 90) progressValue = 90;
+          progressFill.style.width = progressValue + '%';
         }
+      }, 300);
+    }
 
-        function setCache(key, data, ttl = 5 * 60 * 1000) {
-            try {
-                localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({
-                    data: data,
-                    expiry: Date.now() + ttl
-                }));
-            } catch (e) {
-                console.warn('Cache set failed:', e);
-            }
+    function completeProgress() {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      progressValue = 100;
+      progressFill.style.width = '100%';
+      
+      setTimeout(() => {
+        loadingOverlay.classList.add('hidden');
+        mainIframe.classList.add('loaded');
+        isFirstLoad = false;
+        if (currentUser) {
+          startMessageListener(currentUser.uid);
+          startAllUsersStatusListener();
         }
+      }, 600);
+    }
 
-        function clearCache(key) {
-            if (key) {
-                localStorage.removeItem(CACHE_PREFIX + key);
-            } else {
-                Object.keys(localStorage).forEach(k => {
-                    if (k.startsWith(CACHE_PREFIX)) {
-                        localStorage.removeItem(k);
-                    }
-                });
-            }
-        }
+    // ========== TOAST ==========
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
 
-        // ============================================================
-        // SPA ROUTER
-        // ============================================================
-        const iframes = {
-            home: document.getElementById('iframeHome'),
-            friends: document.getElementById('iframeFriends'),
-            messenger: document.getElementById('iframeMessenger'),
-            watch: document.getElementById('iframeWatch'),
-            notifications: document.getElementById('iframeNotifications'),
-            menu: document.getElementById('iframeMenu')
-        };
-
-        const tabs = document.querySelectorAll('.nav-tab');
-        const loading = document.getElementById('loadingOverlay');
-        const container = document.getElementById('iframeContainer');
-
-        let currentPage = 'home';
-        let isInitialLoad = true;
-
-        const pageSources = {
-            home: 'home.html',
-            friends: 'friend-request.html',
-            messenger: 'messenger.html',
-            watch: 'watch.html',
-            notifications: 'notifications.html',
-            menu: 'menu.html'
-        };
-
-        // ============================================================
-        // SWITCH PAGE
-        // ============================================================
-        function switchPage(pageId, pushHistory = true) {
-            if (pageId === currentPage) return;
-
-            Object.keys(iframes).forEach(key => {
-                iframes[key].classList.remove('active-iframe');
-            });
-
-            if (iframes[pageId]) {
-                iframes[pageId].classList.add('active-iframe');
-                if (!iframes[pageId].src || iframes[pageId].src === 'about:blank') {
-                    iframes[pageId].src = pageSources[pageId] || pageId + '.html';
-                }
-            }
-
-            currentPage = pageId;
-
-            tabs.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.page === pageId) {
-                    btn.classList.add('active');
-                }
-            });
-
-            if (pushHistory && window.location.hash !== '#' + pageId) {
-                history.pushState({ page: pageId }, '', '#' + pageId);
-            }
-
-            if (pageId === 'home') {
-                try {
-                    const iframe = iframes.home;
-                    if (iframe && iframe.contentWindow) {
-                        const savedScroll = getCache('homeScroll');
-                        if (savedScroll !== null) {
-                            iframe.contentWindow.scrollTo(0, savedScroll);
-                        }
-                    }
-                } catch (e) {}
-            }
-        }
-
-        function switchPageSilent(pageId) {
-            if (pageId === currentPage) return;
-
-            Object.keys(iframes).forEach(key => {
-                iframes[key].classList.remove('active-iframe');
-            });
-
-            if (iframes[pageId]) {
-                iframes[pageId].classList.add('active-iframe');
-                if (!iframes[pageId].src || iframes[pageId].src === 'about:blank') {
-                    iframes[pageId].src = pageSources[pageId] || pageId + '.html';
-                }
-            }
-
-            currentPage = pageId;
-
-            tabs.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.page === pageId) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        // ============================================================
-        // NAVIGATE
-        // ============================================================
-        function navigateTo(pageId) {
-            if (pageId === currentPage) {
-                const iframe = iframes[pageId];
-                if (iframe) {
-                    const src = iframe.src;
-                    iframe.src = 'about:blank';
-                    setTimeout(() => {
-                        iframe.src = src;
-                    }, 50);
-                }
-                return;
-            }
-
-            if (currentPage === 'home') {
-                try {
-                    const iframe = iframes.home;
-                    if (iframe && iframe.contentWindow) {
-                        const scrollY = iframe.contentWindow.scrollY || 0;
-                        setCache('homeScroll', scrollY);
-                    }
-                } catch (e) {}
-            }
-
-            switchPage(pageId);
-        }
-
-        window.navigateTo = navigateTo;
-
-        // ============================================================
-        // TOAST
-        // ============================================================
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toastNotification');
-            toast.textContent = message;
-            toast.style.background = type === 'error' ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0, 0, 0, 0.8)';
-            toast.classList.add('show');
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2500);
-        }
-
-        window.showToast = showToast;
-
-        // ============================================================
-        // AUTH STATE MANAGER — REDIRECT TO login.html IF NOT LOGGED IN
-        // ============================================================
-        function redirectToLogin() {
-            window.location.href = 'login.html';
-        }
-
-        // Show logout button when user is logged in
-        function updateUIForAuth(user) {
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (user) {
-                logoutBtn.style.display = 'flex';
-                // show toast welcome
-                showToast('👋 Welcome ' + (user.displayName || user.email || 'User'));
-            } else {
-                logoutBtn.style.display = 'none';
-            }
-        }
-
-        // Logout function
-        function logoutUser() {
-            auth.signOut().then(() => {
-                showToast('Logged out');
-                // redirect to login page after logout
-                setTimeout(() => {
-                    redirectToLogin();
-                }, 300);
-            }).catch((error) => {
-                showToast('Logout error: ' + error.message, 'error');
-            });
-        }
-        window.logoutUser = logoutUser;
-
-        // Listen to auth state
-        auth.onAuthStateChanged(user => {
-            if (!user) {
-                // Not logged in → redirect to login.html
-                redirectToLogin();
-                return;
-            }
-            // User is logged in → show UI
-            updateUIForAuth(user);
-            // hide loading and initialize
-            loading.classList.add('hidden');
-            initializeApp();
-        });
-
-        // ============================================================
-        // TAB CLICK HANDLERS
-        // ============================================================
-        tabs.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const pageId = this.dataset.page;
-                if (pageId && iframes[pageId]) {
-                    navigateTo(pageId);
-                }
-            });
-        });
-
-        // ============================================================
-        // BACK/FORWARD
-        // ============================================================
-        window.addEventListener('popstate', function(event) {
-            const state = event.state;
-            let pageId = null;
-
-            if (state && state.page && iframes[state.page]) {
-                pageId = state.page;
-            } else {
-                const hash = window.location.hash.replace('#', '');
-                if (hash && iframes[hash]) {
-                    pageId = hash;
-                }
-            }
-
-            if (pageId && pageId !== currentPage) {
-                if (currentPage === 'home') {
-                    try {
-                        const iframe = iframes.home;
-                        if (iframe && iframe.contentWindow) {
-                            setCache('homeScroll', iframe.contentWindow.scrollY || 0);
-                        }
-                    } catch (e) {}
-                }
-                switchPageSilent(pageId);
-            }
-        });
-
-        // ============================================================
-        // SWIPE REFRESH
-        // ============================================================
-        let startY = 0;
-        let pulling = false;
-        const refreshIndicator = document.getElementById('refreshIndicator');
-
-        function isHomeAtTop() {
-            try {
-                const iframe = iframes.home;
-                if (iframe && iframe.contentWindow && currentPage === 'home') {
-                    return iframe.contentWindow.scrollY === 0;
-                }
-            } catch (e) {}
-            return currentPage === 'home';
-        }
-
-        container.addEventListener('touchstart', (e) => {
-            if (isHomeAtTop()) {
-                startY = e.touches[0].clientY;
-                pulling = true;
-            }
-        });
-
-        container.addEventListener('touchmove', (e) => {
-            if (!pulling) return;
-            const currentY = e.touches[0].clientY;
-            const diff = currentY - startY;
-
-            if (diff > 0 && diff < 150) {
-                refreshIndicator.style.opacity = diff / 100;
-                refreshIndicator.style.transform = `translateX(-50%) translateY(${diff * 0.5 - 60}px)`;
-                refreshIndicator.querySelector('i').style.transform = `rotate(${diff * 2}deg)`;
-            } else if (diff >= 150) {
-                refreshIndicator.style.opacity = 1;
-                refreshIndicator.style.transform = `translateX(-50%) translateY(30px)`;
-            }
-        });
-
-        container.addEventListener('touchend', (e) => {
-            if (!pulling) return;
-            pulling = false;
-            const endY = e.changedTouches[0].clientY;
-            const diff = endY - startY;
-
-            if (diff > 100 && currentPage === 'home') {
-                refreshIndicator.classList.add('spinning');
-                refreshIndicator.style.opacity = 1;
-                refreshIndicator.style.transform = `translateX(-50%) translateY(30px)`;
-
-                clearCache('homeScroll');
-                const iframe = iframes.home;
-                if (iframe) {
-                    const src = iframe.src;
-                    iframe.src = 'about:blank';
-                    setTimeout(() => {
-                        iframe.src = src;
-                        setTimeout(() => {
-                            refreshIndicator.classList.remove('spinning');
-                            refreshIndicator.style.opacity = 0;
-                            refreshIndicator.style.transform = `translateX(-50%) translateY(-60px)`;
-                            showToast('🔄 Feed refreshed!');
-                        }, 800);
-                    }, 300);
-                }
-            } else {
-                refreshIndicator.style.opacity = 0;
-                refreshIndicator.style.transform = `translateX(-50%) translateY(-60px)`;
-            }
-        });
-
-        // ============================================================
-        // INITIALIZE
-        // ============================================================
-        function initializeApp() {
-            const hash = window.location.hash.replace('#', '');
-            let initialPage = 'home';
-
-            if (hash && iframes[hash]) {
-                initialPage = hash;
-            }
-
-            Object.keys(iframes).forEach(key => {
-                iframes[key].classList.remove('active-iframe');
-                if (!iframes[key].src || iframes[key].src === 'about:blank') {
-                    iframes[key].src = pageSources[key] || key + '.html';
-                }
-            });
-
-            iframes[initialPage].classList.add('active-iframe');
-            currentPage = initialPage;
-
-            tabs.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.page === initialPage) {
-                    btn.classList.add('active');
-                }
-            });
-
-            history.replaceState({ page: initialPage }, '', '#' + initialPage);
-
-            loading.classList.add('hidden');
-
-            if (initialPage === 'home') {
-                const savedScroll = getCache('homeScroll');
-                if (savedScroll !== null) {
-                    setTimeout(() => {
-                        try {
-                            const iframe = iframes.home;
-                            if (iframe && iframe.contentWindow) {
-                                iframe.contentWindow.scrollTo(0, savedScroll);
-                            }
-                        } catch (e) {}
-                    }, 500);
-                }
-            }
-
-            console.log('🚀 Facebook SPA Ready (Authenticated)');
-        }
-
-        // Fallback: hide loading after 3 seconds if auth is already resolved
+    // ========== NOTIFICATION POPUP FUNCTIONS ==========
+    function playNotifSound() {
+      try {
+        const ctx = new(window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        gain.gain.value = 0.12;
+        osc.start();
         setTimeout(() => {
-            if (auth.currentUser) {
-                loading.classList.add('hidden');
-            }
-        }, 3000);
+          osc.frequency.value = 1100;
+          setTimeout(() => {
+            osc.stop();
+            ctx.close();
+          }, 150);
+        }, 150);
+      } catch (e) { console.log('Sound error:', e); }
+    }
 
-        // ============================================================
-        // POST MESSAGE HANDLING
-        // ============================================================
-        window.addEventListener('message', function(event) {
-            const data = event.data;
-            if (data && data.type) {
-                switch (data.type) {
-                    case 'navigate':
-                        if (data.page && iframes[data.page]) {
-                            navigateTo(data.page);
-                        }
-                        break;
-                    case 'showToast':
-                        showToast(data.message, data.toastType || 'info');
-                        break;
-                    case 'cacheData':
-                        if (data.key && data.value) {
-                            setCache(data.key, data.value, data.ttl || 5 * 60 * 1000);
-                        }
-                        break;
-                    case 'getCache':
-                        if (data.key && data.callback) {
-                            const value = getCache(data.key);
-                            if (event.source) {
-                                event.source.postMessage({
-                                    type: 'cacheResponse',
-                                    key: data.key,
-                                    value: value,
-                                    callback: data.callback
-                                }, '*');
-                            }
-                        }
-                        break;
+    function showNotification(senderId, senderName, message, photoURL, timestamp, messageCount) {
+      const now = Date.now();
+      if (lastNotifSender === senderId && now - lastNotifTime < 2000) {
+        if (notifPopup.style.display === 'block') {
+          updateExistingNotification(senderName, message, messageCount);
+        }
+        return;
+      }
+
+      lastNotifSender = senderId;
+      lastNotifTime = now;
+
+      pendingNotifData = {
+        senderId: senderId,
+        senderName: senderName,
+        photoURL: photoURL
+      };
+
+      const msgId = `${senderId}_${message}_${timestamp}`;
+      if (shownMessageIds.has(msgId)) {
+        return;
+      }
+      shownMessageIds.add(msgId);
+      if (shownMessageIds.size > 200) {
+        const entries = Array.from(shownMessageIds);
+        shownMessageIds = new Set(entries.slice(entries.length - 100));
+      }
+
+      notifAvatar.src = photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+      notifName.textContent = senderName || 'User';
+      
+      let previewText = message || 'New message';
+      if (previewText.length > 60) previewText = previewText.substring(0, 60) + '...';
+      notifPreview.textContent = previewText;
+
+      const msgTime = timestamp ? new Date(timestamp) : new Date();
+      notifTime.textContent = formatTime(msgTime);
+
+      if (messageCount && messageCount > 1) {
+        notifCount.style.display = 'block';
+        notifCount.textContent = `📨 ${messageCount} new messages`;
+        notifPopup.classList.add('multiple');
+      } else {
+        notifCount.style.display = 'none';
+        notifPopup.classList.remove('multiple');
+      }
+
+      playNotifSound();
+      notifPopup.style.display = 'block';
+      isNotifShowing = true;
+
+      clearTimeout(notifTimer);
+      notifTimer = setTimeout(() => {
+        closeNotif();
+      }, 5000);
+    }
+
+    function updateExistingNotification(senderName, message, messageCount) {
+      let previewText = message || 'New message';
+      if (previewText.length > 60) previewText = previewText.substring(0, 60) + '...';
+      notifPreview.textContent = previewText;
+      
+      if (messageCount && messageCount > 1) {
+        notifCount.style.display = 'block';
+        notifCount.textContent = `📨 ${messageCount} new messages`;
+        notifPopup.classList.add('multiple');
+      }
+      
+      clearTimeout(notifTimer);
+      notifTimer = setTimeout(() => {
+        closeNotif();
+      }, 5000);
+    }
+
+    function closeNotif() {
+      notifPopup.style.display = 'none';
+      isNotifShowing = false;
+      clearTimeout(notifTimer);
+      pendingNotifData = null;
+    }
+
+    function openNotifChat() {
+      if (pendingNotifData && pendingNotifData.senderId) {
+        closeNotif();
+        const senderId = pendingNotifData.senderId;
+        try {
+          const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+          const chatItems = iframeDoc.querySelectorAll('.chat-item');
+          let found = false;
+          for (const item of chatItems) {
+            if (item.dataset.otherId === senderId) {
+              item.click();
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            mainIframe.src = `messages.html?user=${senderId}`;
+          }
+        } catch (e) {
+          console.log('Could not open chat in iframe:', e);
+          mainIframe.src = `messages.html?user=${senderId}`;
+        }
+      }
+    }
+
+    function formatTime(date) {
+      const now = new Date();
+      const diff = now - date;
+      if (diff < 60000) return 'Just now';
+      if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+      if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+      if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+      return date.toLocaleDateString();
+    }
+
+    // ========== MESSAGE LISTENER ==========
+    function startMessageListener(userId) {
+      if (messageListenerUnsubscribe) {
+        messageListenerUnsubscribe();
+        messageListenerUnsubscribe = null;
+      }
+
+      console.log('👂 Starting message listener for user:', userId);
+
+      const chatQuery = db.collection('chats')
+        .where('participants', 'array-contains', userId);
+
+      let lastProcessedMessages = new Map();
+
+      messageListenerUnsubscribe = chatQuery.onSnapshot(async (snapshot) => {
+        for (const doc of snapshot.docs) {
+          const data = doc.data();
+          const messages = data.messages || [];
+          if (messages.length === 0) continue;
+
+          const lastMsg = messages[messages.length - 1];
+          
+          if (lastMsg.sender === userId) continue;
+          if (lastMsg.seen) continue;
+          if (lastMsg.deletedFor && lastMsg.deletedFor.includes(userId)) continue;
+
+          const chatId = doc.id;
+          const msgKey = `${chatId}_${lastMsg.timestamp || lastMsg.time}`;
+          if (lastProcessedMessages.has(chatId) && lastProcessedMessages.get(chatId) === msgKey) {
+            continue;
+          }
+
+          const senderData = await getUserData(lastMsg.sender);
+          if (!senderData) continue;
+
+          let previewText = lastMsg.text || '📎 File';
+          if (lastMsg.imageUrl) previewText = '📷 Image';
+          if (lastMsg.videoUrl) previewText = '🎥 Video';
+          if (lastMsg.audioUrl) previewText = '🎤 Voice';
+
+          let unreadCount = 0;
+          for (const msg of messages) {
+            if (msg.sender === lastMsg.sender && !msg.seen && !msg.deletedFor?.includes(userId)) {
+              unreadCount++;
+            }
+          }
+
+          const senderName = senderData.fullName || senderData.firstName || 'User';
+          const photoURL = senderData.photoURL || '';
+          
+          showNotification(
+            lastMsg.sender,
+            senderName,
+            previewText,
+            photoURL,
+            lastMsg.timestamp || lastMsg.time,
+            unreadCount
+          );
+
+          lastProcessedMessages.set(chatId, msgKey);
+        }
+      }, (error) => {
+        console.error('Error listening to messages:', error);
+      });
+    }
+
+    // ========== GET USER DATA ==========
+    const userCache = new Map();
+
+    async function getUserData(uid) {
+      if (userCache.has(uid)) return userCache.get(uid);
+      try {
+        const doc = await db.collection('users').doc(uid).get();
+        if (doc.exists) {
+          const data = { id: uid, ...doc.data() };
+          userCache.set(uid, data);
+          return data;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        return null;
+      }
+    }
+
+    // ========== UPDATE USER STATUS ==========
+    async function setUserOnline(user) {
+      if (!user) return;
+      hasSetOffline = false;
+      try {
+        await db.collection('users').doc(user.uid).set({
+          status: 'online',
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        console.log('✅ User status set to online:', user.uid);
+      } catch (error) {
+        console.error('Error setting user online:', error);
+      }
+    }
+
+    async function setUserOffline(user) {
+      if (!user || hasSetOffline) return;
+      hasSetOffline = true;
+      try {
+        await db.collection('users').doc(user.uid).set({
+          status: 'offline',
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        console.log('👤 User status set to offline:', user.uid);
+      } catch (error) {
+        console.error('Error setting user offline:', error);
+        hasSetOffline = false;
+      }
+    }
+
+    // ========== LISTEN TO ALL USERS STATUS ==========
+    function startAllUsersStatusListener() {
+      if (allUsersStatusListener) {
+        allUsersStatusListener();
+        allUsersStatusListener = null;
+      }
+
+      console.log('👀 Starting all users status listener');
+
+      allUsersStatusListener = db.collection('users')
+        .onSnapshot((snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'modified' || change.type === 'added') {
+              const data = change.doc.data();
+              const uid = change.doc.id;
+              const status = data.status || 'offline';
+              
+              try {
+                const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+                if (!iframeDoc) return;
+                
+                // Update all status indicators in the iframe
+                if (uid === currentUser?.uid) {
+                  const headerDot = iframeDoc.querySelector('#header-status-dot');
+                  if (headerDot) {
+                    headerDot.className = 'online-dot' + (status === 'online' ? '' : ' offline');
+                  }
+                  const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
+                  statusEls.forEach(el => {
+                    el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
+                  });
+                } else {
+                  const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
+                  statusEls.forEach(el => {
+                    el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
+                  });
+                  
+                  const profileDots = iframeDoc.querySelectorAll(`.profile-container[data-userid="${uid}"] .online-dot`);
+                  profileDots.forEach(el => {
+                    el.className = 'online-dot' + (status === 'online' ? '' : ' offline');
+                  });
                 }
+              } catch (e) {
+                // Iframe not accessible yet
+              }
             }
+          });
+        }, (error) => {
+          console.error('Error listening to all users status:', error);
         });
+    }
 
-        console.log('📦 Facebook SPA with Firebase Auth');
-        console.log('   - Redirects to login.html if not authenticated');
-        console.log('   - Back/Forward: NO RELOAD');
-        console.log('   - Swipe to refresh: YES');
-    </script>
+    // ========== CHECK IFRAME LOADED ==========
+    function checkIframeLoaded() {
+      try {
+        const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+        if (iframeDoc && iframeDoc.readyState === 'complete') {
+          const bodyText = iframeDoc.body?.innerText || '';
+          const hasContent = bodyText.length > 50 || iframeDoc.querySelectorAll('div, img, p').length > 3;
+          
+          if (hasContent && !iframeLoaded) {
+            iframeLoaded = true;
+            completeProgress();
+            return true;
+          }
+        }
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // ========== INJECT STATUS STYLES INTO IFRAME ==========
+    function injectStatusStyles() {
+      try {
+        const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+        if (!iframeDoc) return;
+        
+        let styleEl = iframeDoc.querySelector('#status-style-inject');
+        if (!styleEl) {
+          styleEl = iframeDoc.createElement('style');
+          styleEl.id = 'status-style-inject';
+          styleEl.textContent = `
+            .online-status {
+              display: inline-block;
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              margin-left: 6px;
+              transition: background 0.3s;
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              border: 2px solid #fff;
+            }
+            .online-status.active {
+              background: #31a24c;
+            }
+            .online-status.inactive {
+              background: #b0b3b8;
+            }
+            .online-dot {
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              border: 2px solid #fff;
+              transition: background 0.3s;
+            }
+            .online-dot.offline {
+              background: #b0b3b8;
+            }
+          `;
+          iframeDoc.head.appendChild(styleEl);
+        }
+      } catch (e) {
+        // Iframe not accessible yet
+      }
+    }
+
+    // ========== MAIN AUTH HANDLER ==========
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        await setUserOnline(user);
+        
+        showToast(`👋 Welcome ${user.displayName || user.email?.split('@')[0] || 'User'}`);
+
+        if (statusUpdateInterval) clearInterval(statusUpdateInterval);
+        statusUpdateInterval = setInterval(() => {
+          setUserOnline(user);
+        }, 30000);
+
+        // Handle visibility change
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            setUserOffline(user);
+          } else {
+            setUserOnline(user);
+          }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Handle page unload
+        const handleBeforeUnload = () => {
+          setUserOffline(user);
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Handle page hide (for mobile)
+        const handlePageHide = () => {
+          setUserOffline(user);
+        };
+        window.addEventListener('pagehide', handlePageHide);
+
+        // Handle iframe load
+        const handleIframeLoad = () => {
+          setUserOnline(user);
+          if (!iframeLoaded) {
+            setTimeout(() => injectStatusStyles(), 300);
+          }
+        };
+        mainIframe.addEventListener('load', handleIframeLoad);
+
+        startSlowProgress();
+
+        const loadCheckInterval = setInterval(() => {
+          if (checkIframeLoaded()) {
+            clearInterval(loadCheckInterval);
+            setTimeout(() => injectStatusStyles(), 500);
+            startAllUsersStatusListener();
+          }
+        }, 800);
+
+        setTimeout(() => {
+          if (!iframeLoaded) {
+            iframeLoaded = true;
+            completeProgress();
+            setTimeout(() => injectStatusStyles(), 500);
+            startAllUsersStatusListener();
+            console.log('⚠️ Fallback: Forced load completion');
+          }
+        }, 15000);
+
+        // Cleanup function
+        window._cleanupStatus = () => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+          window.removeEventListener('pagehide', handlePageHide);
+          mainIframe.removeEventListener('load', handleIframeLoad);
+        };
+
+      } else {
+        currentUser = null;
+        loadingOverlay.classList.add('hidden');
+        mainIframe.classList.add('loaded');
+        showToast('🔑 Please login to Facebook');
+
+        if (allUsersStatusListener) {
+          allUsersStatusListener();
+          allUsersStatusListener = null;
+        }
+        if (messageListenerUnsubscribe) {
+          messageListenerUnsubscribe();
+          messageListenerUnsubscribe = null;
+        }
+
+        setTimeout(() => {
+          mainIframe.src = 'home.html';
+        }, 2000);
+      }
+    });
+
+    // ========== IFRAME EVENTS ==========
+    mainIframe.addEventListener('load', () => {
+      const user = auth.currentUser;
+      if (user) {
+        setUserOnline(user);
+        if (!iframeLoaded && !isFirstLoad) {
+          loadingOverlay.classList.remove('hidden');
+          startSlowProgress();
+          setTimeout(() => {
+            if (checkIframeLoaded()) {
+              setTimeout(() => injectStatusStyles(), 500);
+              startAllUsersStatusListener();
+            }
+          }, 2000);
+        }
+        if (user.uid) {
+          startMessageListener(user.uid);
+          if (iframeLoaded) {
+            setTimeout(() => injectStatusStyles(), 300);
+          }
+        }
+      }
+    });
+
+    // ========== URL PARAMETERS ==========
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        userId: params.get('user'),
+        page: params.get('page'),
+        postId: params.get('post')
+      };
+    }
+
+    function setIframeSource() {
+      const params = getUrlParams();
+      let url = 'home.html';
+      
+      if (params.page) {
+        url = `${params.page}.html`;
+        if (params.userId) {
+          url += `?user=${params.userId}`;
+        }
+        if (params.postId) {
+          url += `${params.userId ? '&' : '?'}post=${params.postId}`;
+        }
+      }
+      
+      if (params.userId && !params.page) {
+        url = `massages.html?user=${params.userId}`;
+      }
+
+      if (mainIframe.src !== url && !mainIframe.src.includes(url)) {
+        mainIframe.src = url;
+      }
+      
+      if (!iframeLoaded) {
+        loadingOverlay.classList.remove('hidden');
+        startSlowProgress();
+      }
+    }
+
+    setIframeSource();
+
+    window.addEventListener('popstate', () => {
+      setIframeSource();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        window.history.back();
+      }
+    });
+
+    console.log('✅ Facebook · Real-time Status with All Users');
+    console.log('🟢 All users status tracked in Firebase');
+    console.log('🔔 Message notifications appear as popups');
+    console.log('📨 Only shows once per message - no duplicates');
+    console.log('🔄 Status updates instantly when users open/close');
+    console.log('📱 Click notification to open chat');
+    console.log('👀 Everyone sees real-time online/offline status');
+    console.log('📌 Proper cleanup on page unload/visibility change');
+  </script>
 </body>
 </html>
