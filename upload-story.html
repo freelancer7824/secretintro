@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Upload Story</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #050505;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 24px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            height: fit-content;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e4e6eb;
+            margin-bottom: 24px;
+        }
+
+        .header .back-btn {
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px 8px;
+            color: #050505;
+            text-decoration: none;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #050505;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccd0d5;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7f8fa;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-area:hover {
+            border-color: #1877f2;
+            background: #f0f2f5;
+        }
+
+        .upload-area .icon {
+            font-size: 48px;
+            color: #1877f2;
+            margin-bottom: 12px;
+        }
+
+        .upload-area .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        .upload-area .subtitle {
+            font-size: 14px;
+            color: #65676b;
+            margin-top: 6px;
+        }
+
+        .upload-area .file-types {
+            font-size: 12px;
+            color: #65676b;
+            margin-top: 8px;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .preview-container {
+            display: none;
+            margin-top: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        .preview-container img,
+        .preview-container video {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            display: block;
+            background: #000;
+        }
+
+        .file-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f7f8fa;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .file-info .name {
+            font-size: 14px;
+            color: #050505;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .file-info .size {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .file-info .remove-btn {
+            color: #e41e3f;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            background: #1877f2;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .upload-btn.active {
+            display: block;
+        }
+
+        .upload-btn:hover {
+            background: #166fe5;
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e4e6eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: #1877f2;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #65676b;
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        .status-msg {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status-msg.success {
+            display: block;
+            background: #e6f7e6;
+            color: #1a7a1a;
+        }
+
+        .status-msg.error {
+            display: block;
+            background: #fde8e8;
+            color: #c62828;
+        }
+
+        .status-msg.info {
+            display: block;
+            background: #e7f3ff;
+            color: #1877f2;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 12px;
+            text-align: center;
+            padding: 10px;
+            background: #f7f8fa;
+            border-radius: 8px;
+        }
+
+        .hint i {
+            margin-right: 6px;
+        }
+
+        .post-btn-container {
+            display: none;
+            margin-top: 16px;
+            gap: 10px;
+        }
+
+        .post-btn-container.active {
+            display: flex;
+        }
+
+        .post-btn-container .post-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            background: #1877f2;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .post-btn-container .post-btn:hover {
+            background: #166fe5;
+        }
+
+        .post-btn-container .post-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .post-btn-container .cancel-btn {
+            flex: 0.4;
+            padding: 14px;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #050505;
+            background: #ffffff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .post-btn-container .cancel-btn:hover {
+            background: #f0f2f5;
+        }
+
+        .thumbnail-preview {
+            margin-top: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #1877f2;
+            background: #f7f8fa;
+            display: none;
+            padding: 8px;
+        }
+
+        .thumbnail-preview.active {
+            display: block;
+        }
+
+        .thumbnail-preview .label {
+            font-size: 12px;
+            color: #65676b;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .thumbnail-preview img {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                border-radius: 12px;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1>Add Story</h1>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="icon"><i class="fa-regular fa-images"></i></div>
+            <div class="title">Add photo or video</div>
+            <div class="subtitle">Share a moment from your day</div>
+            <div class="file-types">Supports JPG, PNG, MP4 · Max 50MB</div>
+            <input type="file" id="fileInput" accept="image/*,video/*">
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+            <img id="previewImage" src="" alt="Preview">
+            <video id="previewVideo" src="" muted playsinline></video>
+        </div>
+
+        <div class="thumbnail-preview" id="thumbnailPreview">
+            <div class="label">📸 Story Thumbnail (will be shown on feed)</div>
+            <img id="thumbnailImg" src="" alt="Thumbnail">
+        </div>
+
+        <div class="file-info" id="fileInfo" style="display:none;">
+            <span class="name" id="fileName">file.mp4</span>
+            <span class="size" id="fileSize">0 MB</span>
+            <span class="remove-btn" id="removeFile"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Uploading... 0%</div>
+        </div>
+
+        <div class="status-msg" id="statusMsg"></div>
+
+        <div class="post-btn-container" id="postBtnContainer">
+            <button class="post-btn" id="postStoryBtn"><i class="fa-regular fa-paper-plane"></i> Post Story</button>
+            <button class="cancel-btn" id="cancelPostBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+
+        <div class="hint">
+            <i class="fa-regular fa-clock"></i> Your story will be visible for 24 hours
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        // ============================================================
+        // CLOUDINARY CONFIG
+        // ============================================================
+        const CLOUDINARY_CLOUD_NAME = 'dhvtgzy5x';
+        const CLOUDINARY_UPLOAD_PRESET = 'Rosenews';
+
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const previewVideo = document.getElementById('previewVideo');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFileBtn = document.getElementById('removeFile');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const statusMsg = document.getElementById('statusMsg');
+        const postBtnContainer = document.getElementById('postBtnContainer');
+        const postStoryBtn = document.getElementById('postStoryBtn');
+        const cancelPostBtn = document.getElementById('cancelPostBtn');
+        const thumbnailPreview = document.getElementById('thumbnailPreview');
+        const thumbnailImg = document.getElementById('thumbnailImg');
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let selectedFile = null;
+        let currentUser = null;
+        let uploadedFileUrl = null;
+        let uploadedThumbnailUrl = null;
+        let isUploading = false;
+        let isVideo = false;
+        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+        // ============================================================
+        // AUTH CHECK
+        // ============================================================
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                console.log('User authenticated:', user.uid);
+                database.ref(`users/${user.uid}`).once('value').then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        currentUser.displayName = data.name || data.firstName + ' ' + data.lastName || user.displayName || 'User';
+                        currentUser.photoURL = data.avatar || data.profilePic || user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.displayName) + '&background=1877f2&color=fff&size=100';
+                    } else {
+                        currentUser.displayName = user.displayName || 'User';
+                        currentUser.photoURL = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.displayName) + '&background=1877f2&color=fff&size=100';
+                    }
+                });
+            } else {
+                showStatus('Please login to upload stories.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }
+        });
+
+        // ============================================================
+        // FILE SELECTION
+        // ============================================================
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Check size
+            if (file.size > MAX_FILE_SIZE) {
+                showStatus('File size exceeds 50MB limit. Please choose a smaller file.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            // Check type
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4'];
+            if (!validTypes.includes(file.type)) {
+                showStatus('Unsupported file type. Please use JPG, PNG, or MP4.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            selectedFile = file;
+            isVideo = file.type.startsWith('video/');
+            
+            previewFile(file);
+            updateFileInfo(file);
+            hideStatus();
+
+            // For videos, capture thumbnail after video loads
+            if (isVideo) {
+                // Wait for video to load enough to capture frame
+                previewVideo.addEventListener('loadeddata', function onLoaded() {
+                    captureVideoThumbnail(previewVideo);
+                    previewVideo.removeEventListener('loadeddata', onLoaded);
+                });
+                // If already loaded, capture immediately
+                if (previewVideo.readyState >= 2) {
+                    captureVideoThumbnail(previewVideo);
+                }
+            } else {
+                // For images, use the image itself as thumbnail
+                thumbnailImg.src = URL.createObjectURL(file);
+                thumbnailPreview.classList.add('active');
+            }
+
+            // Upload to Cloudinary
+            uploadToCloudinary(file);
+        });
+
+        // ============================================================
+        // CAPTURE VIDEO THUMBNAIL (first frame)
+        // ============================================================
+        function captureVideoThumbnail(videoElement) {
+            try {
+                // Seek to a few milliseconds to capture a frame
+                const currentTime = videoElement.currentTime;
+                // If video hasn't loaded enough, seek to 0.1s
+                if (videoElement.readyState < 2) {
+                    videoElement.currentTime = 0.1;
+                }
+                
+                // Create canvas and capture frame
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth || 640;
+                canvas.height = videoElement.videoHeight || 360;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw the video frame
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to data URL (JPEG for smaller size)
+                const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Show thumbnail preview
+                thumbnailImg.src = thumbnailDataUrl;
+                thumbnailPreview.classList.add('active');
+                
+                // Store thumbnail data for upload
+                uploadedThumbnailUrl = thumbnailDataUrl;
+                
+                console.log('Video thumbnail captured successfully.');
+            } catch (err) {
+                console.warn('Thumbnail capture failed:', err);
+                // Use a fallback - video poster from Cloudinary will work
+                thumbnailPreview.classList.remove('active');
+            }
+        }
+
+        // ============================================================
+        // PREVIEW FILE
+        // ============================================================
+        function previewFile(file) {
+            const url = URL.createObjectURL(file);
+            previewContainer.classList.add('active');
+
+            if (file.type.startsWith('video/')) {
+                previewImage.style.display = 'none';
+                previewVideo.style.display = 'block';
+                previewVideo.src = url;
+                previewVideo.load();
+                // Try to play for a moment to load frames
+                previewVideo.play().then(() => {
+                    setTimeout(() => {
+                        previewVideo.pause();
+                        previewVideo.currentTime = 0.1;
+                    }, 200);
+                }).catch(() => {
+                    // Autoplay might fail, still try to capture
+                    setTimeout(() => {
+                        if (previewVideo.readyState >= 2) {
+                            captureVideoThumbnail(previewVideo);
+                        }
+                    }, 500);
+                });
+            } else {
+                previewVideo.style.display = 'none';
+                previewImage.style.display = 'block';
+                previewImage.src = url;
+            }
+        }
+
+        // ============================================================
+        // UPDATE FILE INFO
+        // ============================================================
+        function updateFileInfo(file) {
+            fileInfo.style.display = 'flex';
+            fileName.textContent = file.name;
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            fileSize.textContent = sizeMB + ' MB';
+        }
+
+        // ============================================================
+        // REMOVE FILE
+        // ============================================================
+        removeFileBtn.addEventListener('click', () => {
+            resetUpload();
+        });
+
+        function resetUpload() {
+            selectedFile = null;
+            uploadedFileUrl = null;
+            uploadedThumbnailUrl = null;
+            isVideo = false;
+            fileInput.value = '';
+            previewContainer.classList.remove('active');
+            previewImage.src = '';
+            previewVideo.src = '';
+            previewVideo.style.display = 'none';
+            previewImage.style.display = 'none';
+            fileInfo.style.display = 'none';
+            progressContainer.classList.remove('active');
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Uploading... 0%';
+            postBtnContainer.classList.remove('active');
+            thumbnailPreview.classList.remove('active');
+            thumbnailImg.src = '';
+            hideStatus();
+            isUploading = false;
+        }
+
+        // ============================================================
+        // UPLOAD TO CLOUDINARY (with thumbnail for videos)
+        // ============================================================
+        function uploadToCloudinary(file) {
+            if (isUploading) return;
+            isUploading = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            formData.append('folder', 'stories');
+
+            // Show progress
+            progressContainer.classList.add('active');
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Uploading to Cloudinary... 0%';
+            hideStatus();
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, true);
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progressFill.style.width = percent + '%';
+                    progressText.textContent = `Uploading to Cloudinary... ${Math.round(percent)}%`;
+                }
+            };
+
+            xhr.onload = () => {
+                isUploading = false;
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        uploadedFileUrl = response.secure_url;
+                        progressFill.style.width = '100%';
+                        progressText.textContent = 'Upload complete!';
+                        
+                        // If video, upload thumbnail to Cloudinary as well
+                        if (isVideo && uploadedThumbnailUrl) {
+                            uploadThumbnailToCloudinary(uploadedThumbnailUrl);
+                        } else if (!isVideo) {
+                            // For images, use the image itself as thumbnail URL
+                            uploadedThumbnailUrl = uploadedFileUrl;
+                            postBtnContainer.classList.add('active');
+                            showStatus('File uploaded successfully! Tap "Post Story" to share.', 'success');
+                        }
+                    } catch (e) {
+                        showStatus('Error parsing Cloudinary response.', 'error');
+                        postBtnContainer.classList.add('active');
+                    }
+                } else {
+                    showStatus('Cloudinary upload failed. Please try again.', 'error');
+                }
+            };
+
+            xhr.onerror = () => {
+                isUploading = false;
+                showStatus('Network error. Please check your connection and try again.', 'error');
+                progressContainer.classList.remove('active');
+            };
+
+            xhr.send(formData);
+        }
+
+        // ============================================================
+        // UPLOAD THUMBNAIL TO CLOUDINARY
+        // ============================================================
+        function uploadThumbnailToCloudinary(thumbnailDataUrl) {
+            // Convert data URL to Blob
+            fetch(thumbnailDataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'thumbnail.jpg');
+                    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                    formData.append('folder', 'stories_thumbnails');
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, true);
+
+                    xhr.onload = () => {
+                        if (xhr.status === 200) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                uploadedThumbnailUrl = response.secure_url;
+                                console.log('Thumbnail uploaded:', uploadedThumbnailUrl);
+                            } catch (e) {
+                                console.warn('Thumbnail upload parse error:', e);
+                            }
+                        } else {
+                            console.warn('Thumbnail upload failed:', xhr.status);
+                        }
+                        // Show post button regardless
+                        postBtnContainer.classList.add('active');
+                        showStatus('File uploaded successfully! Tap "Post Story" to share.', 'success');
+                    };
+
+                    xhr.onerror = () => {
+                        console.warn('Thumbnail upload network error');
+                        postBtnContainer.classList.add('active');
+                        showStatus('File uploaded, but thumbnail may not be optimized.', 'info');
+                    };
+
+                    xhr.send(formData);
+                })
+                .catch(() => {
+                    // If thumbnail upload fails, still allow posting
+                    postBtnContainer.classList.add('active');
+                    showStatus('File uploaded. Thumbnail will use default.', 'info');
+                });
+        }
+
+        // ============================================================
+        // POST STORY TO FIREBASE
+        // ============================================================
+        postStoryBtn.addEventListener('click', async () => {
+            if (!uploadedFileUrl || !currentUser) {
+                showStatus('No file uploaded or not logged in.', 'error');
+                return;
+            }
+
+            postStoryBtn.disabled = true;
+            postStoryBtn.textContent = 'Posting...';
+
+            try {
+                const contentType = isVideo ? 'video' : 'image';
+                const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+
+                const storyData = {
+                    name: currentUser.displayName || 'User',
+                    uid: currentUser.uid,
+                    avatar: currentUser.photoURL || '',
+                    media: uploadedFileUrl,
+                    contentType: contentType,
+                    timestamp: Date.now(),
+                    expiresAt: expiresAt,
+                    badge: '1'
+                };
+
+                // Add thumbnail if available
+                if (uploadedThumbnailUrl) {
+                    storyData.thumbnail = uploadedThumbnailUrl;
+                }
+
+                const newStoryRef = database.ref('stories').push();
+                await newStoryRef.set(storyData);
+
+                showStatus('Story posted successfully! It will be visible for 24 hours.', 'success');
+                postStoryBtn.textContent = 'Posted! ✓';
+
+                setTimeout(() => {
+                    resetUpload();
+                    postStoryBtn.disabled = false;
+                    postStoryBtn.textContent = 'Post Story';
+                    postBtnContainer.classList.remove('active');
+                    progressContainer.classList.remove('active');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                }, 1500);
+
+            } catch (error) {
+                console.error('Story save error:', error);
+                showStatus('Failed to save story: ' + error.message, 'error');
+                postStoryBtn.disabled = false;
+                postStoryBtn.textContent = 'Post Story';
+            }
+        });
+
+        // ============================================================
+        // CANCEL POST
+        // ============================================================
+        cancelPostBtn.addEventListener('click', () => {
+            resetUpload();
+            postBtnContainer.classList.remove('active');
+            showStatus('Upload cancelled.', 'info');
+            setTimeout(() => hideStatus(), 2000);
+        });
+
+        // ============================================================
+        // STATUS MESSAGE HELPERS
+        // ============================================================
+        function showStatus(message, type = 'info') {
+            statusMsg.textContent = message;
+            statusMsg.className = 'status-msg ' + type;
+            statusMsg.style.display = 'block';
+        }
+
+        function hideStatus() {
+            statusMsg.style.display = 'none';
+            statusMsg.className = 'status-msg';
+            statusMsg.textContent = '';
+        }
+
+        // ============================================================
+        // DRAG & DROP SUPPORT
+        // ============================================================
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#1877f2';
+            uploadArea.style.background = '#e7f3ff';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccd0d5';
+            uploadArea.style.background = '#f7f8fa';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccd0d5';
+            uploadArea.style.background = '#f7f8fa';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // ============================================================
+        // AUTO-CLEANUP: Remove expired stories
+        // ============================================================
+        function cleanupExpiredStories() {
+            const now = Date.now();
+            database.ref('stories').once('value').then((snapshot) => {
+                const updates = {};
+                snapshot.forEach((child) => {
+                    const story = child.val();
+                    if (story.expiresAt && story.expiresAt < now) {
+                        updates[child.key] = null;
+                    }
+                });
+                if (Object.keys(updates).length > 0) {
+                    database.ref('stories').update(updates);
+                    console.log('Cleaned up expired stories:', Object.keys(updates).length);
+                }
+            }).catch((err) => {
+                console.warn('Story cleanup error:', err);
+            });
+        }
+
+        cleanupExpiredStories();
+        setInterval(cleanupExpiredStories, 5 * 60 * 1000);
+
+        console.log('Story Upload: Video thumbnail captured from first frame.');
+    </script>
+</body>
+</html>
