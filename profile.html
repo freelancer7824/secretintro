@@ -11,7 +11,6 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
     </script>
-    <!-- Realtime Database SDK Added -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
@@ -37,7 +36,6 @@
             margin: 0;
         }
 
-        /* ===== WRAPPER ===== */
         .profile-wrapper {
             max-width: 680px;
             width: 100%;
@@ -51,7 +49,6 @@
             position: relative;
         }
 
-        /* ===== COVER AREA ===== */
         .cover-area {
             height: 28vh;
             min-height: 160px;
@@ -98,7 +95,6 @@
             transform: scale(1.05);
         }
 
-        /* ===== PROFILE PIC SECTION ===== */
         .profile-pic-section {
             display: flex;
             align-items: flex-end;
@@ -154,7 +150,6 @@
             transform: scale(1.08);
         }
 
-        /* ===== PROFILE INFO ===== */
         .profile-info {
             padding: 8px 16px 14px;
             border-bottom: 1px solid #e4e6eb;
@@ -232,7 +227,6 @@
             color: #1c1e21;
         }
 
-        /* ===== ACTION BAR ===== */
         .action-bar {
             display: flex;
             flex-wrap: wrap;
@@ -296,7 +290,6 @@
             transform: none !important;
         }
 
-        /* ===== TABS ===== */
         .profile-tabs {
             display: flex;
             border-bottom: 1px solid #e4e6eb;
@@ -342,7 +335,6 @@
             border-bottom-color: #1877f2;
         }
 
-        /* ===== TAB CONTENT ===== */
         #tab-content {
             flex: 1;
             overflow: visible;
@@ -363,7 +355,6 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== ABOUT SECTION ===== */
         .details-section {
             padding: 16px 16px 20px;
             border-bottom: 1px solid #e4e6eb;
@@ -426,7 +417,6 @@
             margin-top: 2px;
         }
 
-        /* ===== FRIENDS GRID ===== */
         .friends-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -498,7 +488,6 @@
             text-transform: uppercase;
         }
 
-        /* ===== POSTS (Homepage Card Logic) ===== */
         .posts-section {
             padding: 6px 16px 20px;
         }
@@ -713,7 +702,6 @@
             transform: scale(1.4) translateY(-8px);
         }
 
-        /* ===== EMPTY STATE ===== */
         .empty-state {
             color: #65676b;
             font-size: 14px;
@@ -722,7 +710,6 @@
             grid-column: 1 / -1 !important;
         }
 
-        /* ===== PHOTOS GRID ===== */
         #photos-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -752,22 +739,6 @@
             object-fit: cover;
         }
 
-        #photos-grid .photo-item .photo-count {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        /* ===== TOAST ===== */
         .toast-msg {
             background: #333;
             color: #fff;
@@ -792,7 +763,6 @@
             100% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
-        /* ===== EDIT OVERLAY ===== */
         .edit-overlay {
             display: none;
             position: fixed;
@@ -956,7 +926,6 @@
             transform: none !important;
         }
 
-        /* ===== MESSENGER ===== */
         #messenger-overlay {
             display: none;
             position: fixed;
@@ -1101,7 +1070,6 @@
             transform: none !important;
         }
 
-        /* ===== UPLOAD PROGRESS ===== */
         .upload-progress {
             display: none;
             padding: 10px 20px;
@@ -1141,7 +1109,6 @@
             border-radius: 4px;
         }
 
-        /* ===== GALLERY ===== */
         .gallery-overlay {
             display: none;
             position: fixed;
@@ -1233,7 +1200,6 @@
             margin-top: 12px;
         }
 
-        /* ===== POST DETAIL OVERLAY (SPA FULLSCREEN POPUP) ===== */
         .post-detail-overlay {
             position: fixed;
             top: 0;
@@ -1408,7 +1374,6 @@
             border-left: 2px solid #e4e6eb;
         }
 
-        /* ===== SPINNER ===== */
         .spinner {
             display: inline-block;
             width: 18px;
@@ -1426,7 +1391,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .profile-pic-section { margin-top: -45px; padding: 0 14px; }
             .profile-pic-wrapper .profile-pic { width: 80px; height: 80px; }
@@ -1451,13 +1415,11 @@
             .messenger-input-bar { padding: 10px 14px 14px; }
         }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f0f2f5; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #ccd0d5; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #b0b3b8; }
 
-        /* ===== SECTION HEADERS ===== */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -1483,7 +1445,6 @@
             text-decoration: underline;
         }
 
-        /* ===== PROFILE UPDATE ANIMATION ===== */
         .post-updated {
             animation: highlightPulse 0.6s ease;
         }
@@ -1493,7 +1454,6 @@
             100% { background-color: transparent; }
         }
 
-        /* ===== FALLBACK AVATAR ===== */
         .avatar-fallback {
             display: flex;
             align-items: center;
@@ -1508,10 +1468,8 @@
 </head>
 <body>
 
-    <!-- ===== TOAST ===== -->
     <div id="toast" class="toast-msg"></div>
 
-    <!-- ===== POST DETAIL OVERLAY (SPA FULLSCREEN POPUP) ===== -->
     <div class="post-detail-overlay" id="post-detail-overlay">
         <div class="detail-header">
             <span class="back-btn" id="close-detail"><i class="fa-solid fa-arrow-left"></i></span>
@@ -1530,7 +1488,6 @@
         </div>
     </div>
 
-    <!-- ===== EDIT OVERLAY ===== -->
     <div class="edit-overlay" id="edit-overlay">
         <div class="edit-modal">
             <h2>
@@ -1568,7 +1525,6 @@
         </div>
     </div>
 
-    <!-- ===== GALLERY OVERLAY ===== -->
     <div class="gallery-overlay" id="gallery-overlay">
         <button class="gallery-close" id="gallery-close"><i class="fa-solid fa-xmark"></i></button>
         <button class="gallery-nav prev" id="gallery-prev"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1578,7 +1534,6 @@
         <div class="gallery-counter" id="gallery-counter"></div>
     </div>
 
-    <!-- ===== MESSENGER ===== -->
     <div id="messenger-overlay">
         <div class="messenger-header">
             <span class="header-title"><i class="fa-regular fa-message"></i> Chat</span>
@@ -1593,23 +1548,19 @@
         </div>
     </div>
 
-    <!-- ===== UPLOAD PROGRESS ===== -->
     <div class="upload-progress" id="uploadProgress">
         <span class="progress-text"><i class="fa-solid fa-cloud-upload-alt"></i> Uploading...</span>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <span class="progress-text" id="progressPercent">0%</span>
     </div>
 
-    <!-- ===== MAIN PROFILE ===== -->
     <div class="profile-wrapper" id="profile-wrapper">
 
-        <!-- Cover -->
         <div class="cover-area" id="cover-area">
             <img id="cover-image" class="cover-img" src="" alt="Cover" />
             <div class="cover-edit-icon" id="cover-edit-btn"><i class="fa-solid fa-camera"></i></div>
         </div>
 
-        <!-- Profile Pic -->
         <div class="profile-pic-section">
             <div class="profile-pic-wrapper">
                 <img id="profile-pic" class="profile-pic" src="" alt="Profile" />
@@ -1617,7 +1568,6 @@
             </div>
         </div>
 
-        <!-- Info -->
         <div class="profile-info">
             <div class="name-row">
                 <span class="name" id="name-text">Loading...</span>
@@ -1628,10 +1578,8 @@
             <div class="friends-count"><span id="friend-count">0</span> friends · <span id="mutual-count">0</span> mutual · <span id="post-count">0</span> posts</div>
         </div>
 
-        <!-- Action Bar -->
         <div class="action-bar" id="action-bar"></div>
 
-        <!-- Tabs -->
         <div class="profile-tabs">
             <div class="profile-tab active" data-tab="posts"><i class="fa-solid fa-newspaper"></i> Posts</div>
             <div class="profile-tab" data-tab="about"><i class="fa-solid fa-circle-info"></i> About</div>
@@ -1639,10 +1587,8 @@
             <div class="profile-tab" data-tab="photos"><i class="fa-solid fa-images"></i> Photos</div>
         </div>
 
-        <!-- Tab Content -->
         <div id="tab-content">
 
-            <!-- Posts -->
             <div class="tab-panel active" id="posts-tab">
                 <div class="posts-section">
                     <h3><i class="fa-regular fa-newspaper" style="color:#1877f2;margin-right:8px;"></i> Posts</h3>
@@ -1650,7 +1596,6 @@
                 </div>
             </div>
 
-            <!-- About -->
             <div class="tab-panel" id="about-tab">
                 <div class="details-section">
                     <h3><i class="fa-solid fa-user" style="color:#1877f2;margin-right:8px;"></i> Personal Info</h3>
@@ -1674,7 +1619,6 @@
                 </div>
             </div>
 
-            <!-- Friends -->
             <div class="tab-panel" id="friends-tab">
                 <div class="section-header">
                     <h3><i class="fa-solid fa-user-group" style="color:#1877f2;margin-right:8px;"></i> Friends</h3>
@@ -1685,7 +1629,6 @@
                 </div>
             </div>
 
-            <!-- Photos -->
             <div class="tab-panel" id="photos-tab">
                 <div style="padding:16px;">
                     <h3 style="font-size:clamp(16px,2.5vw,18px);font-weight:600;color:#1c1e21;margin-bottom:12px;">
@@ -1713,7 +1656,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const rtdb = firebase.database(); // Added Realtime Database reference
+        const rtdb = firebase.database();
 
         // ===== CLOUDINARY =====
         const CLOUDINARY = {
@@ -1768,7 +1711,6 @@
         const editCoverPreview = $('edit-cover-preview');
         const editSaveBtn = $('edit-save-btn');
 
-        // SPA Post Detail Refs
         const postDetailOverlay = $('post-detail-overlay');
         const detailContent = $('detail-content');
         const closeDetail = $('close-detail');
@@ -1789,14 +1731,11 @@
         let galleryPhotos = [],
             galleryIndex = 0;
         let friendList = [];
-
-        // SPA State Variables
         let loadedPosts = [];
         let detailPostId = null;
         let detailCommentTargetReplyTo = null;
         let detailCommentTargetReplyName = null;
 
-        // ===== USER DATA CACHE FOR REALTIME UPDATES =====
         const userDataCache = {};
         const userListeners = {};
         let allPostsData = [];
@@ -1839,7 +1778,7 @@
 
         function getUserIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
-            return params.get('user');
+            return params.get('user') || params.get('uid'); // Support both user and uid parameters
         }
 
         function formatTime(timestamp) {
@@ -1857,7 +1796,7 @@
             return new Date(timestamp).toLocaleDateString();
         }
 
-        // ===== SYNC DATA TO REALTIME DATABASE =====
+        // ===== SYNC TO RTDB =====
         async function syncUserToRTDB(userId, data) {
             try {
                 const rtdbData = {
@@ -1874,10 +1813,10 @@
             }
         }
 
-        // ===== LISTEN TO USER FOR REALTIME UPDATES =====
+        // ===== LISTEN TO USER REALTIME =====
         function listenToUser(userId) {
             if (!userId || userListeners[userId]) return;
-            
+
             const docRef = db.collection('users').doc(userId);
             const unsubscribe = docRef.onSnapshot((snap) => {
                 if (snap.exists) {
@@ -1899,25 +1838,19 @@
                         workRole: data.workRole || '',
                         friends: data.friends || []
                     };
-                    
+
                     const oldData = userDataCache[userId];
                     const nameChanged = oldData && oldData.fullName !== userData.fullName;
                     const photoChanged = oldData && oldData.photoURL !== userData.photoURL;
                     const coverChanged = oldData && oldData.coverPhoto !== userData.coverPhoto;
-                    
+
                     userDataCache[userId] = userData;
                     setCache('user_' + userId, userData);
-                    
-                    // Apply profile data
+
                     applyProfileData(userData);
-                    
-                    // Update all posts for this user
                     updateAllPostsForUser(userId, userData);
-                    
-                    // Update friends grid
                     updateFriendsList();
-                    
-                    // If name changed, animate
+
                     if (nameChanged) {
                         const nameEl = document.getElementById('name-text');
                         if (nameEl) {
@@ -1926,30 +1859,27 @@
                             nameEl.classList.add('name-updated');
                         }
                     }
-                    
-                    // If cover photo changed
+
                     if (coverChanged && userData.coverPhoto) {
                         coverImage.src = userData.coverPhoto;
                         coverImage.style.display = 'block';
                     }
-                    
+
                     if (photoChanged && userData.photoURL) {
                         profilePic.src = userData.photoURL;
                     }
                 }
             });
-            
+
             userListeners[userId] = unsubscribe;
         }
 
-        // ===== UPDATE ALL POSTS FOR A USER =====
+        // ===== UPDATE ALL POSTS FOR USER =====
         function updateAllPostsForUser(userId, userData) {
-            // Update all posts in the posts list
             const postItems = document.querySelectorAll('.post-item');
             postItems.forEach(item => {
                 const postUserId = item.dataset.userId;
                 if (postUserId === userId) {
-                    // Update name with animation
                     const nameEl = item.querySelector('.pname');
                     if (nameEl && nameEl.textContent !== userData.fullName) {
                         nameEl.textContent = userData.fullName;
@@ -1957,12 +1887,11 @@
                         void nameEl.offsetWidth;
                         nameEl.classList.add('name-updated');
                     }
-                    
-                    // Update avatar with animation
+
                     const imgEl = item.querySelector('.post-user img');
                     const fallbackEl = item.querySelector('.user-fallback');
                     const avatarUrl = userData.photoURL || createFallbackAvatar(userData.fullName, '100');
-                    
+
                     if (imgEl && imgEl.src !== avatarUrl) {
                         imgEl.src = avatarUrl;
                         imgEl.classList.remove('avatar-updated');
@@ -1971,16 +1900,14 @@
                         imgEl.style.display = 'block';
                         if (fallbackEl) fallbackEl.style.display = 'none';
                     }
-                    
-                    // Add highlight animation
+
                     item.classList.add('post-updated');
                     setTimeout(() => {
                         item.classList.remove('post-updated');
                     }, 800);
                 }
             });
-            
-            // Update friends grid
+
             updateFriendsList();
         }
 
@@ -1988,15 +1915,14 @@
         function updateFriendsList() {
             const userId = currentProfileUserId;
             if (!userId) return;
-            
+
             const userData = userDataCache[userId];
             if (!userData) return;
-            
+
             const friends = userData.friends || [];
             friendList = friends;
             friendCount.textContent = friends.length;
-            
-            // Update mutual friends
+
             if (currentUser && currentUser.uid) {
                 const mutual = friends.filter(id => {
                     const friendData = userDataCache[id] || getCache('user_' + id);
@@ -2004,8 +1930,7 @@
                 });
                 mutualCount.textContent = mutual.length;
             }
-            
-            // Update friends grid with latest data
+
             renderFriendsGrid(friends);
         }
 
@@ -2050,19 +1975,18 @@
         // ===== GET USER DATA WITH CACHE =====
         async function getUserData(uid) {
             if (!uid) return null;
-            
+
             if (userDataCache[uid]) {
                 return userDataCache[uid];
             }
-            
+
             const cached = getCache('user_' + uid);
             if (cached) {
                 userDataCache[uid] = cached;
-                // Start listening for updates
                 listenToUser(uid);
                 return cached;
             }
-            
+
             try {
                 const doc = await db.collection('users').doc(uid).get();
                 if (doc.exists) {
@@ -2087,13 +2011,12 @@
                     };
                     userDataCache[uid] = userData;
                     setCache('user_' + uid, userData);
-                    // Start listening for updates
                     listenToUser(uid);
                     return userData;
                 }
                 return null;
-            } catch { 
-                return cached || null; 
+            } catch {
+                return cached || null;
             }
         }
 
@@ -2113,12 +2036,10 @@
             userPhone.textContent = data.phone || '+880 1234 567890';
             workTitle.textContent = data.workTitle || 'Freelancer';
             workRole.textContent = data.workRole || 'CMO';
-            
-            // Update friends count
+
             const friends = data.friends || [];
             friendCount.textContent = friends.length;
-            
-            // Profile Photo with fallback
+
             const photoUrl = data.photoURL || createFallbackAvatar(fullName, '200');
             profilePic.src = photoUrl;
             profilePic.onerror = function() {
@@ -2126,7 +2047,6 @@
                 this.style.background = 'linear-gradient(135deg, #1877f2, #0d47a1)';
             };
 
-            // Cover Photo
             if (data.coverPhoto) {
                 coverImage.src = data.coverPhoto;
                 coverImage.style.display = 'block';
@@ -2136,34 +2056,24 @@
             } else {
                 coverImage.style.display = 'none';
             }
-            
-            // Update friends grid
+
             renderFriendsGrid(friends);
         }
 
         // ===== LOAD PROFILE =====
         async function loadProfile(userId) {
             currentProfileUserId = userId;
-            
-            // Start real-time listener for this user
             listenToUser(userId);
-            
-            // Get user data
+
             const data = await getUserData(userId);
             if (data) {
                 applyProfileData(data);
             }
-            
-            // Load friends
+
             await loadFriendsData(userId);
-            
-            // Load posts (Now using RTDB for fast homepage logic)
             await loadUserPosts(userId);
-            
-            // Load photos
             await loadUserPhotos(userId);
-            
-            // Check auth for action buttons
+
             const user = auth.currentUser;
             if (user) {
                 if (user.uid === userId) {
@@ -2286,38 +2196,36 @@
             });
         }
 
-        // ===== LOAD POSTS (Fast Homepage RTDB Logic) =====
+        // ===== LOAD POSTS FROM RTDB =====
         async function loadUserPosts(userId) {
             if (unsubscribePosts) unsubscribePosts();
-            
-            // Fetching from RTDB feedItems just like Homepage logic for fast load and SPA support
+
             const postsRef = rtdb.ref('feedItems').orderByChild('userId').equalTo(userId);
-            
+
             unsubscribePosts = postsRef.on('value', (snapshot) => {
                 postsList.innerHTML = '';
                 allPostsData = [];
                 loadedPosts = [];
-                
+
                 if (!snapshot.exists()) {
                     postsList.innerHTML = '<div class="empty-state">No posts yet</div>';
                     postCount.textContent = '0';
                     return;
                 }
-                
+
                 const posts = [];
                 snapshot.forEach((child) => {
                     const val = child.val();
                     val.id = child.key;
                     posts.push(val);
                 });
-                
-                // Sort by timestamp
+
                 posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                
+
                 allPostsData = posts;
                 loadedPosts = posts;
                 postCount.textContent = posts.length;
-                
+
                 renderPostsList(posts);
             });
         }
@@ -2350,7 +2258,7 @@
                 const userReaction = post.userReaction || (isLiked ? '👍' : null);
 
                 const avatarUrl = userImage || createFallbackAvatar(userName, '100');
-                
+
                 let imageHTML = '';
                 if (imageUrl) {
                     imageHTML = `<img src="${imageUrl}" class="post-image" loading="lazy" onerror="this.style.display='none'" />`;
@@ -2397,14 +2305,13 @@
                     </div>
                 `;
 
-                // Long press for reactions
                 const likeBtn = div.querySelector('.act-btn');
                 let longPressTimer = null;
 
                 const startPress = (e) => {
                     longPressTimer = setTimeout(() => {
                         const popup = div.querySelector(`#reactions-${post.id}`);
-                        if(popup) popup.style.display = 'flex';
+                        if (popup) popup.style.display = 'flex';
                     }, 500);
                 };
 
@@ -2418,9 +2325,9 @@
                 likeBtn.addEventListener('touchstart', startPress, { passive: true });
                 likeBtn.addEventListener('touchend', cancelPress);
 
-                // Open detail on click
                 div.addEventListener('click', (e) => {
-                    if (e.target.closest('.act-btn') || e.target.closest('.delete-btn') || e.target.closest('.reactions-popup')) return;
+                    if (e.target.closest('.act-btn') || e.target.closest('.delete-btn') || e.target.closest('.reactions-popup'))
+                        return;
                     openPostDetail(post.id);
                 });
 
@@ -2431,7 +2338,6 @@
         // ===== LOAD PHOTOS =====
         async function loadUserPhotos(userId) {
             try {
-                // Using Firestore just for the Photos Tab as it was originally
                 const query = db.collection('all-user-post').where('userId', '==', userId);
                 const snap = await query.get();
                 photosGrid.innerHTML = '';
@@ -2518,16 +2424,16 @@
                 updateGallery(); }
         });
 
-        // ===== LIKE / REACTION (Homepage RTDB Logic) =====
+        // ===== LIKE / REACTION =====
         async function handleLike(postId, btn) {
             const user = auth.currentUser;
             if (!user) { showToast('Login to like'); return; }
-            
+
             const post = loadedPosts.find(p => p.id === postId);
             if (!post) return;
 
             const userLiked = post.userReaction !== undefined && post.userReaction !== null;
-            
+
             if (userLiked) {
                 post.likesCount = Math.max(0, (post.likesCount || 0) - 1);
                 delete post.userReaction;
@@ -2563,7 +2469,7 @@
 
             const popup = document.getElementById(`reactions-${postId}`);
             if (popup) popup.style.display = 'none';
-            
+
             renderPostsList(loadedPosts);
         }
 
@@ -2573,12 +2479,11 @@
             try {
                 await rtdb.ref(`feedItems/${postId}`).remove();
                 showToast('🗑️ Post deleted');
-                // Listener will automatically update the list
             } catch (err) { showToast('Error: ' + err.message); }
         }
 
         // ==========================================
-        // SPA POST DETAIL & COMMENTS LOGIC
+        // SPA POST DETAIL & COMMENTS
         // ==========================================
         function openPostDetail(postId) {
             detailPostId = postId;
@@ -2589,7 +2494,7 @@
             const commentsContainer = document.createElement('div');
             commentsContainer.className = 'comments-list-container';
             commentsContainer.id = 'detailCommentsList';
-            
+
             detailContent.innerHTML = '';
             detailContent.appendChild(postEl);
             detailContent.appendChild(commentsContainer);
@@ -2632,9 +2537,10 @@
             const profileUserData = userDataCache[currentProfileUserId] || {};
             const userName = profileUserData.fullName || 'User';
             const userImage = profileUserData.photoURL || createFallbackAvatar(userName, '100');
-            
+
             let imageHTML = imageUrl ? `<img src="${imageUrl}" class="post-image" loading="lazy" />` : '';
-            let reactionHTML = userReaction ? `<span class="reaction-icon-disp">${userReaction}</span>` : `<span class="like-icon"><i class="fa-solid fa-thumbs-up"></i></span>`;
+            let reactionHTML = userReaction ? `<span class="reaction-icon-disp">${userReaction}</span>` :
+                `<span class="like-icon"><i class="fa-solid fa-thumbs-up"></i></span>`;
 
             div.innerHTML = `
                 <div class="post-header">
@@ -2682,15 +2588,15 @@
             }
 
             const sortedComments = [...comments].reverse();
-            
+
             sortedComments.forEach(comment => {
                 const item = document.createElement('div');
                 item.className = 'comment-item';
-                
+
                 const isOwn = comment.authorId === (currentUser && currentUser.uid);
                 const authorName = comment.author || 'User';
                 const authorAvatar = comment.authorAvatar || createFallbackAvatar(authorName, '32');
-                
+
                 item.innerHTML = `
                     <img src="${authorAvatar}" class="comment-avatar">
                     <div class="comment-body">
@@ -2945,9 +2851,9 @@
         function openEditProfile() {
             const user = auth.currentUser;
             if (!user) { showToast('Login first'); return; }
-            
+
             const data = userDataCache[user.uid] || getCache('user_' + user.uid) || {};
-            
+
             editName.value = data.fullName || data.name || '';
             editBio.value = data.bio || '';
             editLocation.value = data.location || '';
@@ -2996,8 +2902,6 @@
                     updatedAt: new Date().toISOString()
                 };
                 await db.collection('users').doc(user.uid).set(data, { merge: true });
-                
-                // 🔥 NEW: SYNC TO REALTIME DATABASE SO OTHER PAGES UPDATE INSTANTLY
                 await syncUserToRTDB(user.uid, data);
 
                 const newPass = editPassword.value.trim();
@@ -3008,22 +2912,17 @@
                 if (data.fullName && data.fullName !== user.displayName) {
                     await user.updateProfile({ displayName: data.fullName });
                 }
-                
-                // Update cache
+
                 const cached = userDataCache[user.uid] || {};
                 Object.assign(cached, data);
                 userDataCache[user.uid] = cached;
                 setCache('user_' + user.uid, { ...cached, _cacheTime: Date.now() });
-                
+
                 applyProfileData(data);
-                
-                // Update all posts for this user
                 updateAllPostsForUser(user.uid, data);
-                
                 showToast('✅ Profile updated');
                 closeEditProfile();
-                
-                // Reload posts and photos for this user
+
                 if (currentProfileUserId === user.uid) {
                     loadUserPosts(user.uid);
                     loadUserPhotos(user.uid);
@@ -3043,10 +2942,7 @@
                     if (userDataCache[user.uid]) {
                         userDataCache[user.uid].photoURL = url;
                     }
-                    // 🔥 NEW: SYNC TO REALTIME DATABASE
                     syncUserToRTDB(user.uid, { ...userDataCache[user.uid], photoURL: url });
-                    
-                    // Update all posts for this user
                     updateAllPostsForUser(user.uid, userDataCache[user.uid]);
                 }
                 showToast('✅ Profile photo updated');
@@ -3112,12 +3008,11 @@
         // ===== AUTH =====
         auth.onAuthStateChanged((user) => {
             currentUser = user;
-            
+
             if (user) {
-                // Listen to current user for updates
                 listenToUser(user.uid);
             }
-            
+
             const uid = getUserIdFromUrl();
             if (!uid) {
                 if (user) {
@@ -3140,17 +3035,16 @@
             if (unsubscribeProfile) unsubscribeProfile();
             if (unsubscribeFriends) unsubscribeFriends();
             if (messengerUnsubscribe) messengerUnsubscribe();
-            
+
             Object.values(userListeners).forEach(unsub => {
                 if (typeof unsub === 'function') unsub();
             });
         });
 
-        console.log('🔥 Profile Updated: Real-time Posts with SPA Fullscreen Detail Popup');
-        console.log('✅ Uses RTDB for fast loading posts just like Homepage');
-        console.log('✅ SPA Fullscreen Popup with Reactions, Comments & Replies');
-        console.log('✅ Delete Button for own posts');
-        console.log('✅ Friend request logic integrated perfectly');
+        console.log('🔥 Profile Page: Real-time Posts with SPA Fullscreen Detail Popup');
+        console.log('✅ Uses RTDB for fast loading posts');
+        console.log('✅ Realtime user name & avatar updates across all posts');
+        console.log('✅ SPA Fullscreen Post Detail with Reactions & Comments');
     </script>
 </body>
 </html>
