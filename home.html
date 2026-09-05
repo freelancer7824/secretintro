@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Facebook · SPA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #050505;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .fb-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #ffffff;
+            height: 100vh;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ===== SPA IFRAME CONTAINER ===== */
+        .spa-iframe-container {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #f0f2f5;
+        }
+
+        .spa-iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #f0f2f5;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .spa-iframe-container iframe.active-iframe {
+            opacity: 1;
+            visibility: visible;
+            position: relative;
+        }
+
+        /* ===== TOP BAR ===== */
+        .fb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #ffffff;
+            flex-shrink: 0;
+            border-bottom: 1px solid #ced0d4;
+            z-index: 100;
+        }
+
+        .fb-logo {
+            color: #1877f2;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            cursor: pointer;
+            text-decoration: none;
+            background: none;
+            border: none;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            background-color: #e4e6eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #050505;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+
+        .icon-btn:active {
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+
+        /* ===== NAV TABS ===== */
+        .fb-nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid #ced0d4;
+            background: #ffffff;
+            flex-shrink: 0;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            font-size: 20px;
+            color: #65676b;
+            position: relative;
+            cursor: pointer;
+            border: none;
+            background: none;
+            text-decoration: none;
+        }
+
+        .nav-tab.active {
+            color: #1877f2;
+            border-bottom: 3px solid #1877f2;
+        }
+
+        .nav-tab .badge {
+            position: absolute;
+            top: 6px;
+            right: 22%;
+            background-color: #e41e3f;
+            color: white;
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+            z-index: 50;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            gap: 1.5rem;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid rgba(24, 119, 242, 0.15);
+            border-top-color: #1877f2;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: rgba(0, 0, 0, 0.4);
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== TOAST ===== */
+        .toast-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            max-width: 90%;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== SWIPE REFRESH ===== */
+        .swipe-refresh-indicator {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-60px);
+            width: 44px;
+            height: 44px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            pointer-events: none;
+        }
+
+        .swipe-refresh-indicator i {
+            color: #1877f2;
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .swipe-refresh-indicator.spinning i {
+            animation: spin 0.8s infinite linear;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 500px) {
+            .fb-container {
+                max-width: 100%;
+            }
+            .fb-logo {
+                font-size: 22px;
+            }
+            .nav-tab {
+                font-size: 17px;
+                height: 42px;
+            }
+            .icon-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="fb-container" id="fbContainer">
+        <!-- Swipe Refresh Indicator -->
+        <div class="swipe-refresh-indicator" id="refreshIndicator">
+            <i class="fa-solid fa-arrows-rotate"></i>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast-notification" id="toastNotification"></div>
+
+        <!-- Header -->
+        <header class="fb-header">
+            <button class="fb-logo" onclick="navigateTo('home')">SecretIntro</button>
+            <div class="header-icons">
+                <button class="icon-btn" onclick="navigateTo('create-post')"><i class="fa-solid fa-plus"></i></button>
+                <button class="icon-btn" onclick="window.location.href='search.html'"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="icon-btn" id="logoutBtn" style="display:none;" onclick="logoutUser()"><i class="fa-solid fa-sign-out-alt"></i></button>
+                <button style="display:none" class="icon-btn" onclick="navigateTo('menu')"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </header>
+
+        <!-- Nav Tabs -->
+        <nav class="fb-nav-tabs" role="tablist">
+            <button class="nav-tab active" data-page="home" role="tab">
+                <i class="fa-solid fa-house"></i>
+                <span class="badge" id="notificationBadge">0</span>
+            </button>
+            <button class="nav-tab" data-page="friends" role="tab">
+                <i class="fa-solid fa-user-group"></i>
+            </button>
+            <button class="nav-tab" data-page="messenger" role="tab">
+                <i class="fa-brands fa-facebook-messenger"></i>
+            </button>
+            <button class="nav-tab" data-page="watch" role="tab">
+                <i class="fa-solid fa-tv"></i>
+            </button>
+            <button class="nav-tab" data-page="notifications" role="tab">
+                <i class="fa-solid fa-bell"></i>
+            </button>
+            <button class="nav-tab" data-page="menu" role="tab">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </nav>
+
+        <!-- SPA IFRAME CONTAINER -->
+        <div class="spa-iframe-container" id="iframeContainer">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div class="loading-text">LOADING SECRETINTRO</div>
+            </div>
+
+            <!-- All pages as iframes -->
+            <iframe id="iframeHome" src="homepage.html" data-page="home" class="active-iframe"></iframe>
+            <iframe id="iframeFriends" src="friend-request.html" data-page="friends"></iframe>
+            <iframe id="iframeMessenger" src="messenger.html" data-page="messenger"></iframe>
+            <iframe id="iframeWatch" src="watch.html" data-page="watch"></iframe>
+            <iframe id="iframeNotifications" src="notifications.html" data-page="notifications"></iframe>
+            <iframe id="iframeMenu" src="menu.html" data-page="menu"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOJaV7zMLhtA-_z1nkcdbtaa3w7M_0Fh4",
+            authDomain: "money-generate-dbab3.firebaseapp.com",
+            databaseURL: "https://money-generate-dbab3-default-rtdb.firebaseio.com",
+            projectId: "money-generate-dbab3",
+            storageBucket: "money-generate-dbab3.firebasestorage.app",
+            messagingSenderId: "579756089926",
+            appId: "1:579756089926:web:abbe35377e3657889be047"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        // ============================================================
+        // CACHE MANAGEMENT (LocalStorage)
+        // ============================================================
+        const CACHE_PREFIX = 'fb_spa_';
+
+        function getCache(key) {
+            try {
+                const data = localStorage.getItem(CACHE_PREFIX + key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed.expiry && Date.now() > parsed.expiry) {
+                        localStorage.removeItem(CACHE_PREFIX + key);
+                        return null;
+                    }
+                    return parsed.data;
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setCache(key, data, ttl = 5 * 60 * 1000) {
+            try {
+                localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({
+                    data: data,
+                    expiry: Date.now() + ttl
+                }));
+            } catch (e) {
+                console.warn('Cache set failed:', e);
+            }
+        }
+
+        function clearCache(key) {
+            if (key) {
+                localStorage.removeItem(CACHE_PREFIX + key);
+            } else {
+                Object.keys(localStorage).forEach(k => {
+                    if (k.startsWith(CACHE_PREFIX)) {
+                        localStorage.removeItem(k);
+                    }
+                });
+            }
+        }
+
+        // ============================================================
+        // SPA ROUTER
+        // ============================================================
+        const iframes = {
+            home: document.getElementById('iframeHome'),
+            friends: document.getElementById('iframeFriends'),
+            messenger: document.getElementById('iframeMessenger'),
+            watch: document.getElementById('iframeWatch'),
+            notifications: document.getElementById('iframeNotifications'),
+            menu: document.getElementById('iframeMenu')
+        };
+
+        const tabs = document.querySelectorAll('.nav-tab');
+        const loading = document.getElementById('loadingOverlay');
+        const container = document.getElementById('iframeContainer');
+
+        let currentPage = 'home';
+        let isInitialLoad = true;
+
+        const pageSources = {
+            home: 'home.html',
+            friends: 'friend-request.html',
+            messenger: 'messenger.html',
+            watch: 'watch.html',
+            notifications: 'notifications.html',
+            menu: 'menu.html'
+        };
+
+        // ============================================================
+        // SWITCH PAGE
+        // ============================================================
+        function switchPage(pageId, pushHistory = true) {
+            if (pageId === currentPage) return;
+
+            Object.keys(iframes).forEach(key => {
+                iframes[key].classList.remove('active-iframe');
+            });
+
+            if (iframes[pageId]) {
+                iframes[pageId].classList.add('active-iframe');
+                if (!iframes[pageId].src || iframes[pageId].src === 'about:blank') {
+                    iframes[pageId].src = pageSources[pageId] || pageId + '.html';
+                }
+            }
+
+            currentPage = pageId;
+
+            tabs.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.page === pageId) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (pushHistory && window.location.hash !== '#' + pageId) {
+                history.pushState({ page: pageId }, '', '#' + pageId);
+            }
+
+            if (pageId === 'home') {
+                try {
+                    const iframe = iframes.home;
+                    if (iframe && iframe.contentWindow) {
+                        const savedScroll = getCache('homeScroll');
+                        if (savedScroll !== null) {
+                            iframe.contentWindow.scrollTo(0, savedScroll);
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function switchPageSilent(pageId) {
+            if (pageId === currentPage) return;
+
+            Object.keys(iframes).forEach(key => {
+                iframes[key].classList.remove('active-iframe');
+            });
+
+            if (iframes[pageId]) {
+                iframes[pageId].classList.add('active-iframe');
+                if (!iframes[pageId].src || iframes[pageId].src === 'about:blank') {
+                    iframes[pageId].src = pageSources[pageId] || pageId + '.html';
+                }
+            }
+
+            currentPage = pageId;
+
+            tabs.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.page === pageId) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // ============================================================
+        // NAVIGATE
+        // ============================================================
+        function navigateTo(pageId) {
+            if (pageId === currentPage) {
+                const iframe = iframes[pageId];
+                if (iframe) {
+                    const src = iframe.src;
+                    iframe.src = 'about:blank';
+                    setTimeout(() => {
+                        iframe.src = src;
+                    }, 50);
+                }
+                return;
+            }
+
+            if (currentPage === 'home') {
+                try {
+                    const iframe = iframes.home;
+                    if (iframe && iframe.contentWindow) {
+                        const scrollY = iframe.contentWindow.scrollY || 0;
+                        setCache('homeScroll', scrollY);
+                    }
+                } catch (e) {}
+            }
+
+            switchPage(pageId);
+        }
+
+        window.navigateTo = navigateTo;
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toastNotification');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0, 0, 0, 0.8)';
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        window.showToast = showToast;
+
+        // ============================================================
+        // AUTH STATE MANAGER — REDIRECT TO login.html IF NOT LOGGED IN
+        // ============================================================
+        function redirectToLogin() {
+            window.location.href = 'login.html';
+        }
+
+        // Show logout button when user is logged in
+        function updateUIForAuth(user) {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (user) {
+                logoutBtn.style.display = 'flex';
+                // show toast welcome
+                showToast('👋 Welcome ' + (user.displayName || user.email || 'User'));
+            } else {
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // Logout function
+        function logoutUser() {
+            auth.signOut().then(() => {
+                showToast('Logged out');
+                // redirect to login page after logout
+                setTimeout(() => {
+                    redirectToLogin();
+                }, 300);
+            }).catch((error) => {
+                showToast('Logout error: ' + error.message, 'error');
+            });
+        }
+        window.logoutUser = logoutUser;
+
+        // Listen to auth state
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // Not logged in → redirect to login.html
+                redirectToLogin();
+                return;
+            }
+            // User is logged in → show UI
+            updateUIForAuth(user);
+            // hide loading and initialize
+            loading.classList.add('hidden');
+            initializeApp();
+        });
+
+        // ============================================================
+        // TAB CLICK HANDLERS
+        // ============================================================
+        tabs.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const pageId = this.dataset.page;
+                if (pageId && iframes[pageId]) {
+                    navigateTo(pageId);
+                }
+            });
+        });
+
+        // ============================================================
+        // BACK/FORWARD
+        // ============================================================
+        window.addEventListener('popstate', function(event) {
+            const state = event.state;
+            let pageId = null;
+
+            if (state && state.page && iframes[state.page]) {
+                pageId = state.page;
+            } else {
+                const hash = window.location.hash.replace('#', '');
+                if (hash && iframes[hash]) {
+                    pageId = hash;
+                }
+            }
+
+            if (pageId && pageId !== currentPage) {
+                if (currentPage === 'home') {
+                    try {
+                        const iframe = iframes.home;
+                        if (iframe && iframe.contentWindow) {
+                            setCache('homeScroll', iframe.contentWindow.scrollY || 0);
+                        }
+                    } catch (e) {}
+                }
+                switchPageSilent(pageId);
+            }
+        });
+
+        // ============================================================
+        // SWIPE REFRESH
+        // ============================================================
+        let startY = 0;
+        let pulling = false;
+        const refreshIndicator = document.getElementById('refreshIndicator');
+
+        function isHomeAtTop() {
+            try {
+                const iframe = iframes.home;
+                if (iframe && iframe.contentWindow && currentPage === 'home') {
+                    return iframe.contentWindow.scrollY === 0;
+                }
+            } catch (e) {}
+            return currentPage === 'home';
+        }
+
+        container.addEventListener('touchstart', (e) => {
+            if (isHomeAtTop()) {
+                startY = e.touches[0].clientY;
+                pulling = true;
+            }
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (!pulling) return;
+            const currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+
+            if (diff > 0 && diff < 150) {
+                refreshIndicator.style.opacity = diff / 100;
+                refreshIndicator.style.transform = `translateX(-50%) translateY(${diff * 0.5 - 60}px)`;
+                refreshIndicator.querySelector('i').style.transform = `rotate(${diff * 2}deg)`;
+            } else if (diff >= 150) {
+                refreshIndicator.style.opacity = 1;
+                refreshIndicator.style.transform = `translateX(-50%) translateY(30px)`;
+            }
+        });
+
+        container.addEventListener('touchend', (e) => {
+            if (!pulling) return;
+            pulling = false;
+            const endY = e.changedTouches[0].clientY;
+            const diff = endY - startY;
+
+            if (diff > 100 && currentPage === 'home') {
+                refreshIndicator.classList.add('spinning');
+                refreshIndicator.style.opacity = 1;
+                refreshIndicator.style.transform = `translateX(-50%) translateY(30px)`;
+
+                clearCache('homeScroll');
+                const iframe = iframes.home;
+                if (iframe) {
+                    const src = iframe.src;
+                    iframe.src = 'about:blank';
+                    setTimeout(() => {
+                        iframe.src = src;
+                        setTimeout(() => {
+                            refreshIndicator.classList.remove('spinning');
+                            refreshIndicator.style.opacity = 0;
+                            refreshIndicator.style.transform = `translateX(-50%) translateY(-60px)`;
+                            showToast('🔄 Feed refreshed!');
+                        }, 800);
+                    }, 300);
+                }
+            } else {
+                refreshIndicator.style.opacity = 0;
+                refreshIndicator.style.transform = `translateX(-50%) translateY(-60px)`;
+            }
+        });
+
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+        function initializeApp() {
+            const hash = window.location.hash.replace('#', '');
+            let initialPage = 'home';
+
+            if (hash && iframes[hash]) {
+                initialPage = hash;
+            }
+
+            Object.keys(iframes).forEach(key => {
+                iframes[key].classList.remove('active-iframe');
+                if (!iframes[key].src || iframes[key].src === 'about:blank') {
+                    iframes[key].src = pageSources[key] || key + '.html';
+                }
+            });
+
+            iframes[initialPage].classList.add('active-iframe');
+            currentPage = initialPage;
+
+            tabs.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.page === initialPage) {
+                    btn.classList.add('active');
+                }
+            });
+
+            history.replaceState({ page: initialPage }, '', '#' + initialPage);
+
+            loading.classList.add('hidden');
+
+            if (initialPage === 'home') {
+                const savedScroll = getCache('homeScroll');
+                if (savedScroll !== null) {
+                    setTimeout(() => {
+                        try {
+                            const iframe = iframes.home;
+                            if (iframe && iframe.contentWindow) {
+                                iframe.contentWindow.scrollTo(0, savedScroll);
+                            }
+                        } catch (e) {}
+                    }, 500);
+                }
+            }
+
+            console.log('🚀 Facebook SPA Ready (Authenticated)');
+        }
+
+        // Fallback: hide loading after 3 seconds if auth is already resolved
+        setTimeout(() => {
+            if (auth.currentUser) {
+                loading.classList.add('hidden');
+            }
+        }, 3000);
+
+        // ============================================================
+        // POST MESSAGE HANDLING
+        // ============================================================
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (data && data.type) {
+                switch (data.type) {
+                    case 'navigate':
+                        if (data.page && iframes[data.page]) {
+                            navigateTo(data.page);
+                        }
+                        break;
+                    case 'showToast':
+                        showToast(data.message, data.toastType || 'info');
+                        break;
+                    case 'cacheData':
+                        if (data.key && data.value) {
+                            setCache(data.key, data.value, data.ttl || 5 * 60 * 1000);
+                        }
+                        break;
+                    case 'getCache':
+                        if (data.key && data.callback) {
+                            const value = getCache(data.key);
+                            if (event.source) {
+                                event.source.postMessage({
+                                    type: 'cacheResponse',
+                                    key: data.key,
+                                    value: value,
+                                    callback: data.callback
+                                }, '*');
+                            }
+                        }
+                        break;
+                }
+            }
+        });
+
+        console.log('📦 Facebook SPA with Firebase Auth');
+        console.log('   - Redirects to login.html if not authenticated');
+        console.log('   - Back/Forward: NO RELOAD');
+        console.log('   - Swipe to refresh: YES');
+    </script>
+</body>
+</html>
