@@ -17,15 +17,60 @@
         notifyButton: { enable: false },
       });
       console.log('✅ OneSignal Initialized');
+
+      // Permission চাও
       const permission = await OneSignal.Notifications.requestPermission();
       console.log('🔔 Permission:', permission);
+
       const subId = OneSignal.User.PushSubscription.id;
       console.log('🆔 Subscription ID:', subId);
+
+      // Firestore-এ Subscription ID save কর (auth ready হলে)
+      if (subId) {
+        const trySave = () => {
+          const user = firebase.auth().currentUser;
+          if (user) {
+            firebase.firestore().collection('users').doc(user.uid).set({
+              oneSignalId: subId,
+              oneSignalUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }).then(() => {
+              console.log('✅ OneSignal ID saved to Firestore');
+            }).catch(err => console.error('❌ Save failed:', err));
+          } else {
+            setTimeout(trySave, 1500);
+          }
+        };
+        trySave();
+      }
+
+      // Subscription পরিবর্তন হলে আবার save কর
+      OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+        const newId = event.current.id;
+        console.log('🔄 Subscription changed:', newId);
+        const user = firebase.auth().currentUser;
+        if (user && newId) {
+          firebase.firestore().collection('users').doc(user.uid).set({
+            oneSignalId: newId,
+            oneSignalUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true }).catch(err => console.error(err));
+        }
+      });
+
+      // Push notification click করলে chat খুলবে
+      OneSignal.Notifications.addEventListener('click', (event) => {
+        const data = event.notification.additionalData || {};
+        console.log('👆 Push clicked:', data);
+        if (data.senderId) {
+          window.location.href = `messages.html?user=${data.senderId}`;
+        } else if (data.url) {
+          window.location.href = data.url;
+        }
+      });
+
     });
   </script>
 
   <meta charset="UTF-8">
-  <!-- ✅ সঠিক ভিউপোর্ট মেটা ট্যাগ -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>SecretIntro · Feed</title>
   <style>
@@ -47,14 +92,14 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ----- FULLSCREEN IFRAME (সংশোধিত) ----- */
+    /* ----- FULLSCREEN IFRAME ----- */
     .fullscreen-iframe {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;   /* 100vw এর পরিবর্তে 100% */
-      height: 100%;
-      height: 100dvh; /* মোবাইলের অ্যাড্রেস বার সমস্যার সমাধান */
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
       border: none;
       display: block;
       background: #fff;
@@ -262,23 +307,6 @@
       background: #f0f2f5;
     }
 
-    .notif-popup .notif-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #e74c3c;
-      color: #fff;
-      border-radius: 50%;
-      width: clamp(18px, 5vw, 22px);
-      height: clamp(18px, 5vw, 22px);
-      font-size: clamp(9px, 2.5vw, 11px);
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #fff;
-    }
-
     .notif-popup .notif-message-count {
       font-size: clamp(10px, 2.8vw, 12px);
       color: #1877f2;
@@ -304,7 +332,6 @@
       50% { opacity: 0.5; transform: scale(0.9); }
     }
 
-    /* ----- RESPONSIVE FINE-TUNING ----- */
     @media (max-width: 480px) {
       .notif-popup {
         max-width: min(320px, 92vw);
@@ -334,7 +361,6 @@
       }
     }
 
-    /* ✅ iframe সব ডিভাইসে ফুলস্ক্রিন নিশ্চিত */
     @supports (height: 100dvh) {
       .fullscreen-iframe,
       .loading-overlay {
@@ -436,7 +462,7 @@
     let isPageVisible = true;
     let hasSetOffline = false;
 
-    // ========== SLOW PROGRESS SIMULATION ==========
+    // ========== SLOW PROGRESS ==========
     function startSlowProgress() {
       progressValue = 0;
       if (progressInterval) clearInterval(progressInterval);
@@ -973,14 +999,10 @@
       if (e.key === 'Escape') window.history.back();
     });
 
-    console.log('✅ SecretIntro · Real-time Status with All Users (Responsive)');
-    console.log('🟢 All users status tracked in Firebase');
-    console.log('🔔 Message notifications appear as popups');
-    console.log('📨 Only shows once per message - no duplicates');
-    console.log('🔄 Status updates instantly when users open/close');
-    console.log('📱 Click notification to open chat');
-    console.log('👀 Everyone sees real-time online/offline status');
-    console.log('📌 Proper cleanup on page unload/visibility change');
+    console.log('✅ SecretIntro · Real-time Status + Push Notifications');
+    console.log('🔔 Popup + OneSignal Push active');
+    console.log('📨 OneSignal ID saved to Firestore');
+    console.log('👆 Push click → opens chat');
   </script>
 </body>
 </html>
