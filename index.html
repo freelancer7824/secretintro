@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Facebook · Real-Time Status</title>
-  
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   
-  <!-- ✅ OneSignal SDK (head-এ সঠিকভাবে যোগ করা) -->
+  <!-- ✅ OneSignal SDK (শুধু একবার) -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
     window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -27,11 +23,10 @@
       
       const subId = OneSignal.User.PushSubscription.id;
       console.log('🆔 Subscription ID:', subId);
-      
-      OneSignal.User.PushSubscription.addEventListener('change', (event) => {
-        console.log('🔄 Subscription changed:', event.current.id);
-      });
     });
+  </script>
+  
+
   </script>
   
   <style>
