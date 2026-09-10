@@ -5,8 +5,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  
-  <!-- ✅ OneSignal SDK (শুধু একবার) -->
+
+  <!-- OneSignal SDK -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
     window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -17,23 +17,24 @@
         notifyButton: { enable: false },
       });
       console.log('✅ OneSignal Initialized');
-      
       const permission = await OneSignal.Notifications.requestPermission();
       console.log('🔔 Permission:', permission);
-      
       const subId = OneSignal.User.PushSubscription.id;
       console.log('🆔 Subscription ID:', subId);
     });
   </script>
-  
 
-  </script>
-  
+  <meta charset="UTF-8">
+  <!-- ✅ সঠিক ভিউপোর্ট মেটা ট্যাগ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SecretIntro · Feed</title>
   <style>
+    /* ----- RESET & GLOBAL ----- */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -42,15 +43,18 @@
       overflow: hidden;
       background: #f0f2f5;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Full-screen iframe */
+    /* ----- FULLSCREEN IFRAME (সংশোধিত) ----- */
     .fullscreen-iframe {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;   /* 100vw এর পরিবর্তে 100% */
+      height: 100%;
+      height: 100dvh; /* মোবাইলের অ্যাড্রেস বার সমস্যার সমাধান */
       border: none;
       display: block;
       background: #fff;
@@ -65,13 +69,14 @@
       opacity: 1;
     }
 
-    /* Loading state */
+    /* ----- LOADING OVERLAY ----- */
     .loading-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+      height: 100dvh;
       background: #f0f2f5;
       display: flex;
       flex-direction: column;
@@ -79,6 +84,7 @@
       justify-content: center;
       z-index: 100;
       transition: opacity 0.8s ease;
+      padding: 20px;
     }
 
     .loading-overlay.hidden {
@@ -87,8 +93,8 @@
     }
 
     .loading-spinner {
-      width: 44px;
-      height: 44px;
+      width: clamp(36px, 10vw, 44px);
+      height: clamp(36px, 10vw, 44px);
       border: 4px solid #e4e6eb;
       border-top: 4px solid #1877f2;
       border-radius: 50%;
@@ -98,18 +104,20 @@
     .loading-overlay .loading-text {
       margin-top: 18px;
       color: #65676b;
-      font-size: 15px;
+      font-size: clamp(13px, 3.5vw, 15px);
       font-weight: 500;
+      text-align: center;
     }
 
     .loading-overlay .loading-sub {
       color: #8a8d91;
-      font-size: 13px;
+      font-size: clamp(11px, 3vw, 13px);
       margin-top: 6px;
+      text-align: center;
     }
 
     .loading-overlay .progress-bar {
-      width: 220px;
+      width: min(220px, 70vw);
       height: 4px;
       background: #e4e6eb;
       border-radius: 4px;
@@ -130,21 +138,25 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Toast message */
+    /* ----- TOAST ----- */
     .toast-msg {
       position: fixed;
-      top: 20px;
+      top: max(16px, env(safe-area-inset-top, 16px));
       left: 50%;
       transform: translateX(-50%);
       z-index: 200;
       background: #333;
       color: #fff;
-      padding: 10px 24px;
+      padding: clamp(8px, 2.5vw, 12px) clamp(16px, 5vw, 28px);
       border-radius: 30px;
-      font-size: 14px;
+      font-size: clamp(12px, 3.2vw, 14px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       display: none;
       animation: fadeInDown 0.3s ease;
+      max-width: 90vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     @keyframes fadeInDown {
@@ -152,17 +164,17 @@
       to { opacity: 1; transform: translate(-50%, 0); }
     }
 
-    /* ========== NOTIFICATION POPUP ========== */
+    /* ----- NOTIFICATION POPUP ----- */
     .notif-popup {
       position: fixed;
-      top: 80px;
-      right: 20px;
+      top: max(70px, calc(env(safe-area-inset-top, 0px) + 60px));
+      right: max(12px, env(safe-area-inset-right, 12px));
       background: #ffffff;
       border-radius: 16px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-      padding: 14px 18px;
+      padding: clamp(12px, 3vw, 16px) clamp(14px, 3.5vw, 20px);
       z-index: 10000;
-      max-width: 380px;
+      max-width: min(380px, 90vw);
       width: 100%;
       display: none;
       animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -177,29 +189,24 @@
     }
 
     @keyframes slideInRight {
-      from {
-        transform: translateX(120%) scale(0.9);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0) scale(1);
-        opacity: 1;
-      }
+      from { transform: translateX(120%) scale(0.9); opacity: 0; }
+      to { transform: translateX(0) scale(1); opacity: 1; }
     }
 
     .notif-popup .notif-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: clamp(8px, 2.5vw, 14px);
     }
 
     .notif-popup .notif-avatar {
-      width: 44px;
-      height: 44px;
+      width: clamp(36px, 9vw, 44px);
+      height: clamp(36px, 9vw, 44px);
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
       border: 2px solid #e4e6eb;
+      background: #e4e6eb;
     }
 
     .notif-popup .notif-info {
@@ -209,7 +216,7 @@
 
     .notif-popup .notif-name {
       font-weight: 700;
-      font-size: 15px;
+      font-size: clamp(13px, 3.5vw, 15px);
       color: #050505;
       white-space: nowrap;
       overflow: hidden;
@@ -217,7 +224,7 @@
     }
 
     .notif-popup .notif-preview {
-      font-size: 13px;
+      font-size: clamp(11px, 3vw, 13px);
       color: #65676b;
       white-space: nowrap;
       overflow: hidden;
@@ -226,16 +233,16 @@
     }
 
     .notif-popup .notif-time {
-      font-size: 11px;
+      font-size: clamp(10px, 2.8vw, 11px);
       color: #8a8d91;
       margin-top: 2px;
     }
 
     .notif-popup .notif-close {
       position: absolute;
-      top: 8px;
-      right: 12px;
-      font-size: 18px;
+      top: 6px;
+      right: 8px;
+      font-size: clamp(16px, 4.5vw, 20px);
       color: #8a8d91;
       cursor: pointer;
       background: none;
@@ -243,6 +250,12 @@
       padding: 4px;
       border-radius: 50%;
       transition: background 0.2s;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .notif-popup .notif-close:hover {
@@ -256,9 +269,9 @@
       background: #e74c3c;
       color: #fff;
       border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 11px;
+      width: clamp(18px, 5vw, 22px);
+      height: clamp(18px, 5vw, 22px);
+      font-size: clamp(9px, 2.5vw, 11px);
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -267,7 +280,7 @@
     }
 
     .notif-popup .notif-message-count {
-      font-size: 12px;
+      font-size: clamp(10px, 2.8vw, 12px);
       color: #1877f2;
       font-weight: 600;
       margin-top: 2px;
@@ -279,9 +292,9 @@
 
     .notif-popup .notif-sound-indicator {
       position: absolute;
-      bottom: 8px;
+      bottom: 6px;
       right: 12px;
-      font-size: 14px;
+      font-size: clamp(12px, 3.5vw, 14px);
       color: #1877f2;
       animation: pulse 1.5s ease-in-out infinite;
     }
@@ -291,30 +304,46 @@
       50% { opacity: 0.5; transform: scale(0.9); }
     }
 
+    /* ----- RESPONSIVE FINE-TUNING ----- */
     @media (max-width: 480px) {
-      .loading-overlay .loading-text { font-size: 13px; }
-      .loading-overlay .loading-sub { font-size: 11px; }
-      .loading-spinner { width: 34px; height: 34px; }
-      .loading-overlay .progress-bar { width: 160px; }
       .notif-popup {
-        max-width: 300px;
+        max-width: min(320px, 92vw);
         right: 10px;
-        top: 70px;
+        top: 65px;
         padding: 12px 14px;
       }
-      .notif-popup .notif-avatar { width: 36px; height: 36px; }
-      .notif-popup .notif-name { font-size: 14px; }
-      .notif-popup .notif-preview { font-size: 12px; }
+      .notif-popup .notif-avatar {
+        width: 38px;
+        height: 38px;
+      }
     }
 
     @media (max-width: 380px) {
       .notif-popup {
-        max-width: 260px;
+        max-width: min(280px, 94vw);
         right: 8px;
         top: 60px;
         padding: 10px 12px;
       }
-      .notif-popup .notif-avatar { width: 32px; height: 32px; }
+      .notif-popup .notif-avatar {
+        width: 34px;
+        height: 34px;
+      }
+      .loading-overlay .progress-bar {
+        width: 160px;
+      }
+    }
+
+    /* ✅ iframe সব ডিভাইসে ফুলস্ক্রিন নিশ্চিত */
+    @supports (height: 100dvh) {
+      .fullscreen-iframe,
+      .loading-overlay {
+        height: 100dvh;
+      }
+    }
+
+    button, .notif-popup, .fullscreen-iframe {
+      -webkit-tap-highlight-color: transparent;
     }
   </style>
 </head>
@@ -333,7 +362,7 @@
   <!-- Toast -->
   <div class="toast-msg" id="toast"></div>
 
-  <!-- ========== NOTIFICATION POPUP ========== -->
+  <!-- Notification Popup -->
   <div class="notif-popup" id="notifPopup" onclick="openNotifChat()">
     <button class="notif-close" onclick="event.stopPropagation(); closeNotif()">&times;</button>
     <div class="notif-header">
@@ -353,7 +382,7 @@
     class="fullscreen-iframe" 
     id="mainIframe"
     src="home.html" 
-    title="Facebook Clone"
+    title="SecretIntro Feed"
     allowfullscreen
     loading="eager"
     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
@@ -411,7 +440,6 @@
     function startSlowProgress() {
       progressValue = 0;
       if (progressInterval) clearInterval(progressInterval);
-      
       progressInterval = setInterval(() => {
         if (progressValue < 90) {
           const increment = 0.5 + Math.random() * 2.5;
@@ -429,7 +457,6 @@
       }
       progressValue = 100;
       progressFill.style.width = '100%';
-      
       setTimeout(() => {
         loadingOverlay.classList.add('hidden');
         mainIframe.classList.add('loaded');
@@ -451,10 +478,10 @@
       }, 3000);
     }
 
-    // ========== NOTIFICATION POPUP FUNCTIONS ==========
+    // ========== NOTIFICATION POPUP ==========
     function playNotifSound() {
       try {
-        const ctx = new(window.AudioContext || window.webkitAudioContext)();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
@@ -492,9 +519,7 @@
       };
 
       const msgId = `${senderId}_${message}_${timestamp}`;
-      if (shownMessageIds.has(msgId)) {
-        return;
-      }
+      if (shownMessageIds.has(msgId)) return;
       shownMessageIds.add(msgId);
       if (shownMessageIds.size > 200) {
         const entries = Array.from(shownMessageIds);
@@ -525,9 +550,7 @@
       isNotifShowing = true;
 
       clearTimeout(notifTimer);
-      notifTimer = setTimeout(() => {
-        closeNotif();
-      }, 5000);
+      notifTimer = setTimeout(() => closeNotif(), 5000);
     }
 
     function updateExistingNotification(senderName, message, messageCount) {
@@ -542,9 +565,7 @@
       }
       
       clearTimeout(notifTimer);
-      notifTimer = setTimeout(() => {
-        closeNotif();
-      }, 5000);
+      notifTimer = setTimeout(() => closeNotif(), 5000);
     }
 
     function closeNotif() {
@@ -598,8 +619,7 @@
 
       console.log('👂 Starting message listener for user:', userId);
 
-      const chatQuery = db.collection('chats')
-        .where('participants', 'array-contains', userId);
+      const chatQuery = db.collection('chats').where('participants', 'array-contains', userId);
 
       let lastProcessedMessages = new Map();
 
@@ -617,9 +637,7 @@
 
           const chatId = doc.id;
           const msgKey = `${chatId}_${lastMsg.timestamp || lastMsg.time}`;
-          if (lastProcessedMessages.has(chatId) && lastProcessedMessages.get(chatId) === msgKey) {
-            continue;
-          }
+          if (lastProcessedMessages.has(chatId) && lastProcessedMessages.get(chatId) === msgKey) continue;
 
           const senderData = await getUserData(lastMsg.sender);
           if (!senderData) continue;
@@ -639,14 +657,7 @@
           const senderName = senderData.fullName || senderData.firstName || 'User';
           const photoURL = senderData.photoURL || '';
           
-          showNotification(
-            lastMsg.sender,
-            senderName,
-            previewText,
-            photoURL,
-            lastMsg.timestamp || lastMsg.time,
-            unreadCount
-          );
+          showNotification(lastMsg.sender, senderName, previewText, photoURL, lastMsg.timestamp || lastMsg.time, unreadCount);
 
           lastProcessedMessages.set(chatId, msgKey);
         }
@@ -715,46 +726,39 @@
 
       console.log('👀 Starting all users status listener');
 
-      allUsersStatusListener = db.collection('users')
-        .onSnapshot((snapshot) => {
-          snapshot.docChanges().forEach((change) => {
-            if (change.type === 'modified' || change.type === 'added') {
-              const data = change.doc.data();
-              const uid = change.doc.id;
-              const status = data.status || 'offline';
+      allUsersStatusListener = db.collection('users').onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'modified' || change.type === 'added') {
+            const data = change.doc.data();
+            const uid = change.doc.id;
+            const status = data.status || 'offline';
+            
+            try {
+              const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
+              if (!iframeDoc) return;
               
-              try {
-                const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
-                if (!iframeDoc) return;
-                
-                if (uid === currentUser?.uid) {
-                  const headerDot = iframeDoc.querySelector('#header-status-dot');
-                  if (headerDot) {
-                    headerDot.className = 'online-dot' + (status === 'online' ? '' : ' offline');
-                  }
-                  const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
-                  statusEls.forEach(el => {
-                    el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
-                  });
-                } else {
-                  const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
-                  statusEls.forEach(el => {
-                    el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
-                  });
-                  
-                  const profileDots = iframeDoc.querySelectorAll(`.profile-container[data-userid="${uid}"] .online-dot`);
-                  profileDots.forEach(el => {
-                    el.className = 'online-dot' + (status === 'online' ? '' : ' offline');
-                  });
+              if (uid === currentUser?.uid) {
+                const headerDot = iframeDoc.querySelector('#header-status-dot');
+                if (headerDot) {
+                  headerDot.className = 'online-dot' + (status === 'online' ? '' : ' offline');
                 }
-              } catch (e) {
-                // Iframe not accessible yet
               }
+              const statusEls = iframeDoc.querySelectorAll(`.online-status[data-userid="${uid}"]`);
+              statusEls.forEach(el => {
+                el.className = 'online-status ' + (status === 'online' ? 'active' : 'inactive');
+              });
+              const profileDots = iframeDoc.querySelectorAll(`.profile-container[data-userid="${uid}"] .online-dot`);
+              profileDots.forEach(el => {
+                el.className = 'online-dot' + (status === 'online' ? '' : ' offline');
+              });
+            } catch (e) {
+              // Iframe not accessible yet
             }
-          });
-        }, (error) => {
-          console.error('Error listening to all users status:', error);
+          }
         });
+      }, (error) => {
+        console.error('Error listening to all users status:', error);
+      });
     }
 
     // ========== CHECK IFRAME LOADED ==========
@@ -764,7 +768,6 @@
         if (iframeDoc && iframeDoc.readyState === 'complete') {
           const bodyText = iframeDoc.body?.innerText || '';
           const hasContent = bodyText.length > 50 || iframeDoc.querySelectorAll('div, img, p').length > 3;
-          
           if (hasContent && !iframeLoaded) {
             iframeLoaded = true;
             completeProgress();
@@ -800,12 +803,8 @@
               right: 0;
               border: 2px solid #fff;
             }
-            .online-status.active {
-              background: #31a24c;
-            }
-            .online-status.inactive {
-              background: #b0b3b8;
-            }
+            .online-status.active { background: #31a24c; }
+            .online-status.inactive { background: #b0b3b8; }
             .online-dot {
               width: 10px;
               height: 10px;
@@ -816,9 +815,7 @@
               border: 2px solid #fff;
               transition: background 0.3s;
             }
-            .online-dot.offline {
-              background: #b0b3b8;
-            }
+            .online-dot.offline { background: #b0b3b8; }
           `;
           iframeDoc.head.appendChild(styleEl);
         }
@@ -832,7 +829,6 @@
       if (user) {
         currentUser = user;
         await setUserOnline(user);
-        
         showToast(`👋 Welcome ${user.displayName || user.email?.split('@')[0] || 'User'}`);
 
         if (statusUpdateInterval) clearInterval(statusUpdateInterval);
@@ -849,14 +845,10 @@
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        const handleBeforeUnload = () => {
-          setUserOffline(user);
-        };
+        const handleBeforeUnload = () => setUserOffline(user);
         window.addEventListener('beforeunload', handleBeforeUnload);
 
-        const handlePageHide = () => {
-          setUserOffline(user);
-        };
+        const handlePageHide = () => setUserOffline(user);
         window.addEventListener('pagehide', handlePageHide);
 
         const handleIframeLoad = () => {
@@ -898,7 +890,7 @@
         currentUser = null;
         loadingOverlay.classList.add('hidden');
         mainIframe.classList.add('loaded');
-        showToast('🔑 Please login to Facebook');
+        showToast('🔑 Please login to SecretIntro');
 
         if (allUsersStatusListener) {
           allUsersStatusListener();
@@ -955,12 +947,8 @@
       
       if (params.page) {
         url = `${params.page}.html`;
-        if (params.userId) {
-          url += `?user=${params.userId}`;
-        }
-        if (params.postId) {
-          url += `${params.userId ? '&' : '?'}post=${params.postId}`;
-        }
+        if (params.userId) url += `?user=${params.userId}`;
+        if (params.postId) url += `${params.userId ? '&' : '?'}post=${params.postId}`;
       }
       
       if (params.userId && !params.page) {
@@ -979,17 +967,13 @@
 
     setIframeSource();
 
-    window.addEventListener('popstate', () => {
-      setIframeSource();
-    });
+    window.addEventListener('popstate', () => setIframeSource());
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        window.history.back();
-      }
+      if (e.key === 'Escape') window.history.back();
     });
 
-    console.log('✅ Facebook · Real-time Status with All Users');
+    console.log('✅ SecretIntro · Real-time Status with All Users (Responsive)');
     console.log('🟢 All users status tracked in Firebase');
     console.log('🔔 Message notifications appear as popups');
     console.log('📨 Only shows once per message - no duplicates');
