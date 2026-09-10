@@ -10,6 +10,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   
+  <!-- ✅ OneSignal SDK (head-এ সঠিকভাবে যোগ করা) -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "8238cf86-d360-4006-99aa-dbc87015495f",
+        allowLocalhostAsSecureOrigin: true,
+        notifyButton: { enable: false },
+      });
+      console.log('✅ OneSignal Initialized');
+      
+      const permission = await OneSignal.Notifications.requestPermission();
+      console.log('🔔 Permission:', permission);
+      
+      const subId = OneSignal.User.PushSubscription.id;
+      console.log('🆔 Subscription ID:', subId);
+      
+      OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+        console.log('🔄 Subscription changed:', event.current.id);
+      });
+    });
+  </script>
+  
   <style>
     * {
       margin: 0;
@@ -254,12 +278,10 @@
       margin-top: 2px;
     }
 
-    /* Multiple notifications stack */
     .notif-popup.multiple {
       border-left-color: #e74c3c;
     }
 
-    /* Notification sound indicator */
     .notif-popup .notif-sound-indicator {
       position: absolute;
       bottom: 8px;
@@ -274,37 +296,20 @@
       50% { opacity: 0.5; transform: scale(0.9); }
     }
 
-    /* Responsive */
     @media (max-width: 480px) {
-      .loading-overlay .loading-text {
-        font-size: 13px;
-      }
-      .loading-overlay .loading-sub {
-        font-size: 11px;
-      }
-      .loading-spinner {
-        width: 34px;
-        height: 34px;
-      }
-      .loading-overlay .progress-bar {
-        width: 160px;
-      }
+      .loading-overlay .loading-text { font-size: 13px; }
+      .loading-overlay .loading-sub { font-size: 11px; }
+      .loading-spinner { width: 34px; height: 34px; }
+      .loading-overlay .progress-bar { width: 160px; }
       .notif-popup {
         max-width: 300px;
         right: 10px;
         top: 70px;
         padding: 12px 14px;
       }
-      .notif-popup .notif-avatar {
-        width: 36px;
-        height: 36px;
-      }
-      .notif-popup .notif-name {
-        font-size: 14px;
-      }
-      .notif-popup .notif-preview {
-        font-size: 12px;
-      }
+      .notif-popup .notif-avatar { width: 36px; height: 36px; }
+      .notif-popup .notif-name { font-size: 14px; }
+      .notif-popup .notif-preview { font-size: 12px; }
     }
 
     @media (max-width: 380px) {
@@ -314,10 +319,7 @@
         top: 60px;
         padding: 10px 12px;
       }
-      .notif-popup .notif-avatar {
-        width: 32px;
-        height: 32px;
-      }
+      .notif-popup .notif-avatar { width: 32px; height: 32px; }
     }
   </style>
 </head>
@@ -730,7 +732,6 @@
                 const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow.document;
                 if (!iframeDoc) return;
                 
-                // Update all status indicators in the iframe
                 if (uid === currentUser?.uid) {
                   const headerDot = iframeDoc.querySelector('#header-status-dot');
                   if (headerDot) {
@@ -844,7 +845,6 @@
           setUserOnline(user);
         }, 30000);
 
-        // Handle visibility change
         const handleVisibilityChange = () => {
           if (document.hidden) {
             setUserOffline(user);
@@ -854,19 +854,16 @@
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Handle page unload
         const handleBeforeUnload = () => {
           setUserOffline(user);
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
 
-        // Handle page hide (for mobile)
         const handlePageHide = () => {
           setUserOffline(user);
         };
         window.addEventListener('pagehide', handlePageHide);
 
-        // Handle iframe load
         const handleIframeLoad = () => {
           setUserOnline(user);
           if (!iframeLoaded) {
@@ -895,7 +892,6 @@
           }
         }, 15000);
 
-        // Cleanup function
         window._cleanupStatus = () => {
           document.removeEventListener('visibilitychange', handleVisibilityChange);
           window.removeEventListener('beforeunload', handleBeforeUnload);
